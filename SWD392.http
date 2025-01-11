@@ -1,0 +1,6 @@
+@SWD392_HostAddress = http://localhost:5289
+
+GET {{SWD392_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
