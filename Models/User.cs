@@ -27,6 +27,8 @@ public partial class User
 
     public int? MembershipPackageId { get; set; }
 
+    public string Uid { get; set; }
+
     public virtual ICollection<BlogContent> BlogContents { get; set; } = new List<BlogContent>();
 
     public virtual ICollection<Child> Children { get; set; } = new List<Child>();
