@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -8,6 +9,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using SWD392.Data;
 using SWD392.DTOs.UserDTO;
 using SWD392.Mapper;
@@ -101,6 +104,32 @@ namespace SWD392.Controllers
 
         }
 
+        [HttpGet("self")]
+        public async Task<ActionResult<GetUserDTO>> GetSelf()
+        {
+            if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(); //or whatever
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(authHeader);
+
+            var rawId = token.Claims.First(claim => claim.Type == "id").Value;
+
+            var id = int.Parse(rawId);
+
+            var user = await _context.Users.FindAsync(id);
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            return user.ToGetUserDTO();
+        }
+
+
         // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<GetUserDTO>> GetUser(int id)
@@ -122,11 +151,16 @@ namespace SWD392.Controllers
                 return Unauthorized(); //or whatever
 
             var authHeader = HttpContext.Request.Headers["Authorization"][0];
-            return BadRequest(authHeader);
 
-            if (User.FindFirst("id") == null) { return Unauthorized(); }
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(authHeader);
 
-            var id = int.Parse(User?.FindFirst("id")?.Value);
+            var rawId = token.Claims.First(claim => claim.Type == "id").Value;
+
+            var id = int.Parse(rawId);
+
+            if (UserExists(id) == false) { return Unauthorized(); }
+
             return await PutUser(id, userDto);
         }
 
