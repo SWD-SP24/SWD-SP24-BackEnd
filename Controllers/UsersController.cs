@@ -229,6 +229,10 @@ namespace SWD392.Controllers
                     throw;
                 }
             }
+            catch (Exception)
+            {
+                return BadRequest("Something went wrong, maybe duplicate phone number or email");
+            }
 
             return NoContent();
         }
