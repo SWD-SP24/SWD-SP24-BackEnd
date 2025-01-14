@@ -122,6 +122,10 @@ namespace SWD392.Controllers
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(authHeader);
 
+            // Check if token has expired
+            if (token.ValidTo < DateTime.UtcNow)
+                return Unauthorized(new { message = "JWT token has expired" });
+
             var rawId = token.Claims.First(claim => claim.Type == "id").Value;
 
             var id = int.Parse(rawId);
@@ -161,6 +165,10 @@ namespace SWD392.Controllers
 
             var handler = new JwtSecurityTokenHandler();
             var token = handler.ReadJwtToken(authHeader);
+
+            // Check if token has expired
+            if (token.ValidTo < DateTime.UtcNow)
+                return Unauthorized(new { message = "JWT token has expired" });
 
             var rawId = token.Claims.First(claim => claim.Type == "id").Value;
 
@@ -238,7 +246,7 @@ namespace SWD392.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new { message = "Password is incorrect" });
+                return BadRequest(new { message = "Unable to edit user" });
             }
 
             return Ok(new { message = "successful", data = user.ToGetUserDTO() });
