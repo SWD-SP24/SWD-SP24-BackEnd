@@ -11,7 +11,7 @@ namespace SWD392.Mapper
             {
                 Email = registerUserDTO.Email,
                 PhoneNumber = registerUserDTO.PhoneNumber ?? null,
-                PasswordHash = registerUserDTO.Password,
+                //PasswordHash = registerUserDTO.Password,
                 FullName = registerUserDTO.FullName ?? registerUserDTO.Email,
                 Avatar = "",
                 Role = "member",
@@ -38,7 +38,7 @@ namespace SWD392.Mapper
                 UserId = user.UserId,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
-                PasswordHash = user.PasswordHash,
+                //PasswordHash = user.PasswordHash,
                 FullName = user.FullName,
                 Avatar = user.Avatar,
                 Role = user.Role,

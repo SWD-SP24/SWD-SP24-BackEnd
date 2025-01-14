@@ -10,7 +10,7 @@ namespace SWD392.DTOs.UserDTO
 
         public required string PhoneNumber { get; set; }
 
-        public required string PasswordHash { get; set; }
+        //public required string PasswordHash { get; set; }
 
         public required string FullName { get; set; }
 
