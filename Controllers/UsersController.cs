@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -32,7 +33,7 @@ namespace SWD392.Controllers
 
         // POST: api/Users/
         [HttpPost("register")]
-        public async Task<ActionResult<User>> RegisterUser(RegisterUserDTO userDTO)
+        public async Task<ActionResult<GetUserDTO>> RegisterUser(RegisterUserDTO userDTO)
         {
             if (_context.Users.Any(_context => _context.Email == userDTO.Email)) { return BadRequest("Email already exists"); }
             string uid = "";
@@ -60,7 +61,7 @@ namespace SWD392.Controllers
             //_context.Users.Add(newUser);
             //await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = newUser.UserId }, newUser);
+            return CreatedAtAction("GetUser", new { id = newUser.UserId }, newUser.ToGetUserDTO());
         }
 
         [HttpPost("login")]
@@ -95,14 +96,14 @@ namespace SWD392.Controllers
         public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetUsers()
         {
             var users = await _context.Users.ToListAsync();
-            var userDTOs = users.Select(user => user.ToGetAllUserDTO()).ToList();
+            var userDTOs = users.Select(user => user.ToGetUserDTO()).ToList();
             return Ok(userDTOs);
 
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<GetUserDTO>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
 
@@ -111,17 +112,70 @@ namespace SWD392.Controllers
                 return NotFound();
             }
 
-            return user;
+            return user.ToGetUserDTO();
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> EditSelf(EditUserDTO userDto)
+        {
+            if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(); //or whatever
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+            return BadRequest(authHeader);
+
+            if (User.FindFirst("id") == null) { return Unauthorized(); }
+
+            var id = int.Parse(User?.FindFirst("id")?.Value);
+            return await PutUser(id, userDto);
         }
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> PutUser(int id, EditUserDTO userDto)
         {
-            if (id != user.UserId)
+            var user = await _context.Users.FindAsync(id);
+
+            if (user == null)
             {
-                return BadRequest();
+                return NotFound();
+            }
+
+            {
+                // Update user properties with non-null values from userDto
+                if (userDto.PhoneNumber != null)
+                {
+                    user.PhoneNumber = userDto.PhoneNumber;
+                }
+                if (userDto.Password != null)
+                {
+                    user.PasswordHash = userDto.Password;
+                }
+                if (userDto.FullName != null)
+                {
+                    user.FullName = userDto.FullName;
+                }
+                if (userDto.Avatar != null)
+                {
+                    user.Avatar = userDto.Avatar;
+                }
+                if (userDto.Role != null)
+                {
+                    user.Role = userDto.Role;
+                }
+                if (userDto.Status != null)
+                {
+                    user.Status = userDto.Status;
+                }
+                if (userDto.MembershipPackageId != null)
+                {
+                    user.MembershipPackageId = userDto.MembershipPackageId;
+                }
+                if (userDto.Uid != null)
+                {
+                    user.Uid = userDto.Uid;
+                }
             }
 
             _context.Entry(user).State = EntityState.Modified;

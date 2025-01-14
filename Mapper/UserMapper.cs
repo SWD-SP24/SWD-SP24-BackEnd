@@ -31,7 +31,7 @@ namespace SWD392.Mapper
             };
         }
 
-        public static GetUserDTO ToGetAllUserDTO(this User user)
+        public static GetUserDTO ToGetUserDTO(this User user)
         {
             return new GetUserDTO
             {
@@ -53,7 +53,7 @@ namespace SWD392.Mapper
         {
             return new LoginResponseDTO
             {
-                User = user,
+                User = user.ToGetUserDTO(),
                 Token = token
             };
         }
