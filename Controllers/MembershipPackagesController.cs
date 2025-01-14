@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ namespace SWD392.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class MembershipPackagesController : ControllerBase
     {
         private readonly IMembershipPackageRepository _repository;
@@ -30,7 +32,12 @@ namespace SWD392.Controllers
         public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetMembershipPackages()
         {
             var membershipPackages = await _repository.GetMembershipPackagesAsync();
-            return Ok(membershipPackages);
+            var response = new
+            {
+                status = "success",
+                data = membershipPackages
+            };
+            return Ok(response);
         }
 
         /*// GET: api/MembershipPackages/5
