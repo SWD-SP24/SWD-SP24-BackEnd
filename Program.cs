@@ -20,6 +20,19 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 builder.Services.AddScoped<IMembershipPackageRepository, MembershipPackageRepository>();
+
+builder.Services.AddCors(options =>
+{
+    var corsSettings = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>();
+    options.AddPolicy("DefaultCorsPolicy", builder =>
+    {
+        builder.WithOrigins(corsSettings)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -60,6 +73,9 @@ FirebaseApp.Create(new AppOptions()
 
 
 var app = builder.Build();
+
+app.UseDeveloperExceptionPage();
+app.UseCors("DefaultCorsPolicy");
 
 // Configure the HTTP request pipeline.
 app.UseSwagger();

@@ -74,6 +74,8 @@ namespace SWD392.Controllers
             // TODO: Authentication check for all endpoints
             // TODO: Confirm email
             // TODO: Hash password
+            // TODO: Add every returns to a custom response
+            
             var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
             if (loginUser == null) { return BadRequest("Account does not exist"); }
 
