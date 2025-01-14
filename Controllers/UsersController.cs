@@ -38,7 +38,10 @@ namespace SWD392.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<GetUserDTO>> RegisterUser(RegisterUserDTO userDTO)
         {
-            if (_context.Users.Any(_context => _context.Email == userDTO.Email)) { return BadRequest("Email already exists"); }
+            if (_context.Users.Any(_context => _context.Email == userDTO.Email)) 
+            { 
+                return BadRequest(new {message = "Email already exists."}); 
+            }
             string uid = "";
             try
             {
@@ -46,7 +49,7 @@ namespace SWD392.Controllers
             }
             catch (Exception)
             {
-                return BadRequest("Firebase failed");
+                return BadRequest(new {message = "Fail to create account"});
             }
 
             var newUser = userDTO.ToUser(uid);
@@ -59,12 +62,14 @@ namespace SWD392.Controllers
             catch (DbUpdateException)
             {
                 await _authentication.DeleteAsync(uid);
-                return BadRequest("Register failed");
+                return BadRequest(new { message = "Fail to create account" });
             }
             //_context.Users.Add(newUser);
             //await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = newUser.UserId }, newUser.ToGetUserDTO());
+            //return CreatedAtAction("GetUser", new { id = newUser.UserId }, newUser.ToGetUserDTO());
+            var userResponse = newUser.ToGetUserDTO();
+            return Ok(new { message = "successful", data = userResponse });
         }
 
         [HttpPost("login")]
@@ -77,9 +82,9 @@ namespace SWD392.Controllers
             // TODO: Add every returns to a custom response
             
             var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
-            if (loginUser == null) { return BadRequest("Account does not exist"); }
+            if (loginUser == null) { return BadRequest(new { message = "Account does not exist" } ); }
 
-            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest("Password is incorrect"); }
+            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(new { message = "Password is incorrect" }); }
 
             string token = "";
             try
@@ -88,12 +93,12 @@ namespace SWD392.Controllers
             }
             catch (Exception)
             {
-                return BadRequest("Unable to create JWT Token");
+                return BadRequest(new { message = "Unable to create JWT Token"});
             }
 
             var loginResponse = loginUser.ToLoginResponseDTO(token);
 
-            return loginResponse;
+            return Ok(new { message = "successful", data=loginResponse });
         }
 
         // GET: api/Users
@@ -102,7 +107,7 @@ namespace SWD392.Controllers
         {
             var users = await _context.Users.ToListAsync();
             var userDTOs = users.Select(user => user.ToGetUserDTO()).ToList();
-            return Ok(userDTOs);
+            return Ok(new {message = "successful", data = userDTOs});
 
         }
 
@@ -110,7 +115,7 @@ namespace SWD392.Controllers
         public async Task<ActionResult<GetUserDTO>> GetSelf()
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
-                return Unauthorized(); //or whatever
+                return Unauthorized(new { message = "No JWT key"}); //or whatever
 
             var authHeader = HttpContext.Request.Headers["Authorization"][0];
 
@@ -125,10 +130,10 @@ namespace SWD392.Controllers
 
             if (user == null)
             {
-                return Unauthorized();
+                return Unauthorized(new { message = "Invalid JWT key"});
             }
 
-            return user.ToGetUserDTO();
+            return Ok( new {message = "successful", data = user.ToGetUserDTO()});
         }
 
 
@@ -140,17 +145,17 @@ namespace SWD392.Controllers
 
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new { message = "User not found" });
             }
 
-            return user.ToGetUserDTO();
+            return Ok(new { message = "successful", data = user.ToGetUserDTO() });
         }
 
         [HttpPut]
         public async Task<IActionResult> EditSelf(EditUserDTO userDto)
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
-                return Unauthorized(); //or whatever
+                return Unauthorized(new { message = "No JWT key" }); //or whatever
 
             var authHeader = HttpContext.Request.Headers["Authorization"][0];
 
@@ -161,7 +166,7 @@ namespace SWD392.Controllers
 
             var id = int.Parse(rawId);
 
-            if (UserExists(id) == false) { return Unauthorized(); }
+            if (UserExists(id) == false) { return Unauthorized(new { message = "Invalid JWT key" }); }
 
             return await PutUser(id, userDto);
         }
@@ -175,7 +180,7 @@ namespace SWD392.Controllers
 
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new { message = "User not found" });
             }
 
             {
@@ -224,7 +229,7 @@ namespace SWD392.Controllers
             {
                 if (!UserExists(id))
                 {
-                    return NotFound();
+                    return NotFound(new { message = "User not found" });
                 }
                 else
                 {
@@ -233,10 +238,10 @@ namespace SWD392.Controllers
             }
             catch (Exception)
             {
-                return BadRequest("Something went wrong, maybe duplicate phone number or email");
+                return BadRequest(new { message = "Password is incorrect" });
             }
 
-            return NoContent();
+            return Ok(new { message = "successful", data = user.ToGetUserDTO() });
         }
 
         // DELETE: api/Users/5
@@ -246,14 +251,14 @@ namespace SWD392.Controllers
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new { message = "User not found" });
             }
 
             await _authentication.DeleteAsync(user.Uid);
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new { message = "Delete successful" });
         }
 
         private bool UserExists(int id)
