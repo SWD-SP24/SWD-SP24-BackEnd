@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SWD392.Data;
 using SWD392.Models;
+using SWD392.Service;
 
 namespace SWD392.Controllers
 {
@@ -15,10 +16,37 @@ namespace SWD392.Controllers
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly AuthenticationService _authentication;
 
         public UsersController(AppDbContext context)
         {
             _context = context;
+            _authentication = new AuthenticationService();
+        }
+
+        // POST: api/Users/Register
+        [HttpPost]
+        public async Task<ActionResult<User>> RegisterUser(User user)
+        {
+            if (_context.Users.Any(_context => _context.Email == user.Email)) { return BadRequest("Email already exists"); }
+
+            var uid = await _authentication.RegisterAsync(user.Email, user.PasswordHash);
+
+            var newUser = new User
+            {
+                Email = user.Email,
+                PasswordHash = user.PasswordHash,
+                FullName = user.FullName,
+                Avatar = user.Avatar,
+                Role = user.Role,
+                Status = user.Status,
+                CreatedAt = user.CreatedAt
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetUser", new { id = user.UserId }, user);
         }
 
         // GET: api/Users
@@ -71,17 +99,6 @@ namespace SWD392.Controllers
             }
 
             return NoContent();
-        }
-
-        // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
-        {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUser", new { id = user.UserId }, user);
         }
 
         // DELETE: api/Users/5
