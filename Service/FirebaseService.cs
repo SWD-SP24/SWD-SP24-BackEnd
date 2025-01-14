@@ -2,7 +2,7 @@
 
 namespace SWD392.Service
 {
-    public class AuthenticationService
+    public class FirebaseService
     {
         public async Task<string> RegisterAsync(string username, string password)
         {
@@ -14,6 +14,11 @@ namespace SWD392.Service
             var userRecord = await FirebaseAuth.DefaultInstance.CreateUserAsync(userArgs);
 
             return userRecord.Uid;
+        }
+
+        public async Task DeleteAsync(string uid)
+        {
+            await FirebaseAuth.DefaultInstance.DeleteUserAsync(uid);
         }
     }
 }

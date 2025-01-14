@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SWD392.Data;
+using SWD392.DTOs.UserDTO;
+using SWD392.Mapper;
 using SWD392.Models;
 using SWD392.Service;
 
@@ -16,44 +20,84 @@ namespace SWD392.Controllers
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly AuthenticationService _authentication;
+        private readonly FirebaseService _authentication;
+        private readonly TokenService _tokenService;
 
-        public UsersController(AppDbContext context)
+        public UsersController(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
-            _authentication = new AuthenticationService();
+            _authentication = new FirebaseService();
+            _tokenService = new TokenService(configuration);
         }
 
-        // POST: api/Users/Register
-        [HttpPost]
-        public async Task<ActionResult<User>> RegisterUser(User user)
+        // POST: api/Users/
+        [HttpPost("register")]
+        public async Task<ActionResult<User>> RegisterUser(RegisterUserDTO userDTO)
         {
-            if (_context.Users.Any(_context => _context.Email == user.Email)) { return BadRequest("Email already exists"); }
-
-            var uid = await _authentication.RegisterAsync(user.Email, user.PasswordHash);
-
-            var newUser = new User
+            if (_context.Users.Any(_context => _context.Email == userDTO.Email)) { return BadRequest("Email already exists"); }
+            string uid = "";
+            try
             {
-                Email = user.Email,
-                PasswordHash = user.PasswordHash,
-                FullName = user.FullName,
-                Avatar = user.Avatar,
-                Role = user.Role,
-                Status = user.Status,
-                CreatedAt = user.CreatedAt
-            };
+                uid = await _authentication.RegisterAsync(userDTO.Email, userDTO.Password);
+            }
+            catch (Exception)
+            {
+                return BadRequest("Firebase failed");
+            }
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            var newUser = userDTO.ToUser(uid);
 
-            return CreatedAtAction("GetUser", new { id = user.UserId }, user);
+            try
+            {
+                _context.Users.Add(newUser);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                await _authentication.DeleteAsync(uid);
+                return BadRequest("Register failed");
+            }
+            //_context.Users.Add(newUser);
+            //await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetUser", new { id = newUser.UserId }, newUser);
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<LoginResponseDTO>> LoginUser(LoginUserDTO userDTO)
+        {
+            // TODO: support login with multiple methods
+            // TODO: Authentication check for all endpoints
+            // TODO: Confirm email
+            // TODO: Hash password
+            var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
+            if (loginUser == null) { return BadRequest("Account does not exist"); }
+
+            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest("Password is incorrect"); }
+
+            string token = "";
+            try
+            {
+                token = _tokenService.CreateUserToken(loginUser);
+            }
+            catch (Exception)
+            {
+                return BadRequest("Unable to create JWT Token");
+            }
+
+            var loginResponse = loginUser.ToLoginResponseDTO(token);
+
+            return loginResponse;
         }
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            var users = await _context.Users.ToListAsync();
+            var userDTOs = users.Select(user => user.ToGetAllUserDTO()).ToList();
+            return Ok(userDTOs);
+
         }
 
         // GET: api/Users/5
@@ -111,6 +155,7 @@ namespace SWD392.Controllers
                 return NotFound();
             }
 
+            await _authentication.DeleteAsync(user.Uid);
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
