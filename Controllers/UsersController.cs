@@ -40,7 +40,8 @@ namespace SWD392.Controllers
         {
             if (_context.Users.Any(_context => _context.Email == userDTO.Email)) 
             { 
-                return BadRequest(new {status = 1000, message = "Email already exists."}); 
+                //return BadRequest(new {status = 1000, message = "Email already exists."}); 
+                return BadRequest(ApiResponse<object>.Error("Email already exists.")); 
             }
             string uid = "";
             try
@@ -49,7 +50,7 @@ namespace SWD392.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new { status = 1001, message = "Fail to create account"});
+                return BadRequest(ApiResponse<object>.Error("Fail to create account"));
             }
 
             var newUser = userDTO.ToUser(uid);
@@ -62,14 +63,16 @@ namespace SWD392.Controllers
             catch (DbUpdateException)
             {
                 await _authentication.DeleteAsync(uid);
-                return BadRequest(new { status = 1001, message = "Fail to create account" });
+                return BadRequest(ApiResponse<object>.Error("Fail to create account" ));
             }
             //_context.Users.Add(newUser);
             //await _context.SaveChangesAsync();
 
             //return CreatedAtAction("GetUser", new { id = newUser.UserId }, newUser.ToGetUserDTO());
             var userResponse = newUser.ToGetUserDTO();
-            return Ok(new { message = "successful", data = userResponse });
+            Type resType = userResponse.GetType();
+            //return Ok(new { message = "successful", data = userResponse });
+            return Ok(ApiResponse<object>.Success(userResponse));
         }
 
         [HttpPost("login")]
@@ -80,9 +83,9 @@ namespace SWD392.Controllers
             // TODO: Reset password
             
             var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
-            if (loginUser == null) { return BadRequest(new { status = 1002, message = "Account does not exist" } ); }
+            if (loginUser == null) { return BadRequest(ApiResponse<object>.Error("Account does not exist" ) ); }
 
-            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(new { status = 1003, message = "Password is incorrect" }); }
+            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error("Password is incorrect" )); }
 
             string token = "";
             try
@@ -91,12 +94,12 @@ namespace SWD392.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new { status = 1004, message = "Unable to create JWT Token"});
+                return BadRequest(ApiResponse<object>.Error("Unable to create JWT Token"));
             }
 
             var loginResponse = loginUser.ToLoginResponseDTO(token);
 
-            return Ok(new { message = "successful", data=loginResponse });
+            return Ok(ApiResponse<object>.Success(loginResponse ));
         }
 
         // GET: api/Users
@@ -105,7 +108,7 @@ namespace SWD392.Controllers
         {
             var users = await _context.Users.ToListAsync();
             var userDTOs = users.Select(user => user.ToGetUserDTO()).ToList();
-            return Ok(new {message = "successful", data = userDTOs});
+            return Ok(ApiResponse<object>.Success(userDTOs));
 
         }
 
@@ -113,7 +116,7 @@ namespace SWD392.Controllers
         public async Task<ActionResult<GetUserDTO>> GetSelf()
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
-                return Unauthorized(new { status = 1005, message = "No JWT key"}); //or whatever
+                return Unauthorized(ApiResponse<object>.Error("No JWT key")); //or whatever
 
             var authHeader = HttpContext.Request.Headers["Authorization"][0];
 
@@ -122,7 +125,7 @@ namespace SWD392.Controllers
 
             // Check if token has expired
             if (token.ValidTo < DateTime.UtcNow)
-                return Unauthorized(new { status = 1006, message = "JWT token has expired" });
+                return Unauthorized(ApiResponse<object>.Error("JWT token has expired" ));
 
             var rawId = token.Claims.First(claim => claim.Type == "id").Value;
 
@@ -132,10 +135,10 @@ namespace SWD392.Controllers
 
             if (user == null)
             {
-                return Unauthorized(new { status = 1007, message = "Invalid JWT key"});
+                return Unauthorized(ApiResponse<object>.Error("Invalid JWT key"));
             }
 
-            return Ok( new {message = "successful", data = user.ToGetUserDTO()});
+            return Ok(ApiResponse<object>.Success(user.ToGetUserDTO()));
         }
 
 
@@ -147,17 +150,17 @@ namespace SWD392.Controllers
 
             if (user == null)
             {
-                return NotFound(new { status = 1002, message = "Account does not exist" });
+                return NotFound(ApiResponse<object>.Error("Account does not exist" ));
             }
 
-            return Ok(new { message = "successful", data = user.ToGetUserDTO() });
+            return Ok(ApiResponse<object>.Success(user.ToGetUserDTO()));
         }
 
         [HttpPut]
         public async Task<IActionResult> EditSelf(EditUserDTO userDto)
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
-                return Unauthorized(new { status = 1005, message = "No JWT key" }); //or whatever
+                return Unauthorized(ApiResponse<object>.Error("No JWT key" )); //or whatever
 
             var authHeader = HttpContext.Request.Headers["Authorization"][0];
 
@@ -166,13 +169,13 @@ namespace SWD392.Controllers
 
             // Check if token has expired
             if (token.ValidTo < DateTime.UtcNow)
-                return Unauthorized(new { status = 1006, message = "JWT token has expired" });
+                return Unauthorized(ApiResponse<object>.Error("JWT token has expired" ));
 
             var rawId = token.Claims.First(claim => claim.Type == "id").Value;
 
             var id = int.Parse(rawId);
 
-            if (UserExists(id) == false) { return Unauthorized(new { status = 1007, message = "Invalid JWT key" }); }
+            if (UserExists(id) == false) { return Unauthorized(ApiResponse<object>.Error("Invalid JWT key" )); }
 
             return await PutUser(id, userDto);
         }
@@ -186,7 +189,7 @@ namespace SWD392.Controllers
 
             if (user == null)
             {
-                return NotFound(new { status = 1002, message = "Account does not exist" });
+                return NotFound(ApiResponse<object>.Error("Account does not exist" ));
             }
 
             {
@@ -235,7 +238,7 @@ namespace SWD392.Controllers
             {
                 if (!UserExists(id))
                 {
-                    return NotFound(new { status = 1002, message = "Account does not exist" });
+                    return NotFound(ApiResponse<object>.Error("Account does not exist" ));
                 }
                 else
                 {
@@ -244,10 +247,10 @@ namespace SWD392.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(new { status = 1008, message = "Unable to edit user" });
+                return BadRequest(ApiResponse<object>.Error("Unable to edit user" ));
             }
 
-            return Ok(new { message = "successful", data = user.ToGetUserDTO() });
+            return Ok(ApiResponse<object>.Success(user.ToGetUserDTO()));
         }
 
         // DELETE: api/Users/5
@@ -257,14 +260,14 @@ namespace SWD392.Controllers
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return NotFound(new { status = 1002, message = "Account does not exist" });
+                return NotFound(ApiResponse<object>.Error("Account does not exist" ));
             }
 
             await _authentication.DeleteAsync(user.Uid);
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Delete successful" });
+            return Ok(ApiResponse<object>.Success("", message: "Delete successful" ));
         }
 
         private bool UserExists(int id)
