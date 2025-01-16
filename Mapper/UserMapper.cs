@@ -53,7 +53,16 @@ namespace SWD392.Mapper
         {
             return new LoginResponseDTO
             {
-                User = user.ToGetUserDTO(),
+                UserId = user.UserId,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                FullName = user.FullName,
+                Avatar = user.Avatar,
+                Role = user.Role,
+                Status = user.Status,
+                CreatedAt = user.CreatedAt,
+                MembershipPackageId = user.MembershipPackageId,
+                Uid = user.Uid,
                 Token = token
             };
         }
