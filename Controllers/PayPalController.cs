@@ -96,30 +96,23 @@ namespace SWD392.Controllers
                 {
                     try
                     {
-                        // Kiểm tra và lấy token từ Authorization header
-                        if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                        // Lấy PaymentTransaction từ PaymentId
+                        var paymentTransaction = _Context.PaymentTransactions
+                            .FirstOrDefault(pt => pt.PaymentId == paymentId);
+
+                        if (paymentTransaction == null)
                         {
-                            return Unauthorized(new { message = "Không tìm thấy header Authorization" });
+                            return NotFound(new { message = $"Không tìm thấy giao dịch với PaymentId {paymentId}" });
                         }
 
-                        var authHeader = HttpContext.Request.Headers["Authorization"][0]; // Lấy giá trị đầu tiên
-                        if (string.IsNullOrEmpty(authHeader))
+                        // Kiểm tra trạng thái giao dịch
+                        if (paymentTransaction.Status == "success")
                         {
-                            return Unauthorized(new { message = "Token không hợp lệ" });
+                            return BadRequest(new { message = "Giao dịch này đã được xử lý trước đó." });
                         }
 
-                        var handler = new JwtSecurityTokenHandler();
-                        var token = handler.ReadJwtToken(authHeader); // Đọc token
-
-                        // Kiểm tra và lấy giá trị "id" từ token
-                        var rawId = token.Claims.FirstOrDefault(claim => claim.Type == "id")?.Value;
-
-                        if (string.IsNullOrEmpty(rawId))
-                        {
-                            return Unauthorized(new { message = "Không tìm thấy thông tin người dùng trong token" });
-                        }
-
-                        var userId = int.Parse(rawId);
+                        // Lấy UserId từ bảng PaymentTransaction
+                        var userId = paymentTransaction.UserId;
 
                         // Kiểm tra người dùng tồn tại
                         var user = _Context.Users.FirstOrDefault(x => x.UserId == userId);
@@ -128,20 +121,44 @@ namespace SWD392.Controllers
                             return NotFound(new { message = $"Người dùng với userId {userId} không tồn tại" });
                         }
 
-                        // Cập nhật MembershipPackageId
+                        // Cập nhật trạng thái PaymentTransaction thành "success"
+                        paymentTransaction.Status = "success";
+                        _Context.PaymentTransactions.Update(paymentTransaction);
+                        _Context.SaveChanges();
+
+                        // Cập nhật MembershipPackageId của người dùng
                         user.MembershipPackageId = idMbPackage;
                         _Context.Users.Update(user);
                         _Context.SaveChanges();
 
+                        // Kiểm tra gói thành viên và tính toán thời gian hết hạn
+                        var membershipPackage = _Context.MembershipPackages
+                            .FirstOrDefault(mp => mp.MembershipPackageId == idMbPackage);
+
+                        if (membershipPackage == null)
+                        {
+                            return NotFound(new { message = $"Không tìm thấy gói thành viên với ID {idMbPackage}" });
+                        }
+
+                        // Tạo UserMembership mới cho người dùng
+                        var userMembership = new UserMembership
+                        {
+                            UserId = userId,
+                            MembershipPackageId = idMbPackage,
+                            StartDate = DateTime.UtcNow,
+                            EndDate = DateTime.UtcNow.AddDays(membershipPackage.ValidityPeriod),
+                            Status = "active" // Trạng thái mặc định là active
+                        };
+
+                        // Thêm UserMembership vào cơ sở dữ liệu
+                        _Context.UserMemberships.Add(userMembership);
+                        _Context.SaveChanges();
+
                         return Ok(new { message = "Thanh toán thành công", payment = executedPayment });
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        return Unauthorized(new { message = ex.Message });
                     }
                     catch (Exception ex)
                     {
-                        return BadRequest(new { message = "Có lỗi không xác định", error = ex.Message });
+                        return BadRequest(new { message = "Có lỗi không xác định khi xử lý giao dịch", error = ex.Message });
                     }
                 }
 
@@ -157,10 +174,6 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Có lỗi không xác định", error = ex.Message });
             }
         }
-
-
-
-
 
 
 
