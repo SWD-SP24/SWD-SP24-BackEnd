@@ -29,6 +29,8 @@ namespace SWD392.Controllers
 
         // GET: api/MembershipPackages
             [HttpGet]
+       
+
         public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetMembershipPackages()
         {
             var membershipPackages = await _repository.GetMembershipPackagesAsync();
