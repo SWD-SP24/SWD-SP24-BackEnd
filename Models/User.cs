@@ -29,6 +29,8 @@ public partial class User
 
     public string Uid { get; set; }
 
+    public string EmailActivation { get; set; }
+
     public virtual ICollection<BlogContent> BlogContents { get; set; } = new List<BlogContent>();
 
     public virtual ICollection<Child> Children { get; set; } = new List<Child>();
@@ -40,6 +42,8 @@ public partial class User
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 
     public virtual MembershipPackage MembershipPackage { get; set; }
+
+    public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
 
     public virtual ICollection<Reply> Replies { get; set; } = new List<Reply>();
 

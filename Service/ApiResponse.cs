@@ -1,4 +1,6 @@
-﻿namespace SWD392.Service
+﻿using SWD392.Service;
+
+namespace SWD392.Service
 {
     /*
     [HttpPost("login")]
@@ -44,4 +46,11 @@
             };
         }
     }
+
+    // Default type of object if T is not defined
+    public class ApiResponse : ApiResponse<object>
+    {
+    }
 }
+
+
