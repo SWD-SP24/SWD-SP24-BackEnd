@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Azure.Communication.Email;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -26,12 +27,15 @@ namespace SWD392.Controllers
         private readonly AppDbContext _context;
         private readonly FirebaseService _authentication;
         private readonly TokenService _tokenService;
+        private readonly EmailService _emailService;
 
         public UsersController(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
             _authentication = new FirebaseService();
             _tokenService = new TokenService(configuration);
+            var connectionString = configuration["AzureCommunicationServices:ConnectionString"];
+            _emailService = new EmailService(connectionString ?? "");
         }
 
         // POST: api/Users/
@@ -53,7 +57,7 @@ namespace SWD392.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(ApiResponse<object>.Error("Fail to create account"));
+                return BadRequest(ApiResponse<object>.Error("Fail to create account (FB)"));
             }
 
             var newUser = userDTO.ToUser(uid);
@@ -66,16 +70,25 @@ namespace SWD392.Controllers
             catch (DbUpdateException)
             {
                 await _authentication.DeleteAsync(uid);
-                return BadRequest(ApiResponse<object>.Error("Fail to create account"));
+                return BadRequest(ApiResponse<object>.Error("Fail to create account (DB)"));
             }
             //_context.Users.Add(newUser);
             //await _context.SaveChangesAsync();
 
-            //return CreatedAtAction("GetUser", new { id = newUser.UserId }, newUser.ToGetUserDTO());
-            var userResponse = newUser.ToGetUserDTO();
-            Type resType = userResponse.GetType();
-            //return Ok(new { message = "successful", data = userResponse });
-            return Ok(ApiResponse<object>.Success(userResponse));
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    // Send account confirmation email
+                    _emailService.SendAccountConfirmationEmail(newUser.Email, "Nice");
+                }
+                catch (Exception)
+                {
+                    // TODO: Find a way to handle this error
+                }
+            });
+
+            return Ok(ApiResponse<object>.Success(newUser.ToGetUserDTO()));
         }
 
         [HttpPost("login")]

@@ -8,18 +8,22 @@ namespace SWD392.Models;
 public partial class UserMembership
 {
     public int UserMembershipId { get; set; }
+
     public int UserId { get; set; }
+
     public int MembershipPackageId { get; set; }
-    public DateTime StartDate { get; set; }
+
+    public DateTime? StartDate { get; set; }
+
     public DateTime? EndDate { get; set; }
+
     public string Status { get; set; }
 
-    // Thêm PaymentTransactionId để lưu trữ thông tin giao dịch thanh toán
     public int? PaymentTransactionId { get; set; }
 
     public virtual MembershipPackage MembershipPackage { get; set; }
-    public virtual User User { get; set; }
 
-    // Mối quan hệ với bảng PaymentTransactions
     public virtual PaymentTransaction PaymentTransaction { get; set; }
+
+    public virtual User User { get; set; }
 }

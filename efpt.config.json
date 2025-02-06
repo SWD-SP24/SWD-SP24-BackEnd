@@ -51,6 +51,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[PaymentTransactions]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[permissions]",
          "ObjectType": 0
       },

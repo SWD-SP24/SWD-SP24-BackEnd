@@ -21,6 +21,8 @@ public partial class MembershipPackage
 
     public int? AdminId { get; set; }
 
+    public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
+
     public virtual ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
 
     public virtual ICollection<User> Users { get; set; } = new List<User>();

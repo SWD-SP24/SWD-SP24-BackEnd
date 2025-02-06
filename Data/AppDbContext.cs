@@ -28,6 +28,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<MembershipPackage> MembershipPackages { get; set; }
 
+    public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+
     public virtual DbSet<Permission> Permissions { get; set; }
 
     public virtual DbSet<Reply> Replies { get; set; }
@@ -35,7 +37,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserMembership> UserMemberships { get; set; }
-    public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -256,6 +257,30 @@ public partial class AppDbContext : DbContext
                     });
         });
 
+        modelBuilder.Entity<PaymentTransaction>(entity =>
+        {
+            entity.HasKey(e => e.PaymentTransactionId).HasName("PK__PaymentT__C22AEFE08701D796");
+
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.PaymentId).HasMaxLength(100);
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.TransactionDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.MembershipPackage).WithMany(p => p.PaymentTransactions)
+                .HasForeignKey(d => d.MembershipPackageId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PaymentTransactions_MembershipPackages");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PaymentTransactions)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PaymentTransactions_Users");
+        });
+
         modelBuilder.Entity<Permission>(entity =>
         {
             entity.HasKey(e => e.PermissionId).HasName("PK__permissi__E5331AFA6D1D57AE");
@@ -322,6 +347,11 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("email");
+            entity.Property(e => e.EmailActivation)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasDefaultValue("unactivated")
+                .HasColumnName("email_activation");
             entity.Property(e => e.FullName)
                 .IsRequired()
                 .HasMaxLength(255)
@@ -379,6 +409,10 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.MembershipPackageId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_user_memberships_membership_packages");
+
+            entity.HasOne(d => d.PaymentTransaction).WithMany(p => p.UserMemberships)
+                .HasForeignKey(d => d.PaymentTransactionId)
+                .HasConstraintName("FK_user_memberships_payment_transactions");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserMemberships)
                 .HasForeignKey(d => d.UserId)
