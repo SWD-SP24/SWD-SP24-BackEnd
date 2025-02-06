@@ -302,7 +302,7 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("users");
 
-            entity.HasIndex(e => e.PhoneNumber, "UQ__users__A1936A6BE06256D0").IsUnique();
+            entity.HasIndex(e => e.PhoneNumber, "UQ__users__A1936A6BE06256D0");
 
             entity.HasIndex(e => e.Email, "UQ__users__AB6E6164D49DAE4A").IsUnique();
 
