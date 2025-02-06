@@ -46,10 +46,11 @@ namespace SWD392.Controllers
             { 
                 //return BadRequest(new {status = 1000, message = "Email already exists."}); 
                 return BadRequest(ApiResponse<object>.Error("Email already exists.")); 
-            } else if (_context.Users.Any(_context => _context.PhoneNumber == userDTO.PhoneNumber))
-            {
-                return BadRequest(ApiResponse<object>.Error("Phone number already exists."));
-            }
+            } 
+            //else if (_context.Users.Any(_context => _context.PhoneNumber == userDTO.PhoneNumber))
+            //{
+            //    return BadRequest(ApiResponse<object>.Error("Phone number already exists."));
+            //}
             string uid = "";
             try
             {
