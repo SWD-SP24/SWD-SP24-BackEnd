@@ -39,6 +39,16 @@ namespace SWD392.Controllers
         }
 
         // POST: api/Users/
+        /// <summary>
+        /// Register user
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Email already exists.
+        /// - Fail to create account (FB)  Check for valid email.
+        /// - Fail to create account (DB)
+        /// </remarks>
+        /// <response code="200">User register</response>
         [HttpPost("register")]
         public async Task<ActionResult<GetUserDTO>> RegisterUser(RegisterUserDTO userDTO)
         {
@@ -80,8 +90,10 @@ namespace SWD392.Controllers
             {
                 try
                 {
+                    var verifyToken = _tokenService.CreateVerifyEmailToken(uid);
                     // Send account confirmation email
-                    _emailService.SendAccountConfirmationEmail(newUser.Email, "Nice");
+                    _emailService.SendAccountConfirmationEmail(newUser.Email, verifyToken);
+
                 }
                 catch (Exception)
                 {
@@ -91,6 +103,17 @@ namespace SWD392.Controllers
 
             return Ok(ApiResponse<object>.Success(newUser.ToGetUserDTO()));
         }
+
+        /// <summary>
+        /// Login user
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Account does not exist
+        /// - Password is incorrect
+        /// - Unable to create JWT Token
+        /// </remarks>
+        /// <response code="200">Logged in</response>
 
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDTO>> LoginUser(LoginUserDTO userDTO)
@@ -120,6 +143,13 @@ namespace SWD392.Controllers
         }
 
         // GET: api/Users
+        /// <summary>
+        /// Get user list
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// </remarks>
+        /// <response code="200">Users retrieved</response>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetUsers()
         {
@@ -128,6 +158,17 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<object>.Success(userDTOs));
 
         }
+
+        /// <summary>
+        /// Get currently logged in user
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No JWT key
+        /// - JWT token has expired
+        /// - Invalid JWT key
+        /// </remarks>
+        /// <response code="200">User retrieved</response>
 
         [HttpGet("self")]
         public async Task<ActionResult<GetUserDTO>> GetSelf()
@@ -160,6 +201,14 @@ namespace SWD392.Controllers
 
 
         // GET: api/Users/5
+        /// <summary>
+        /// Get user with ID
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Account does not exist
+        /// </remarks>
+        /// <response code="200">User retrieved</response>
         [HttpGet("{id}")]
         public async Task<ActionResult<GetUserDTO>> GetUser(int id)
         {
@@ -173,6 +222,17 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<object>.Success(user.ToGetUserDTO()));
         }
 
+        // GET: api/Users/5
+        /// <summary>
+        /// Edit currently logged in user
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No JWT key
+        /// - JWT token has expired
+        /// - Invalid JWT key
+        /// </remarks>
+        /// <response code="200">self edited</response>
         [HttpPut]
         public async Task<IActionResult> EditSelf(EditUserDTO userDto)
         {
@@ -198,7 +258,15 @@ namespace SWD392.Controllers
         }
 
         // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Update user with specified ID
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Account does not exist
+        /// - Unable to edit user
+        /// </remarks>
+        /// <response code="200">User edited</response>
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, EditUserDTO userDto)
         {
@@ -270,7 +338,16 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<object>.Success(user.ToGetUserDTO()));
         }
 
-        // DELETE: api/Users/5
+        /// <summary>
+        /// Delete user with specified ID
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Account does not exist
+        /// - Unable to delete user (SQL)
+        /// - Unable to delete user (Firebase)
+        /// </remarks>
+        /// <response code="200">Delete successful</response>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -280,12 +357,35 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("Account does not exist" ));
             }
 
-            await _authentication.DeleteAsync(user.Uid);
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _authentication.DeleteAsync(user.Uid);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                return BadRequest(ApiResponse<object>.Error("Unable to delete user (SQL)"));
+            }
+
+            try
+            {
+                _context.Users.Remove(user);
+            }
+            catch (Exception)
+            {
+                return BadRequest(ApiResponse<object>.Error("Unable to delete user (Firebase)"));
+            }
 
             return Ok(ApiResponse<object>.Success("", message: "Delete successful" ));
         }
+
+        /// <summary>
+        /// Check if user with id exists
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// </remarks>
+        /// <response code="200">successful</response>
 
         private bool UserExists(int id)
         {

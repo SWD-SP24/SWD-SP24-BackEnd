@@ -1,4 +1,5 @@
-﻿using SWD392.DTOs.UserDTO;
+﻿using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using SWD392.DTOs.UserDTO;
 using SWD392.Models;
 
 namespace SWD392.Mapper
@@ -10,9 +11,9 @@ namespace SWD392.Mapper
             return new User
             {
                 Email = registerUserDTO.Email,
-                PhoneNumber = registerUserDTO.PhoneNumber ?? null,
+                PhoneNumber = null,
                 PasswordHash = registerUserDTO.Password,
-                FullName = registerUserDTO.FullName ?? registerUserDTO.Email,
+                FullName = registerUserDTO.Email.Split('@')[0],
                 Avatar = "",
                 Role = "member",
                 Status = "active",

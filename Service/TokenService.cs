@@ -44,5 +44,31 @@ namespace SWD392.Service
 
             return tokenHandler.WriteToken(token);
         }
+        public string CreateVerifyEmailToken(string uid)
+        {
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, uid),
+                new(ClaimTypes.Role, "verifyEmail")
+            };
+
+            var credentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256Signature);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddHours(1),
+                SigningCredentials = credentials,
+                Issuer = _configuration["JWT:Issuer"],
+                Audience = _configuration["JWT:Audience"]
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
+        }
+
     }
 }
