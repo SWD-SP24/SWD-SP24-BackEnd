@@ -89,14 +89,14 @@ namespace SWD392.Controllers
 
             try
             {
-                // Thực hiện thanh toán PayPal
+                // Thực hiện thanh toán qua PayPal
                 var executedPayment = payment.Execute(apiContext, paymentExecution);
 
                 if (executedPayment.state.ToLower() == "approved")
                 {
                     try
                     {
-                        // Lấy PaymentTransaction từ PaymentId
+                        // Lấy PaymentTransaction dựa trên PaymentId
                         var paymentTransaction = _Context.PaymentTransactions
                             .FirstOrDefault(pt => pt.PaymentId == paymentId);
 
@@ -105,13 +105,12 @@ namespace SWD392.Controllers
                             return NotFound(new { message = $"Không tìm thấy giao dịch với PaymentId {paymentId}" });
                         }
 
-                        // Kiểm tra trạng thái giao dịch
+                        // Nếu giao dịch đã được xử lý trước đó thì không xử lý lại
                         if (paymentTransaction.Status == "success")
                         {
                             return BadRequest(new { message = "Giao dịch này đã được xử lý trước đó." });
                         }
 
-                        // Lấy UserId từ bảng PaymentTransaction
                         var userId = paymentTransaction.UserId;
 
                         // Kiểm tra người dùng tồn tại
@@ -126,12 +125,7 @@ namespace SWD392.Controllers
                         _Context.PaymentTransactions.Update(paymentTransaction);
                         _Context.SaveChanges();
 
-                        // Cập nhật MembershipPackageId của người dùng
-                        user.MembershipPackageId = idMbPackage;
-                        _Context.Users.Update(user);
-                        _Context.SaveChanges();
-
-                        // Kiểm tra gói thành viên và tính toán thời gian hết hạn
+                        // Lấy thông tin chi tiết của gói thành viên mới
                         var membershipPackage = _Context.MembershipPackages
                             .FirstOrDefault(mp => mp.MembershipPackageId == idMbPackage);
 
@@ -140,18 +134,64 @@ namespace SWD392.Controllers
                             return NotFound(new { message = $"Không tìm thấy gói thành viên với ID {idMbPackage}" });
                         }
 
-                        // Tạo UserMembership mới cho người dùng
-                        var userMembership = new UserMembership
-                        {
-                            UserId = userId,
-                            MembershipPackageId = idMbPackage,
-                            StartDate = DateTime.UtcNow,
-                            EndDate = DateTime.UtcNow.AddDays(membershipPackage.ValidityPeriod),
-                            Status = "active" // Trạng thái mặc định là active
-                        };
+                        // Lấy UserMembership đang active của người dùng (nếu có)
+                        var activeMembership = _Context.UserMemberships
+                            .Where(um => um.UserId == userId && um.Status == "active" && um.EndDate > DateTime.UtcNow)
+                            .FirstOrDefault();
 
-                        // Thêm UserMembership vào cơ sở dữ liệu
-                        _Context.UserMemberships.Add(userMembership);
+                        if (activeMembership != null)
+                        {
+                            if (activeMembership.MembershipPackageId == idMbPackage)
+                            {
+                                // Trường hợp gia hạn gói: Nếu gói hiện tại giống với gói gửi lên API,
+                                // thì gia hạn EndDate bằng cách cộng thêm ValidityPeriod.
+                                activeMembership.EndDate = activeMembership.EndDate.Value.AddDays(membershipPackage.ValidityPeriod);
+                                _Context.UserMemberships.Update(activeMembership);
+                                _Context.SaveChanges();
+                            }
+
+                            else
+                            {
+                                // Trường hợp nâng cấp gói:
+                                // Kết thúc gói hiện tại ngay lập tức.
+                                activeMembership.EndDate = DateTime.UtcNow;
+                                activeMembership.Status = "expired";
+                                _Context.UserMemberships.Update(activeMembership);
+                                _Context.SaveChanges();
+
+                                // Tạo mới UserMembership cho gói nâng cấp
+                                var newMembership = new UserMembership
+                                {
+                                    UserId = userId,
+                                    MembershipPackageId = idMbPackage,
+                                    StartDate = DateTime.UtcNow,
+                                    EndDate = DateTime.UtcNow.AddDays(membershipPackage.ValidityPeriod),
+                                    Status = "active",
+                                    PaymentTransactionId = paymentTransaction.PaymentTransactionId
+                                };
+                                _Context.UserMemberships.Add(newMembership);
+                                _Context.SaveChanges();
+                            }
+                        }
+                        else
+                        {
+                            // Nếu người dùng chưa có UserMembership active, tạo mới bản ghi
+                            var newMembership = new UserMembership
+                            {
+                                UserId = userId,
+                                MembershipPackageId = idMbPackage,
+                                StartDate = DateTime.UtcNow,
+                                EndDate = DateTime.UtcNow.AddDays(membershipPackage.ValidityPeriod),
+                                Status = "active",
+                                PaymentTransactionId = paymentTransaction.PaymentTransactionId
+                            };
+                            _Context.UserMemberships.Add(newMembership);
+                            _Context.SaveChanges();
+                        }
+
+                        // Cập nhật MembershipPackageId của người dùng trong bảng Users
+                        user.MembershipPackageId = idMbPackage;
+                        _Context.Users.Update(user);
                         _Context.SaveChanges();
 
                         return Ok(new { message = "Thanh toán thành công", payment = executedPayment });
@@ -174,6 +214,8 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Có lỗi không xác định", error = ex.Message });
             }
         }
+
+
 
 
 
