@@ -48,8 +48,7 @@ namespace SWD392.Service
         {
             var claims = new List<Claim>
             {
-                new(ClaimTypes.NameIdentifier, uid),
-                new(ClaimTypes.Role, "verifyEmail")
+                new(ClaimTypes.NameIdentifier, uid)
             };
 
             var credentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256Signature);

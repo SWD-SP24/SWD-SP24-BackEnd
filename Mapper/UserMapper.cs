@@ -47,6 +47,7 @@ namespace SWD392.Mapper
                 CreatedAt = user.CreatedAt,
                 MembershipPackageId = user.MembershipPackageId,
                 Uid = user.Uid,
+                EmailActivation = user.EmailActivation
             };
         }
 
@@ -64,7 +65,8 @@ namespace SWD392.Mapper
                 CreatedAt = user.CreatedAt,
                 MembershipPackageId = user.MembershipPackageId,
                 Uid = user.Uid,
-                Token = token
+                Token = token,
+                EmailActivation = user.EmailActivation
             };
         }
     }

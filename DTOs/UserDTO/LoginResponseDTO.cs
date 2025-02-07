@@ -27,5 +27,7 @@ namespace SWD392.DTOs.UserDTO
         public required string Uid { get; set; }
 
         public required string Token { get; set; }
+
+        public string? EmailActivation { get; set; }
     }
 }

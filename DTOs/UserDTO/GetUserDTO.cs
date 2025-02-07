@@ -25,5 +25,7 @@ namespace SWD392.DTOs.UserDTO
         public int? MembershipPackageId { get; set; }
 
         public required string Uid { get; set; }
+
+        public string? EmailActivation { get; set; }
     }
 }

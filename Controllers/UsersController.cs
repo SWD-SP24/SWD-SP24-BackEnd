@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Azure.Communication.Email;
@@ -101,8 +102,20 @@ namespace SWD392.Controllers
                 }
             });
 
-            return Ok(ApiResponse<object>.Success(newUser.ToGetUserDTO()));
+            string token = "";
+            try
+            {
+                token = _tokenService.CreateUserToken(newUser);
+            }
+            catch (Exception)
+            {
+                return BadRequest(ApiResponse<object>.Error("Unable to create JWT Token"));
+            }
+
+            return Ok(ApiResponse<object>.Success(newUser.ToLoginResponseDTO(token)));
         }
+
+
 
         /// <summary>
         /// Login user
@@ -359,7 +372,7 @@ namespace SWD392.Controllers
 
             try
             {
-                await _authentication.DeleteAsync(user.Uid);
+                _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
             }
             catch (Exception)
@@ -369,7 +382,7 @@ namespace SWD392.Controllers
 
             try
             {
-                _context.Users.Remove(user);
+                await _authentication.DeleteAsync(user.Uid);
             }
             catch (Exception)
             {
@@ -390,6 +403,50 @@ namespace SWD392.Controllers
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.UserId == id);
+        }
+
+        /// <summary>
+        /// Verify user email
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Token has expired
+        /// - Invalid token
+        /// - User not found
+        /// </remarks>
+        /// <response code="200">Email verified</response>
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromQuery] string token)
+        {
+            string uid;
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+
+                if (jwtToken.ValidTo < DateTime.UtcNow)
+                {
+                    return BadRequest(ApiResponse<object>.Error("Token has expired"));
+                }
+
+                uid = jwtToken.Claims.First(claim => claim.Type == "nameid").Value;
+            }
+            catch (Exception)
+            {
+                return BadRequest(ApiResponse<object>.Error("Invalid token"));
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Uid == uid);
+            if (user == null)
+            {
+                return NotFound(ApiResponse<object>.Error("User not found"));
+            }
+
+            user.EmailActivation = "activated";
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(ApiResponse<object>.Success("Email verified"));
         }
     }
 }

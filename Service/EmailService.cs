@@ -49,7 +49,7 @@
         public void SendAccountConfirmationEmail(string recipientEmail, string jwtToken)
         {
             string subject = "Account Confirmation";
-            string confirmationLink = $"https://yourwebsite.com/confirm-account?token={jwtToken}";
+            string confirmationLink = $"https://localhost:7067/api/Users/verify-email?token={jwtToken}";
             string plainTextContent = $"Please confirm your account by clicking the following link: {confirmationLink}";
             string htmlContent = $@"
                 <html>
