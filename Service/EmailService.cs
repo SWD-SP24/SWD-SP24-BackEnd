@@ -9,10 +9,12 @@
     public class EmailService
     {
         private readonly EmailClient _emailClient;
+        private readonly IConfiguration _configuration;
 
-        public EmailService(string connectionString)
+        public EmailService(string connectionString, IConfiguration configuration)
         {
             _emailClient = new EmailClient(connectionString);
+            _configuration = configuration;
         }
 
         public void SendEmail(string recipientEmail, string subject, string plainTextContent, string htmlContent)
@@ -49,7 +51,11 @@
         public void SendAccountConfirmationEmail(string recipientEmail, string jwtToken)
         {
             string subject = "Account Confirmation";
-            string confirmationLink = $"https://localhost:7067/api/Users/verify-email?token={jwtToken}";
+
+            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            string? baseUrl = _configuration[$"Urls:{environment}"];
+            string? confirmationApiPath = _configuration["Urls:ConfirmationApiPath"];
+            string confirmationLink = $"{baseUrl}{confirmationApiPath}{jwtToken}";
             string plainTextContent = $"Please confirm your account by clicking the following link: {confirmationLink}";
             string htmlContent = $@"
                 <html>
