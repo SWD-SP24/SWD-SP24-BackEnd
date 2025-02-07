@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -16,29 +17,51 @@ namespace SWD392.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    
+
     public class MembershipPackagesController : ControllerBase
     {
         private readonly IMembershipPackageRepository _repository;
 
-    
+
         public MembershipPackagesController(IMembershipPackageRepository repository)
         {
             _repository = repository;
         }
 
         // GET: api/MembershipPackages
-            [HttpGet]
-       
+        [HttpGet]
+
 
         public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetMembershipPackages()
         {
-            var membershipPackages = await _repository.GetMembershipPackagesAsync();
+            int? userId = null;
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+            if (!string.IsNullOrEmpty(authHeader))
+            {
+                try
+                {
+                    var handler = new JwtSecurityTokenHandler();
+                    var token = handler.ReadJwtToken(authHeader);
+                    var rawId = token.Claims.FirstOrDefault(claim => claim.Type == "id")?.Value;
+                    if (!string.IsNullOrEmpty(rawId) && int.TryParse(rawId, out int parsedUserId))
+                    {
+                        userId = parsedUserId;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log hoặc xử lý lỗi nếu cần
+                }
+            }
+
+            var membershipPackages = await _repository.GetMembershipPackagesAsync(userId);
             var response = new
             {
                 status = "success",
                 data = membershipPackages
             };
+
             return Ok(response);
         }
 
@@ -119,4 +142,5 @@ namespace SWD392.Controllers
             return _context.MembershipPackages.Any(e => e.MembershipPackageId == id);
         }*/
     }
+
 }

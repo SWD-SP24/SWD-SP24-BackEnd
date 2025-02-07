@@ -5,6 +5,6 @@ namespace SWD392.Repositories
 {
     public interface IMembershipPackageRepository
     {
-        Task<List<GetMembershipPackageDTO>> GetMembershipPackagesAsync();
+        Task<List<GetMembershipPackageDTO>> GetMembershipPackagesAsync(int? userId);
     }
 }
