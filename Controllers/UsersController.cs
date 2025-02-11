@@ -352,7 +352,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Delete user with specified ID
+        /// Delete user with specified ID <b>Broken do not use!!!!</b>
         /// </summary>
         /// <remarks>
         /// Errors:
