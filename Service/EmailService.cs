@@ -74,7 +74,11 @@
         public void SendPasswordRecoveryEmail(string recipientEmail, string jwtToken)
         {
             string subject = "Password Recovery";
-            string recoveryLink = $"https://yourwebsite.com/reset-password?token={jwtToken}";
+
+            string environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            string? baseUrl = _configuration[$"Urls:{environment}"];
+            string? recoveryApiPath = _configuration["Urls:PasswordRecoveryApiPath"];
+            string recoveryLink = $"{baseUrl}{recoveryApiPath}{jwtToken}";
             string plainTextContent = $"You can reset your password by clicking the following link: {recoveryLink}";
             string htmlContent = $@"
                 <html>
