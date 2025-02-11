@@ -410,7 +410,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Verify user email
+        /// Verify user email !!!Use from email only!!!
         /// </summary>
         /// <remarks>
         /// Errors:
