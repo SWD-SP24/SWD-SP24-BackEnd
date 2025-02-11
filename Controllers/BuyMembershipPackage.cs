@@ -71,11 +71,15 @@ namespace SWD392.Controllers
 
             if (currentMembership != null)
             {
-                if (idPackage < currentMembership.MembershipPackageId)
+                var currentPackage = await _context.MembershipPackages
+                    .FirstOrDefaultAsync(x => x.MembershipPackageId == currentMembership.MembershipPackageId);
+
+                if (currentPackage != null && requestedPackage.Price < currentPackage.Price)
                 {
-                    return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
+                    return BadRequest(new { message = "Bạn không thể mua gói có giá thấp hơn gói hiện tại." });
                 }
             }
+
 
             var paymentTransaction = new PaymentTransaction
             {
