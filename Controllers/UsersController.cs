@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Azure.Communication.Email;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
+using OtpNet;
 using SWD392.Data;
 using SWD392.DTOs.UserDTO;
 using SWD392.Mapper;
@@ -29,6 +31,7 @@ namespace SWD392.Controllers
         private readonly FirebaseService _authentication;
         private readonly TokenService _tokenService;
         private readonly EmailService _emailService;
+        private readonly IConfiguration _configuration;
 
         public UsersController(AppDbContext context, IConfiguration configuration)
         {
@@ -37,6 +40,7 @@ namespace SWD392.Controllers
             _tokenService = new TokenService(configuration);
             var connectionString = configuration["AzureCommunicationServices:ConnectionString"];
             _emailService = new EmailService(connectionString ?? "", configuration);
+            _configuration = configuration;
         }
 
         // POST: api/Users/
@@ -500,6 +504,128 @@ namespace SWD392.Controllers
             }
 
             return Ok(ApiResponse<object>.Success("Password changed"));
+        }
+
+        /// <summary>
+        /// Request password reset
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Email does not exist
+        /// </remarks>
+        /// <response code="200">Password reset code sent to email</response>
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null)
+            {
+                return BadRequest(ApiResponse<object>.Error("Email does not exist"));
+            }
+
+            // Derive a per-user secret from the JWT secret and user identifier
+            var jwtSecret = _configuration["JWT:SigningKey"];
+            var userSecret = $"{jwtSecret}-{user.UserId}";
+            var totp = new Totp(Encoding.UTF8.GetBytes(userSecret), step: 3600); // 1 hour time step
+
+            // Compute an 8-digit TOTP code
+            var code = totp.ComputeTotp();
+
+            // Send the code to the user's email
+
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    // Send password reset email
+                    _emailService.SendPasswordRecoveryEmail(user.Email, code);
+
+                }
+                catch (Exception)
+                {
+                    // TODO: Find a way to handle this error
+                }
+            });
+
+            return Ok(ApiResponse<object>.Success("Password reset code sent to email"));
+        }
+
+        /// <summary>
+        /// Validate password reset code
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Email does not exist
+        /// - Invalid or expired code
+        /// </remarks>
+        /// <response code="200">Code validated successfully</response>
+        [HttpPost("validate-reset-code")]
+        public async Task<IActionResult> ValidateResetCode([FromBody] ValidateResetCodeDTO dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null)
+            {
+                return BadRequest(ApiResponse<object>.Error("Email does not exist"));
+            }
+
+            // Derive a per-user secret from the JWT secret and user identifier
+            var jwtSecret = _configuration["JWT:SigningKey"];
+            var userSecret = $"{jwtSecret}-{user.UserId}";
+            var totp = new Totp(Encoding.UTF8.GetBytes(userSecret), step: 3600); // 1 hour time step
+
+            // Validate the submitted code
+            if (!totp.VerifyTotp(dto.Code, out long timeStepMatched, new VerificationWindow(1, 1)))
+            {
+                return BadRequest(ApiResponse<object>.Error("Invalid or expired code"));
+            }
+
+            return Ok(ApiResponse<object>.Success("Code validated successfully"));
+        }
+
+        /// <summary>
+        /// Reset user password
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Email does not exist
+        /// - Invalid or expired code
+        /// - Unable to reset password
+        /// </remarks>
+        /// <response code="200">Password reset successfully</response>
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null)
+            {
+                return BadRequest(ApiResponse<object>.Error("Email does not exist"));
+            }
+
+            // Derive a per-user secret from the JWT secret and user identifier
+            var jwtSecret = _configuration["JWT:SigningKey"];
+            var userSecret = $"{jwtSecret}-{user.UserId}";
+            var totp = new Totp(Encoding.UTF8.GetBytes(userSecret), step: 3600); // 1 hour time step
+
+            // Validate the submitted code
+            if (!totp.VerifyTotp(dto.Code, out long timeStepMatched, new VerificationWindow(1, 1)))
+            {
+                return BadRequest(ApiResponse<object>.Error("Invalid or expired code"));
+            }
+
+            // Reset the user's password
+            user.PasswordHash = dto.NewPassword;
+            _context.Entry(user).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                return BadRequest(ApiResponse<object>.Error("Unable to reset password"));
+            }
+
+            return Ok(ApiResponse<object>.Success("Password reset successfully"));
         }
     }
 }
