@@ -18,7 +18,7 @@ namespace SWD392.Mapper
                 Role = "member",
                 Status = "active",
                 CreatedAt = DateTime.Now,
-                MembershipPackageId = null, // TODO: fix when MembershipPackage is implemented
+                MembershipPackageId = 1, // TODO: fix when MembershipPackage is implemented
                 Uid = uid
             };
         }

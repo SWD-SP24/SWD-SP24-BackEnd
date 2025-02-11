@@ -448,5 +448,58 @@ namespace SWD392.Controllers
 
             return Ok(ApiResponse<object>.Success("Email verified"));
         }
+
+        // POST: api/Users/change-password
+        /// <summary>
+        /// Change user password
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No JWT key
+        /// - JWT token has expired
+        /// - Invalid JWT key
+        /// - Incorrect old password
+        /// - Unable to change password
+        /// </remarks>
+        /// <response code="200">Password changed</response>
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDTO changePasswordDTO)
+        {
+            if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(ApiResponse<object>.Error("No JWT key"));
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(authHeader);
+
+            // Check if token has expired
+            if (token.ValidTo < DateTime.UtcNow)
+                return Unauthorized(ApiResponse<object>.Error("JWT token has expired"));
+
+            var rawId = token.Claims.First(claim => claim.Type == "id").Value;
+            var id = int.Parse(rawId);
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+                return Unauthorized(ApiResponse<object>.Error("Invalid JWT key"));
+
+            if (user.PasswordHash != changePasswordDTO.OldPassword)
+                return BadRequest(ApiResponse<object>.Error("Incorrect old password"));
+
+            user.PasswordHash = changePasswordDTO.NewPassword;
+
+            _context.Entry(user).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                return BadRequest(ApiResponse<object>.Error("Unable to change password"));
+            }
+
+            return Ok(ApiResponse<object>.Success("Password changed"));
+        }
     }
 }
