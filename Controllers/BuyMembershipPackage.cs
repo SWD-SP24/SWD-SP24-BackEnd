@@ -146,7 +146,7 @@ namespace SWD392.Controllers
         }
 
         [HttpPost("auto-purchase-free-package")]
-        public async Task<IActionResult> AutoPurchaseFreePackage()
+        public async Task<IActionResult> AutoPurchaseFreePackage(string id)
         {
             // Lấy Authorization header và kiểm tra token
             var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
@@ -155,10 +155,7 @@ namespace SWD392.Controllers
                 return Unauthorized(new { message = "Authorization header missing" });
             }
 
-            var handler = new JwtSecurityTokenHandler();
-            var header = AuthenticationHeaderValue.Parse(authHeader);
-            var token = handler.ReadJwtToken(header.Parameter);
-            var rawId = token.Claims.FirstOrDefault(claim => claim.Type == "id")?.Value;
+            var rawId = id;
             if (string.IsNullOrEmpty(rawId) || !int.TryParse(rawId, out int userId))
             {
                 return Unauthorized(new { message = "Invalid token" });
