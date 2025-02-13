@@ -67,7 +67,7 @@ namespace SWD392.Service
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            return $"Bearer {tokenHandler.WriteToken(token)}";
+            return $"{tokenHandler.WriteToken(token)}";
         }
 
     }

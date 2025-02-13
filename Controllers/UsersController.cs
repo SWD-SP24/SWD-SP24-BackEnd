@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
 using OtpNet;
+using PayPal.Api;
 using SWD392.Data;
 using SWD392.DTOs.UserDTO;
 using SWD392.Mapper;
@@ -122,6 +123,56 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<object>.Success(newUser.ToLoginResponseDTO(token)));
         }
 
+        /// <summary>
+        /// Resend verification email to the currently logged-in user
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No JWT key
+        /// - JWT token has expired
+        /// - Invalid JWT key
+        /// - Email is already verified
+        /// </remarks>
+        /// <response code="200">Verification email sent</response>
+        [HttpPost("resend-verification-email")]
+        public async Task<ActionResult> ResendVerificationEmail()
+        {
+            if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(ApiResponse<object>.Error("No JWT key"));
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+
+            User user;
+            try
+            {
+                user = await ValidateJwtToken(authHeader);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(ApiResponse<object>.Error(e.Message));
+            }
+
+            if (user.EmailActivation == "activated")
+            {
+                return BadRequest(ApiResponse<object>.Error("Email is already verified"));
+            }
+
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    var verifyToken = _tokenService.CreateVerifyEmailToken(user);
+                    // Send account confirmation email
+                    _emailService.SendAccountConfirmationEmail(user.Email, verifyToken);
+                }
+                catch (Exception)
+                {
+                    // TODO: Find a way to handle this error
+                }
+            });
+
+            return Ok(ApiResponse<object>.Success("Verification email sent"));
+        }
 
 
         /// <summary>
@@ -431,7 +482,7 @@ namespace SWD392.Controllers
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
-            return Ok(ApiResponse<object>.Success("Email verified"));
+            return Redirect("https://emailverified.hungngblog.com/");
         }
 
         // POST: api/Users/change-password
@@ -608,14 +659,15 @@ namespace SWD392.Controllers
         private async Task<User> ValidateJwtToken(string authHeader)
         {
             var handler = new JwtSecurityTokenHandler();
-            var header = AuthenticationHeaderValue.Parse(authHeader);
-            var token = handler.ReadJwtToken(header.Parameter);
+            var token = authHeader.StartsWith("Bearer ") ? authHeader.Substring("Bearer ".Length).Trim() : authHeader;
+
+            var jwtToken = handler.ReadJwtToken(token);
 
             // Check if token has expired
-            if (token.ValidTo < DateTime.UtcNow)
+            if (jwtToken.ValidTo < DateTime.UtcNow)
                 throw new UnauthorizedAccessException("JWT token has expired");
 
-            var rawId = token.Claims.First(claim => claim.Type == "id").Value;
+            var rawId = jwtToken.Claims.First(claim => claim.Type == "id").Value;
             var id = int.Parse(rawId);
 
             var user = await _context.Users.FindAsync(id) ?? throw new UnauthorizedAccessException("Invalid JWT key");
