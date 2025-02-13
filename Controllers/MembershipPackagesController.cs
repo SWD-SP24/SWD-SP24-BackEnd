@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -42,7 +43,8 @@ namespace SWD392.Controllers
                 try
                 {
                     var handler = new JwtSecurityTokenHandler();
-                    var token = handler.ReadJwtToken(authHeader);
+                    var header = AuthenticationHeaderValue.Parse(authHeader);
+                    var token = handler.ReadJwtToken(header.Parameter);
                     var rawId = token.Claims.FirstOrDefault(claim => claim.Type == "id")?.Value;
                     if (!string.IsNullOrEmpty(rawId) && int.TryParse(rawId, out int parsedUserId))
                     {

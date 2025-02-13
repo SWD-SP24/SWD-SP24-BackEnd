@@ -6,6 +6,7 @@ using PayPal.Api;
 using SWD392.Data;
 using SWD392.Models;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -52,7 +53,8 @@ namespace SWD392.Controllers
             }
 
             var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(authHeader);
+            var header = AuthenticationHeaderValue.Parse(authHeader);
+            var token = handler.ReadJwtToken(header.Parameter);
             var rawId = token.Claims.FirstOrDefault(claim => claim.Type == "id")?.Value;
             if (string.IsNullOrEmpty(rawId) || !int.TryParse(rawId, out int userId))
             {
@@ -154,7 +156,8 @@ namespace SWD392.Controllers
             }
 
             var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(authHeader);
+            var header = AuthenticationHeaderValue.Parse(authHeader);
+            var token = handler.ReadJwtToken(header.Parameter);
             var rawId = token.Claims.FirstOrDefault(claim => claim.Type == "id")?.Value;
             if (string.IsNullOrEmpty(rawId) || !int.TryParse(rawId, out int userId))
             {

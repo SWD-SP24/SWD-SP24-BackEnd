@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -603,7 +604,8 @@ namespace SWD392.Controllers
         private async Task<User> ValidateJwtToken(string authHeader)
         {
             var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(authHeader);
+            var header = AuthenticationHeaderValue.Parse(authHeader);
+            var token = handler.ReadJwtToken(header.Parameter);
 
             // Check if token has expired
             if (token.ValidTo < DateTime.UtcNow)

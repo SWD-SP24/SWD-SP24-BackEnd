@@ -42,7 +42,7 @@ namespace SWD392.Service
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            return tokenHandler.WriteToken(token);
+            return $"Bearer {tokenHandler.WriteToken(token)}";
         }
         public string CreateVerifyEmailToken(User user)
         {
@@ -67,7 +67,7 @@ namespace SWD392.Service
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
-            return tokenHandler.WriteToken(token);
+            return $"Bearer {tokenHandler.WriteToken(token)}";
         }
 
     }
