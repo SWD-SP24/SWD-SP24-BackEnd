@@ -95,7 +95,7 @@ namespace SWD392.Controllers
             {
                 try
                 {
-                    var verifyToken = _tokenService.CreateVerifyEmailToken(uid);
+                    var verifyToken = _tokenService.CreateVerifyEmailToken(newUser);
                     // Send account confirmation email
                     _emailService.SendAccountConfirmationEmail(newUser.Email, verifyToken);
 
@@ -412,28 +412,14 @@ namespace SWD392.Controllers
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromQuery] string token)
         {
-            string uid;
+            User user;
             try
             {
-                var handler = new JwtSecurityTokenHandler();
-                var jwtToken = handler.ReadJwtToken(token);
-
-                if (jwtToken.ValidTo < DateTime.UtcNow)
-                {
-                    return BadRequest(ApiResponse<object>.Error("Token has expired"));
-                }
-
-                uid = jwtToken.Claims.First(claim => claim.Type == "nameid").Value;
+                user = await ValidateJwtToken(token);
             }
-            catch (Exception)
+            catch (UnauthorizedAccessException e)
             {
-                return BadRequest(ApiResponse<object>.Error("Invalid token"));
-            }
-
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Uid == uid);
-            if (user == null)
-            {
-                return NotFound(ApiResponse<object>.Error("User not found"));
+                return BadRequest(ApiResponse<object>.Error(e.Message));
             }
 
             user.EmailActivation = "activated";

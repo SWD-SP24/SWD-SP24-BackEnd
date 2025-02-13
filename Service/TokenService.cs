@@ -44,11 +44,12 @@ namespace SWD392.Service
 
             return tokenHandler.WriteToken(token);
         }
-        public string CreateVerifyEmailToken(string uid)
+        public string CreateVerifyEmailToken(User user)
         {
             var claims = new List<Claim>
             {
-                new(ClaimTypes.NameIdentifier, uid)
+                new("id", user.UserId.ToString()),
+                new("uid", user.Uid),
             };
 
             var credentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256Signature);
