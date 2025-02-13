@@ -190,27 +190,20 @@ namespace SWD392.Controllers
         [HttpGet("self")]
         public async Task<ActionResult<GetUserDTO>> GetSelf()
         {
+
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
-                return Unauthorized(ApiResponse<object>.Error("No JWT key")); //or whatever
+                return Unauthorized(ApiResponse<object>.Error("No JWT key")); // or whatever
 
             var authHeader = HttpContext.Request.Headers["Authorization"][0];
 
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(authHeader);
-
-            // Check if token has expired
-            if (token.ValidTo < DateTime.UtcNow)
-                return Unauthorized(ApiResponse<object>.Error("JWT token has expired" ));
-
-            var rawId = token.Claims.First(claim => claim.Type == "id").Value;
-
-            var id = int.Parse(rawId);
-
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
+            User user;
+            try
             {
-                return Unauthorized(ApiResponse<object>.Error("Invalid JWT key"));
+                user = await ValidateJwtToken(authHeader);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
             return Ok(ApiResponse<object>.Success(user.ToGetUserDTO()));
@@ -254,24 +247,21 @@ namespace SWD392.Controllers
         public async Task<IActionResult> EditSelf(EditUserDTO userDto)
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
-                return Unauthorized(ApiResponse<object>.Error("No JWT key" )); //or whatever
+                return Unauthorized(ApiResponse<object>.Error("No JWT key")); // or whatever
 
             var authHeader = HttpContext.Request.Headers["Authorization"][0];
 
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(authHeader);
+            User user;
+            try
+            {
+                user = await ValidateJwtToken(authHeader);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(ApiResponse<object>.Error(e.Message));
+            }
 
-            // Check if token has expired
-            if (token.ValidTo < DateTime.UtcNow)
-                return Unauthorized(ApiResponse<object>.Error("JWT token has expired" ));
-
-            var rawId = token.Claims.First(claim => claim.Type == "id").Value;
-
-            var id = int.Parse(rawId);
-
-            if (UserExists(id) == false) { return Unauthorized(ApiResponse<object>.Error("Invalid JWT key" )); }
-
-            return await PutUser(id, userDto);
+            return await PutUser(user.UserId, userDto);
         }
 
         // PUT: api/Users/5
@@ -473,19 +463,16 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error("No JWT key"));
 
             var authHeader = HttpContext.Request.Headers["Authorization"][0];
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(authHeader);
 
-            // Check if token has expired
-            if (token.ValidTo < DateTime.UtcNow)
-                return Unauthorized(ApiResponse<object>.Error("JWT token has expired"));
-
-            var rawId = token.Claims.First(claim => claim.Type == "id").Value;
-            var id = int.Parse(rawId);
-
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return Unauthorized(ApiResponse<object>.Error("Invalid JWT key"));
+            User user;
+            try
+            {
+                user = await ValidateJwtToken(authHeader);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(ApiResponse<object>.Error(e.Message));
+            }
 
             if (user.PasswordHash != changePasswordDTO.OldPassword)
                 return BadRequest(ApiResponse<object>.Error("Incorrect old password"));
@@ -626,6 +613,21 @@ namespace SWD392.Controllers
             }
 
             return Ok(ApiResponse<object>.Success("Password reset successfully"));
+        }
+        private async Task<User> ValidateJwtToken(string authHeader)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(authHeader);
+
+            // Check if token has expired
+            if (token.ValidTo < DateTime.UtcNow)
+                throw new UnauthorizedAccessException("JWT token has expired");
+
+            var rawId = token.Claims.First(claim => claim.Type == "id").Value;
+            var id = int.Parse(rawId);
+
+            var user = await _context.Users.FindAsync(id) ?? throw new UnauthorizedAccessException("Invalid JWT key");
+            return user;
         }
     }
 }
