@@ -117,6 +117,8 @@ namespace SWD392.Controllers
                 return BadRequest(ApiResponse<object>.Error("Unable to create JWT Token"));
             }
 
+            var response = await new AutoFreeMembershipPackage(_context).AutoPurchaseFreePackage(newUser.UserId.ToString());
+
             return Ok(ApiResponse<object>.Success(newUser.ToLoginResponseDTO(token)));
         }
 
@@ -156,6 +158,8 @@ namespace SWD392.Controllers
             }
 
             var loginResponse = loginUser.ToLoginResponseDTO(token);
+
+            var response = await new AutoFreeMembershipPackage(_context).AutoPurchaseFreePackage(loginUser.UserId.ToString());
 
             return Ok(ApiResponse<object>.Success(loginResponse ));
         }
