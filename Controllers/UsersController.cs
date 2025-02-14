@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Communication.Email;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -134,6 +135,7 @@ namespace SWD392.Controllers
         /// - Email is already verified
         /// </remarks>
         /// <response code="200">Verification email sent</response>
+        [Authorize]
         [HttpPost("resend-verification-email")]
         public async Task<ActionResult> ResendVerificationEmail()
         {
@@ -223,6 +225,7 @@ namespace SWD392.Controllers
         /// Errors:
         /// </remarks>
         /// <response code="200">Users retrieved</response>
+        [Authorize(Roles = "admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetUsers()
         {
@@ -242,7 +245,7 @@ namespace SWD392.Controllers
         /// - Invalid JWT key
         /// </remarks>
         /// <response code="200">User retrieved</response>
-
+        [Authorize]
         [HttpGet("self")]
         public async Task<ActionResult<GetUserDTO>> GetSelf()
         {
@@ -275,6 +278,7 @@ namespace SWD392.Controllers
         /// - Account does not exist
         /// </remarks>
         /// <response code="200">User retrieved</response>
+        [Authorize(Roles = "member")]
         [HttpGet("{id}")]
         public async Task<ActionResult<GetUserDTO>> GetUser(int id)
         {
@@ -299,6 +303,7 @@ namespace SWD392.Controllers
         /// - Invalid JWT key
         /// </remarks>
         /// <response code="200">self edited</response>
+        [Authorize]
         [HttpPut]
         public async Task<IActionResult> EditSelf(EditUserDTO userDto)
         {
@@ -330,6 +335,7 @@ namespace SWD392.Controllers
         /// - Unable to edit user
         /// </remarks>
         /// <response code="200">User edited</response>
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, EditUserDTO userDto)
         {
@@ -411,6 +417,7 @@ namespace SWD392.Controllers
         /// - Unable to delete user (Firebase)
         /// </remarks>
         /// <response code="200">Delete successful</response>
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -449,7 +456,7 @@ namespace SWD392.Controllers
         /// Errors:
         /// </remarks>
         /// <response code="200">successful</response>
-
+        [Authorize(Roles = "admin")]
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.UserId == id);
@@ -498,6 +505,7 @@ namespace SWD392.Controllers
         /// - Unable to change password
         /// </remarks>
         /// <response code="200">Password changed</response>
+        [Authorize]
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword(ChangePasswordDTO changePasswordDTO)
         {

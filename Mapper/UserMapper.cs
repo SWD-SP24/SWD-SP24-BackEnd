@@ -18,7 +18,24 @@ namespace SWD392.Mapper
                 Role = "member",
                 Status = "active",
                 CreatedAt = DateTime.Now,
-                MembershipPackageId = null, // TODO: fix when MembershipPackage is implemented
+                MembershipPackageId = null, 
+                Uid = uid
+            };
+        }
+
+        public static User ToAdmin(this RegisterUserDTO registerUserDTO, string uid)
+        {
+            return new User
+            {
+                Email = registerUserDTO.Email,
+                PhoneNumber = null,
+                PasswordHash = registerUserDTO.Password,
+                FullName = registerUserDTO.Email.Split('@')[0],
+                Avatar = "",
+                Role = "admin",
+                Status = "active",
+                CreatedAt = DateTime.Now,
+                MembershipPackageId = null,
                 Uid = uid
             };
         }
