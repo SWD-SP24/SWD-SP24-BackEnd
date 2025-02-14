@@ -44,6 +44,33 @@ namespace SWD392.Service
 
             return $"Bearer {tokenHandler.WriteToken(token)}";
         }
+        public string CreateAdminToken(User user)
+        {
+            var claims = new List<Claim>
+            {
+                new(JwtRegisteredClaimNames.UniqueName, user.Email),
+                new(ClaimTypes.Role, "admin"),
+                new("id", user.UserId.ToString()),
+                new("uid", user.Uid),
+            };
+
+            var credentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256Signature);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.Now.AddHours(2),
+                SigningCredentials = credentials,
+                Issuer = _configuration["JWT:Issuer"],
+                Audience = _configuration["JWT:Audience"]
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return $"Bearer {tokenHandler.WriteToken(token)}";
+        }
         public string CreateVerifyEmailToken(User user)
         {
             var claims = new List<Claim>
