@@ -60,11 +60,11 @@ namespace SWD392.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<GetUserDTO>> RegisterUser(RegisterUserDTO userDTO)
         {
-            if (_context.Users.Any(_context => _context.Email == userDTO.Email)) 
-            { 
+            if (_context.Users.Any(_context => _context.Email == userDTO.Email))
+            {
                 //return BadRequest(new {status = 1000, message = "Email already exists."}); 
-                return BadRequest(ApiResponse<object>.Error("Email already exists.")); 
-            } 
+                return BadRequest(ApiResponse<object>.Error("Email already exists."));
+            }
             //else if (_context.Users.Any(_context => _context.PhoneNumber == userDTO.PhoneNumber))
             //{
             //    return BadRequest(ApiResponse<object>.Error("Phone number already exists."));
@@ -194,11 +194,11 @@ namespace SWD392.Controllers
             // TODO: support login with multiple methods
             // TODO: Confirm email
             // TODO: Reset password
-            
-            var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
-            if (loginUser == null) { return BadRequest(ApiResponse<object>.Error("Account does not exist" ) ); }
 
-            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error("Password is incorrect" )); }
+            var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
+            if (loginUser == null) { return BadRequest(ApiResponse<object>.Error("Account does not exist")); }
+
+            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error("Password is incorrect")); }
 
             string token = "";
             try
@@ -214,7 +214,7 @@ namespace SWD392.Controllers
 
             var response = await new AutoFreeMembershipPackage(_context).AutoPurchaseFreePackage(loginUser.UserId.ToString());
 
-            return Ok(ApiResponse<object>.Success(loginResponse ));
+            return Ok(ApiResponse<object>.Success(loginResponse));
         }
 
         // GET: api/Users
@@ -286,7 +286,7 @@ namespace SWD392.Controllers
 
             if (user == null)
             {
-                return NotFound(ApiResponse<object>.Error("Account does not exist" ));
+                return NotFound(ApiResponse<object>.Error("Account does not exist"));
             }
 
             return Ok(ApiResponse<object>.Success(user.ToGetUserDTO()));
@@ -343,7 +343,7 @@ namespace SWD392.Controllers
 
             if (user == null)
             {
-                return NotFound(ApiResponse<object>.Error("Account does not exist" ));
+                return NotFound(ApiResponse<object>.Error("Account does not exist"));
             }
 
             {
@@ -392,7 +392,7 @@ namespace SWD392.Controllers
             {
                 if (!UserExists(id))
                 {
-                    return NotFound(ApiResponse<object>.Error("Account does not exist" ));
+                    return NotFound(ApiResponse<object>.Error("Account does not exist"));
                 }
                 else
                 {
@@ -401,7 +401,7 @@ namespace SWD392.Controllers
             }
             catch (Exception)
             {
-                return BadRequest(ApiResponse<object>.Error("Unable to edit user" ));
+                return BadRequest(ApiResponse<object>.Error("Unable to edit user"));
             }
 
             return Ok(ApiResponse<object>.Success(user.ToGetUserDTO()));
@@ -424,7 +424,7 @@ namespace SWD392.Controllers
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                return NotFound(ApiResponse<object>.Error("Account does not exist" ));
+                return NotFound(ApiResponse<object>.Error("Account does not exist"));
             }
 
             try
@@ -446,7 +446,7 @@ namespace SWD392.Controllers
                 return BadRequest(ApiResponse<object>.Error("Unable to delete user (Firebase)"));
             }
 
-            return Ok(ApiResponse<object>.Success("", message: "Delete successful" ));
+            return Ok(ApiResponse<object>.Success("", message: "Delete successful"));
         }
 
         /// <summary>
