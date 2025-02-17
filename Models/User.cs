@@ -9,6 +9,8 @@ public partial class User
 {
     public int UserId { get; set; }
 
+    public string Uid { get; set; }
+
     public string Email { get; set; }
 
     public string PhoneNumber { get; set; }
@@ -26,8 +28,6 @@ public partial class User
     public DateTime CreatedAt { get; set; }
 
     public int? MembershipPackageId { get; set; }
-
-    public string Uid { get; set; }
 
     public string EmailActivation { get; set; }
 

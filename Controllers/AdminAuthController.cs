@@ -30,7 +30,7 @@ namespace SWD392.Controllers
 
         // POST: api/Users/
         /// <summary>
-        /// Register user
+        /// Register admin
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -51,15 +51,15 @@ namespace SWD392.Controllers
             //{
             //    return BadRequest(ApiResponse<object>.Error("Phone number already exists."));
             //}
-            string uid = "";
-            try
-            {
-                uid = await _authentication.RegisterAsync(userDTO.Email, userDTO.Password);
-            }
-            catch (Exception)
-            {
-                return BadRequest(ApiResponse<object>.Error("Fail to create account (FB)"));
-            }
+            string uid = "a";
+            //try
+            //{
+            //    uid = await _authentication.RegisterAsync(userDTO.Email, userDTO.Password);
+            //}
+            //catch (Exception)
+            //{
+            //    return BadRequest(ApiResponse<object>.Error("Fail to create account (FB)"));
+            //}
 
             var newUser = userDTO.ToAdmin(uid);
 
@@ -102,6 +102,46 @@ namespace SWD392.Controllers
             var response = await new AutoFreeMembershipPackage(_context).AutoPurchaseFreePackage(newUser.UserId.ToString());
 
             return Ok(ApiResponse<object>.Success(newUser.ToLoginResponseDTO(token)));
+        }
+
+        /// <summary>
+        /// Login admin
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Account does not exist
+        /// - Password is incorrect
+        /// - Unable to create JWT Token
+        /// </remarks>
+        /// <response code="200">Logged in</response>
+
+        [HttpPost("loginAdmin")]
+        public async Task<ActionResult<LoginResponseDTO>> LoginAdmin(LoginUserDTO userDTO)
+        {
+            // TODO: support login with multiple methods
+            // TODO: Confirm email
+            // TODO: Reset password
+
+            var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
+            if (loginUser == null) { return BadRequest(ApiResponse<object>.Error("Account does not exist")); }
+
+            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error("Password is incorrect")); }
+
+            string token = "";
+            try
+            {
+                token = _tokenService.CreateAdminToken(loginUser);
+            }
+            catch (Exception)
+            {
+                return BadRequest(ApiResponse<object>.Error("Unable to create JWT Token"));
+            }
+
+            var loginResponse = loginUser.ToLoginResponseDTO(token);
+
+            var response = await new AutoFreeMembershipPackage(_context).AutoPurchaseFreePackage(loginUser.UserId.ToString());
+
+            return Ok(ApiResponse<object>.Success(loginResponse));
         }
     }
 }

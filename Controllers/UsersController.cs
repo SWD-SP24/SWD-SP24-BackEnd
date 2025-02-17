@@ -69,15 +69,15 @@ namespace SWD392.Controllers
             //{
             //    return BadRequest(ApiResponse<object>.Error("Phone number already exists."));
             //}
-            string uid = "";
-            try
-            {
-                uid = await _authentication.RegisterAsync(userDTO.Email, userDTO.Password);
-            }
-            catch (Exception)
-            {
-                return BadRequest(ApiResponse<object>.Error("Fail to create account (FB)"));
-            }
+            string uid = "a";
+            //try
+            //{
+            //    uid = await _authentication.RegisterAsync(userDTO.Email, userDTO.Password);
+            //}
+            //catch (Exception)
+            //{
+            //    return BadRequest(ApiResponse<object>.Error("Fail to create account (FB)"));
+            //}
 
             var newUser = userDTO.ToUser(uid);
 

@@ -13,7 +13,7 @@ public partial class UserMembership
 
     public int MembershipPackageId { get; set; }
 
-    public DateTime? StartDate { get; set; }
+    public DateTime StartDate { get; set; }
 
     public DateTime? EndDate { get; set; }
 
