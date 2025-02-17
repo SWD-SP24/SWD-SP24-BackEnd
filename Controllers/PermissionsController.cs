@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SWD392.Data;
@@ -34,6 +35,7 @@ namespace SWD392.Controllers
         /// <response code="200">Returns the list of permissions.</response>
         /// <response code="403">Forbidden. Only Admin can access.</response>
         /// <response code="500">Internal server error.</response>
+        [Authorize(Roles = "admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PermissionDTO>>> GetPermissions()
         {
@@ -74,7 +76,9 @@ namespace SWD392.Controllers
         /// <response code="400">Invalid input data.</response>
         /// <response code="403">Forbidden. Only Admin can access.</response>
         /// <response code="500">Internal server error.</response>
+        [Authorize(Roles = "admin")]
         [HttpPost]
+        
         public async Task<ActionResult> CreatePermission([FromBody] CreatePermissionDTO dto)
         {
             if (!IsAdmin())
@@ -124,6 +128,7 @@ namespace SWD392.Controllers
         /// <response code="403">Forbidden. Only Admin can access.</response>
         /// <response code="404">Permission not found.</response>
         /// <response code="500">Internal server error.</response>
+        [Authorize(Roles = "admin")]
         [HttpPatch("{id}")]
         public async Task<IActionResult> UpdatePermission(int id, [FromBody] CreatePermissionDTO dto)
         {
@@ -177,6 +182,7 @@ namespace SWD392.Controllers
         /// <response code="403">Forbidden. Only Admin can access.</response>
         /// <response code="404">Permission not found.</response>
         /// <response code="500">Internal server error.</response>
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePermission(int id)
         {
