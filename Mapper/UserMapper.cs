@@ -40,6 +40,23 @@ namespace SWD392.Mapper
             };
         }
 
+        public static User ToDoctor(this RegisterUserDTO registerUserDTO, string uid)
+        {
+            return new User
+            {
+                Email = registerUserDTO.Email,
+                PhoneNumber = null,
+                PasswordHash = registerUserDTO.Password,
+                FullName = registerUserDTO.Email.Split('@')[0],
+                Avatar = "",
+                Role = "doctor",
+                Status = "active",
+                CreatedAt = DateTime.Now,
+                MembershipPackageId = null,
+                Uid = uid
+            };
+        }
+
         public static User ToUser(this LoginUserDTO loginUserDTO)
         {
             return new User

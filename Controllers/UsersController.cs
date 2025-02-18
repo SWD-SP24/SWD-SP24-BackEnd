@@ -185,6 +185,7 @@ namespace SWD392.Controllers
         /// - Account does not exist
         /// - Password is incorrect
         /// - Unable to create JWT Token
+        /// - Member only
         /// </remarks>
         /// <response code="200">Logged in</response>
 
@@ -198,6 +199,7 @@ namespace SWD392.Controllers
             var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
             if (loginUser == null) { return BadRequest(ApiResponse<object>.Error("Account does not exist")); }
 
+            if (loginUser.Role != "member") { return Unauthorized(ApiResponse<object>.Error("Member only")); }
             if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error("Password is incorrect")); }
 
             string token = "";
@@ -437,14 +439,14 @@ namespace SWD392.Controllers
                 return BadRequest(ApiResponse<object>.Error("Unable to delete user (SQL)"));
             }
 
-            try
-            {
-                await _authentication.DeleteAsync(user.Uid);
-            }
-            catch (Exception)
-            {
-                return BadRequest(ApiResponse<object>.Error("Unable to delete user (Firebase)"));
-            }
+            //try
+            //{
+            //    await _authentication.DeleteAsync(user.Uid);
+            //}
+            //catch (Exception)
+            //{
+            //    return BadRequest(ApiResponse<object>.Error("Unable to delete user (Firebase)"));
+            //}
 
             return Ok(ApiResponse<object>.Success("", message: "Delete successful"));
         }
