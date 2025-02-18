@@ -125,7 +125,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Resend verification email to the currently logged-in user
+        /// Resend verification email to the currently logged-in user (Authorized only)
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -221,7 +221,7 @@ namespace SWD392.Controllers
 
         // GET: api/Users
         /// <summary>
-        /// Get user list
+        /// Get user list (admin only)
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -238,7 +238,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Get currently logged in user
+        /// Get currently logged in user (Authorized only)
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -273,14 +273,14 @@ namespace SWD392.Controllers
 
         // GET: api/Users/5
         /// <summary>
-        /// Get user with ID
+        /// Get user with ID (admin only)
         /// </summary>
         /// <remarks>
         /// Errors:
         /// - Account does not exist
         /// </remarks>
         /// <response code="200">User retrieved</response>
-        [Authorize(Roles = "member")]
+        [Authorize(Roles = "admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<GetUserDTO>> GetUser(int id)
         {
@@ -296,7 +296,7 @@ namespace SWD392.Controllers
 
         // GET: api/Users/5
         /// <summary>
-        /// Edit currently logged in user
+        /// Edit currently logged in user (Authorized only)
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -329,7 +329,7 @@ namespace SWD392.Controllers
 
         // PUT: api/Users/5
         /// <summary>
-        /// Update user with specified ID
+        /// Update user with specified ID (admin only)
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -410,7 +410,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Delete user with specified ID <b>Broken do not use!!!!</b>
+        /// Delete user with specified ID <b>Broken do not use!!!!</b> (admin only)
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -452,7 +452,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Check if user with id exists
+        /// Check if user with id exists (admin only)
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -496,7 +496,7 @@ namespace SWD392.Controllers
 
         // POST: api/Users/change-password
         /// <summary>
-        /// Change user password
+        /// Change user password (Authorized only)
         /// </summary>
         /// <remarks>
         /// Errors:

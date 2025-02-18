@@ -107,7 +107,7 @@ namespace SWD392.Controllers
 
         // POST: api/Users/
         /// <summary>
-        /// Register doctor
+        /// Register doctor (admin only)
         /// </summary>
         /// <remarks>
         /// Errors:
