@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SWD392.Data;
@@ -53,7 +54,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Create a new membership package.
+        /// Create a new membership package.(Admin only)
         /// </summary>
         /// <remarks>
         /// Accepts package data including package name, price, status, validity period, and a list of permissions.
@@ -62,6 +63,7 @@ namespace SWD392.Controllers
         /// <param name="dto">The package data.</param>
         /// <response code="201">Membership package created successfully.</response>
         /// <response code="400">Invalid package data.</response>
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult> CreateMembershipPackage([FromBody] CreatePackageDTO dto)
         {
@@ -70,7 +72,6 @@ namespace SWD392.Controllers
                 return BadRequest(new { status = "error", message = "Invalid package data" });
             }
 
-            // Tạo mới đối tượng MembershipPackage từ DTO
             var package = new MembershipPackage
             {
                 MembershipPackageName = dto.MembershipPackageName,
@@ -80,7 +81,6 @@ namespace SWD392.Controllers
                 CreatedTime = DateTime.UtcNow
             };
 
-            // Nếu có danh sách quyền, lấy các quyền tương ứng theo PermissionIds
             if (dto.Permissions != null && dto.Permissions.Any())
             {
                 var permissions = await _context.Permissions
@@ -92,7 +92,6 @@ namespace SWD392.Controllers
             _context.MembershipPackages.Add(package);
             await _context.SaveChangesAsync();
 
-            // Sau khi lưu, MembershipPackageId đã được tự động tạo bởi DB
             var resultDto = new GetMembershipPackageDTO
             {
                 MembershipPackageId = package.MembershipPackageId,
@@ -113,7 +112,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Update an existing membership package along with its permissions.
+        /// Update an existing membership package along with its permissions.(Admin only)
         /// </summary>
         /// <remarks>
         /// Updates the membership package identified by the specified ID. You can update the package name, price, status,
@@ -123,10 +122,11 @@ namespace SWD392.Controllers
         /// <param name="dto">The updated package data.</param>
         /// <response code="200">Membership package updated successfully.</response>
         /// <response code="404">Membership package not found.</response>
+        [Authorize(Roles = "admin")]
         [HttpPatch("{id}")]
         public async Task<ActionResult> UpdateMembershipPackage(int id, [FromBody] CreatePackageDTO dto)
         {
-            // Tìm package theo ID và include các quyền hiện có
+            
             var package = await _context.MembershipPackages
                 .Include(p => p.Permissions)
                 .FirstOrDefaultAsync(p => p.MembershipPackageId == id);
@@ -136,12 +136,12 @@ namespace SWD392.Controllers
                 return NotFound(new { status = "error", message = "Membership package not found" });
             }
 
-            // Cập nhật các trường nếu có dữ liệu mới được gửi lên
+            
             if (!string.IsNullOrEmpty(dto.MembershipPackageName))
             {
                 package.MembershipPackageName = dto.MembershipPackageName;
             }
-            // Lưu ý: Nếu giá trị Price là 0 và 0 là giá hợp lệ (ví dụ: gói miễn phí), hãy điều chỉnh logic này theo nhu cầu của bạn
+          
             if (dto.Price != 0)
             {
                 package.Price = dto.Price;
@@ -155,18 +155,18 @@ namespace SWD392.Controllers
                 package.ValidityPeriod = dto.ValidityPeriod;
             }
 
-            // Cập nhật quyền nếu danh sách PermissionIds được gửi
+           
             if (dto.Permissions != null)
             {
-                // Lấy danh sách quyền từ DB dựa trên PermissionIds
+               
                 var newPermissions = await _context.Permissions
                     .Where(p => dto.Permissions.Contains(p.PermissionId))
                     .ToListAsync();
 
-                // Xóa các liên kết hiện có trong bảng trung gian
+                
                 package.Permissions.Clear();
 
-                // Thêm các quyền mới
+                
                 foreach (var permission in newPermissions)
                 {
                     package.Permissions.Add(permission);
@@ -175,7 +175,7 @@ namespace SWD392.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Chuẩn bị dữ liệu trả về theo DTO GetMembershipPackageDTO
+           
             var resultDto = new GetMembershipPackageDTO
             {
                 MembershipPackageId = package.MembershipPackageId,
@@ -195,7 +195,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Delete a membership package.
+        /// Delete a membership package.(Admin only)
         /// </summary>
         /// <remarks>
         /// Deletes the membership package identified by the specified ID.
@@ -203,6 +203,7 @@ namespace SWD392.Controllers
         /// <param name="id">The membership package ID.</param>
         /// <response code="200">Membership package deleted successfully.</response>
         /// <response code="404">Membership package not found.</response>
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteMembershipPackage(int id)
         {
