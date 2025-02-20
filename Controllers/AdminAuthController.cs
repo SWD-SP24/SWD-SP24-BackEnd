@@ -110,6 +110,7 @@ namespace SWD392.Controllers
         /// - Email already exists.
         /// - Fail to create account (FB)  Check for valid email. 
         /// - Fail to create account (DB)
+        /// - Test github action ignore this
         /// </remarks>
         /// <response code="200">User register</response>
         [Authorize(Roles = "admin")]
