@@ -194,6 +194,7 @@ namespace SWD392.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDTO>> LoginUser(LoginUserDTO userDTO)
         {
+            return BadRequest(ApiResponse<object>.Error(conString));
             // TODO: support login with multiple methods
             // TODO: Confirm email
             // TODO: Reset password
