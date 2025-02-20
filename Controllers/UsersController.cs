@@ -31,7 +31,7 @@ namespace SWD392.Controllers
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly FirebaseService _authentication;
+        //private readonly FirebaseService _authentication;
         private readonly TokenService _tokenService;
         private readonly EmailService _emailService;
         private readonly IConfiguration _configuration;
@@ -39,7 +39,7 @@ namespace SWD392.Controllers
         public UsersController(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
-            _authentication = new FirebaseService();
+            //_authentication = new FirebaseService();
             _tokenService = new TokenService(configuration);
             var connectionString = configuration["AzureCommunicationServices:ConnectionString"];
             _emailService = new EmailService(connectionString ?? "", configuration);
@@ -88,7 +88,7 @@ namespace SWD392.Controllers
             }
             catch (DbUpdateException)
             {
-                await _authentication.DeleteAsync(uid);
+                //await _authentication.DeleteAsync(uid);
                 return BadRequest(ApiResponse<object>.Error("Fail to create account (DB)"));
             }
             //_context.Users.Add(newUser);

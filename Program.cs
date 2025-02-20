@@ -105,11 +105,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Firebase setup
-FirebaseApp.Create(new AppOptions()
-{
-    Credential = GoogleCredential.FromFile("firebase.json")
-});
+//// Firebase setup
+//FirebaseApp.Create(new AppOptions()
+//{
+//    Credential = GoogleCredential.FromFile("firebase.json")
+//});
 
 var app = builder.Build();
 
