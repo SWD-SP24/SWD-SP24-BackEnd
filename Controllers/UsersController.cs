@@ -205,7 +205,18 @@ namespace SWD392.Controllers
             string token = "";
             try
             {
-                token = _tokenService.CreateUserToken(loginUser);
+                if (loginUser.Role == "admin")
+                {
+                    token = _tokenService.CreateAdminToken(loginUser);
+                }
+                else if (loginUser.Role == "doctor")
+                {
+                    token = _tokenService.CreateDoctorToken(loginUser);
+                } 
+                else
+                {
+                    token = _tokenService.CreateUserToken(loginUser);
+                }
             }
             catch (Exception)
             {

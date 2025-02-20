@@ -48,10 +48,6 @@ namespace SWD392.Controllers
                 //return BadRequest(new {status = 1000, message = "Email already exists."}); 
                 return BadRequest(ApiResponse<object>.Error("Email already exists."));
             }
-            //else if (_context.Users.Any(_context => _context.PhoneNumber == userDTO.PhoneNumber))
-            //{
-            //    return BadRequest(ApiResponse<object>.Error("Phone number already exists."));
-            //}
             string uid = "a";
             //try
             //{
@@ -194,7 +190,7 @@ namespace SWD392.Controllers
         /// </remarks>
         /// <response code="200">Logged in</response>
         [HttpPost("loginSystem")]
-        public async Task<ActionResult<LoginResponseDTO>> LoginSystem(LoginUserDTO userDTO)
+        private async Task<ActionResult<LoginResponseDTO>> LoginSystem(LoginUserDTO userDTO)
         {
             // TODO: support login with multiple methods
             // TODO: Confirm email
