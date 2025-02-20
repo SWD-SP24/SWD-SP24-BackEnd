@@ -50,7 +50,7 @@ namespace SWD392.Controllers
 
         // POST: api/Users/
         /// <summary>
-        /// Register user
+        /// Register user 
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -197,13 +197,10 @@ namespace SWD392.Controllers
             // TODO: support login with multiple methods
             // TODO: Confirm email
             // TODO: Reset password
-            return BadRequest(ApiResponse<object>.Error(conString));
-
             var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
             if (loginUser == null) { return BadRequest(ApiResponse<object>.Error("Account does not exist")); }
 
-            //if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error("Password is incorrect")); }
-            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error(conString)); }
+            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error("Password is incorrect")); }
 
             string token = "";
             try
