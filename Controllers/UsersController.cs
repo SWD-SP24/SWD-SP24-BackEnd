@@ -197,6 +197,7 @@ namespace SWD392.Controllers
             // TODO: support login with multiple methods
             // TODO: Confirm email
             // TODO: Reset password
+            return BadRequest(ApiResponse<object>.Error(conString));
 
             var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
             if (loginUser == null) { return BadRequest(ApiResponse<object>.Error("Account does not exist")); }
