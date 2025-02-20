@@ -108,7 +108,7 @@ namespace SWD392.Controllers
         /// <remarks>
         /// Errors:
         /// - Email already exists.
-        /// - Fail to create account (FB)  Check for valid email.
+        /// - Fail to create account (FB)  Check for valid email. 
         /// - Fail to create account (DB)
         /// </remarks>
         /// <response code="200">User register</response>
