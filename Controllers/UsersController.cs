@@ -50,7 +50,7 @@ namespace SWD392.Controllers
 
         // POST: api/Users/
         /// <summary>
-        /// Register user
+        /// Register user 
         /// </summary>
         /// <remarks>
         /// Errors:
