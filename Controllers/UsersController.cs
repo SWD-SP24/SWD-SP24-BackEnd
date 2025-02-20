@@ -35,6 +35,7 @@ namespace SWD392.Controllers
         private readonly TokenService _tokenService;
         private readonly EmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly string conString;
 
         public UsersController(AppDbContext context, IConfiguration configuration)
         {
@@ -42,6 +43,7 @@ namespace SWD392.Controllers
             //_authentication = new FirebaseService();
             _tokenService = new TokenService(configuration);
             var connectionString = configuration["AzureCommunicationServices:ConnectionString"];
+            conString = configuration["ConnectionStrings:DefaultConnection"];
             _emailService = new EmailService(connectionString ?? "", configuration);
             _configuration = configuration;
         }
@@ -199,8 +201,8 @@ namespace SWD392.Controllers
             var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
             if (loginUser == null) { return BadRequest(ApiResponse<object>.Error("Account does not exist")); }
 
-            if (loginUser.Role != "member") { return Unauthorized(ApiResponse<object>.Error("Member only")); }
-            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error("Password is incorrect")); }
+            //if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error("Password is incorrect")); }
+            if (loginUser.PasswordHash != userDTO.Password) { return BadRequest(ApiResponse<object>.Error(conString)); }
 
             string token = "";
             try
