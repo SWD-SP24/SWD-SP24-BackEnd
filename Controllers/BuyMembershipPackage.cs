@@ -69,7 +69,19 @@ namespace SWD392.Controllers
             {
                 return BadRequest(new { message = "Package not found" });
             }
+            var currentMembership = await _context.UserMemberships
+                .FirstOrDefaultAsync(um => um.UserId == userId && um.EndDate > DateTime.UtcNow);
 
+            if (currentMembership != null)
+            {
+                var currentPackage = await _context.MembershipPackages
+                    .FirstOrDefaultAsync(x => x.MembershipPackageId == currentMembership.MembershipPackageId);
+
+                if (currentPackage != null && requestedPackage.Price < currentPackage.Price && requestedPackage.Price == 0)
+                {
+                    return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
+                }
+            }
             var startDate = DateTime.UtcNow;
             var validityPeriod = requestedPackage.ValidityPeriod; // Số tháng của gói
             var endDate = startDate.AddDays(validityPeriod);
@@ -79,7 +91,6 @@ namespace SWD392.Controllers
                 MembershipPackageId = idPackage,
                 StartDate = startDate,
                 EndDate = endDate,
-                Status = "pending",
                 PaymentTransactionId = null,
                 MembershipPackage = new GetMembershipPackageDTO
                 {

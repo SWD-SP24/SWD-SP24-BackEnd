@@ -194,7 +194,7 @@ namespace SWD392.Controllers
                         _Context.Users.Update(user);
                         _Context.SaveChanges();
 
-                        return Ok(new { message = "Thanh toán thành công", payment = executedPayment });
+                        return Redirect("https://www.google.com");
                     }
                     catch (Exception ex)
                     {
