@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using SWD392.Data;
 using SWD392.DTOs.MembershipPackagesDTO;
 using SWD392.Models;
+using SWD392.Service;
 
 namespace SWD392.Controllers
 {
@@ -37,14 +38,18 @@ namespace SWD392.Controllers
         /// <response code="500">Internal server error.</response>
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PermissionDTO>>> GetPermissions()
+        public async Task<ActionResult<IEnumerable<PermissionDTO>>> GetPermissions(int pageNumber = 1, int pageSize = 8)
         {
             if (!IsAdmin())
             {
                 return Forbid("Access denied. Only Admins can perform this action.");
             }
 
+            var totalPermissions = await _context.Permissions.CountAsync();
+
             var permissions = await _context.Permissions
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(p => new PermissionDTO
                 {
                     PermissionId = p.PermissionId,
@@ -58,8 +63,15 @@ namespace SWD392.Controllers
                 return NotFound(new { message = "No permissions found" });
             }
 
-            return Ok(new { status = "success", data = permissions });
+            var maxPages = (int)Math.Ceiling(totalPermissions / (double)pageSize);
+            var hasNext = pageNumber < maxPages;
+
+            var pagination = new Pagination(maxPages, hasNext, totalPermissions); // Thêm tổng số quyền
+
+            return Ok(ApiResponse<object>.Success(permissions, pagination));
         }
+
+
 
         /// <summary>
         /// Create a new permission (Admin only).
@@ -129,7 +141,7 @@ namespace SWD392.Controllers
         /// <response code="404">Permission not found.</response>
         /// <response code="500">Internal server error.</response>
         [Authorize(Roles = "admin")]
-        [HttpPatch("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePermission(int id, [FromBody] CreatePermissionDTO dto)
         {
             if (!IsAdmin())

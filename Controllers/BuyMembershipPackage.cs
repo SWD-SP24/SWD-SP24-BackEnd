@@ -43,7 +43,7 @@ namespace SWD392.Controllers
   */
         // POST api/<BuyMembershipPackage>
 
-
+        
         [HttpGet("{idPackage}")]
         public async Task<IActionResult> GetOrderDetail(int idPackage)
         {
@@ -63,7 +63,9 @@ namespace SWD392.Controllers
             }
 
             var requestedPackage = await _context.MembershipPackages
-                .FirstOrDefaultAsync(x => x.MembershipPackageId == idPackage);
+    .Include(p => p.Permissions)
+    .FirstOrDefaultAsync(x => x.MembershipPackageId == idPackage);
+
 
             if (requestedPackage == null)
             {
@@ -83,7 +85,7 @@ namespace SWD392.Controllers
                 }
             }
             var startDate = DateTime.UtcNow;
-            var validityPeriod = requestedPackage.ValidityPeriod; // Số tháng của gói
+            var validityPeriod = requestedPackage.ValidityPeriod;
             var endDate = startDate.AddDays(validityPeriod);
 
             var orderDetail = new GetOrderDetailDTO
@@ -94,9 +96,17 @@ namespace SWD392.Controllers
                 PaymentTransactionId = null,
                 MembershipPackage = new GetMembershipPackageDTO
                 {
-                    MembershipPackageId = requestedPackage.MembershipPackageId,
+                     MembershipPackageId = requestedPackage.MembershipPackageId,
                     MembershipPackageName = requestedPackage.MembershipPackageName,
-                    Price = requestedPackage.Price
+                    Price = requestedPackage.Price,
+                    Status = requestedPackage.Status,
+                    ValidityPeriod = requestedPackage.ValidityPeriod,
+                    Permissions = requestedPackage.Permissions.Select(p => new PermissionDTO
+                    {
+                        PermissionId = p.PermissionId,
+                        PermissionName = p.PermissionName,
+                        Description = p.Description
+                    }).ToList()
                 }
             };
 

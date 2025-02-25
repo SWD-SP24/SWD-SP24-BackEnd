@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using SWD392.Data;
 using SWD392.DTOs.MembershipPackagesDTO;
 using SWD392.Models;
+using SWD392.Service;
 
 namespace SWD392.Controllers
 {
@@ -30,10 +31,14 @@ namespace SWD392.Controllers
         /// </remarks>
         /// <response code="200">Returns the list of membership packages.</response>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetMembershipPackages()
+        public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetMembershipPackages(int pageNumber = 1, int pageSize = 8)
         {
+            var totalPackages = await _context.MembershipPackages.CountAsync();
+
             var packages = await _context.MembershipPackages
                 .Include(p => p.Permissions)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(p => new GetMembershipPackageDTO
                 {
                     MembershipPackageId = p.MembershipPackageId,
@@ -50,8 +55,20 @@ namespace SWD392.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(new { status = "success", data = packages });
+            if (!packages.Any())
+            {
+                return NotFound(new { message = "No membership packages found" });
+            }
+
+            var maxPages = (int)Math.Ceiling(totalPackages / (double)pageSize);
+            var hasNext = pageNumber < maxPages;
+
+            var pagination = new Pagination(maxPages, hasNext, totalPackages); // Truyền tổng số gói vào
+
+            return Ok(ApiResponse<object>.Success(packages, pagination));
         }
+
+
 
         /// <summary>
         /// Create a new membership package.(Admin only)
@@ -123,7 +140,7 @@ namespace SWD392.Controllers
         /// <response code="200">Membership package updated successfully.</response>
         /// <response code="404">Membership package not found.</response>
         [Authorize(Roles = "admin")]
-        [HttpPatch("{id}")]
+        [HttpPut("{id}")]
         public async Task<ActionResult> UpdateMembershipPackage(int id, [FromBody] CreatePackageDTO dto)
         {
             
@@ -193,6 +210,40 @@ namespace SWD392.Controllers
 
             return Ok(new { status = "success", data = resultDto });
         }
+
+        [Authorize(Roles = "admin")]
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> UpdatePackageStatus(int id, [FromBody] EditPackageStatus dto)
+        {
+            if (dto == null || string.IsNullOrEmpty(dto.Status))
+            {
+                return BadRequest(new { status = "error", message = "Invalid status data" });
+            }
+
+            var package = await _context.MembershipPackages.FindAsync(id);
+            if (package == null)
+            {
+                return NotFound(new { status = "error", message = "Membership package not found" });
+            }
+
+            // Nếu cập nhật sang trạng thái "Active", kiểm tra số lượng gói đã Active
+            if (dto.Status == "Active")
+            {
+                int activePackagesCount = await _context.MembershipPackages.CountAsync(p => p.Status == "Active");
+
+                if (activePackagesCount >= 3)
+                {
+                    return BadRequest(new { status = "error", message = "Only 3 membership packages can be active at the same time." });
+                }
+            }
+
+            package.Status = dto.Status;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { status = "success", message = "Package status updated successfully"});
+        }
+
+
 
         /// <summary>
         /// Delete a membership package.(Admin only)
