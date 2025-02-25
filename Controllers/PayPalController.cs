@@ -55,8 +55,8 @@ namespace SWD392.Controllers
         },
                 redirect_urls = new RedirectUrls
                 {
-                    return_url = "https://localhost:7067/api/PayPal/execute-payment?idMbPackage=" + idPackage,
-                    cancel_url = "https://localhost:7067/api/PayPal/cancel-payment"
+                    return_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/execute-payment?idMbPackage=" + idPackage,
+                    cancel_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/cancel-payment"
                 }
             };
 

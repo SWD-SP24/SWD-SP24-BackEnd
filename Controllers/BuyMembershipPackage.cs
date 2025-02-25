@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using PayPal;
 using PayPal.Api;
 using SWD392.Data;
+using SWD392.DTOs.MembershipPackagesDTO;
+using SWD392.DTOs.UserMembershipDTO;
 using SWD392.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
@@ -41,6 +43,54 @@ namespace SWD392.Controllers
   */
         // POST api/<BuyMembershipPackage>
 
+
+        [HttpGet("{idPackage}")]
+        public async Task<IActionResult> GetOrderDetail(int idPackage)
+        {
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader))
+            {
+                return Unauthorized(new { message = "Authorization header missing" });
+            }
+
+            var handler = new JwtSecurityTokenHandler();
+            var header = AuthenticationHeaderValue.Parse(authHeader);
+            var token = handler.ReadJwtToken(header.Parameter);
+            var rawId = token.Claims.FirstOrDefault(claim => claim.Type == "id")?.Value;
+            if (string.IsNullOrEmpty(rawId) || !int.TryParse(rawId, out int userId))
+            {
+                return Unauthorized(new { message = "Invalid token" });
+            }
+
+            var requestedPackage = await _context.MembershipPackages
+                .FirstOrDefaultAsync(x => x.MembershipPackageId == idPackage);
+
+            if (requestedPackage == null)
+            {
+                return BadRequest(new { message = "Package not found" });
+            }
+
+            var startDate = DateTime.UtcNow;
+            var validityPeriod = requestedPackage.ValidityPeriod; // Số tháng của gói
+            var endDate = startDate.AddDays(validityPeriod);
+
+            var orderDetail = new GetOrderDetailDTO
+            {
+                MembershipPackageId = idPackage,
+                StartDate = startDate,
+                EndDate = endDate,
+                Status = "pending",
+                PaymentTransactionId = null,
+                MembershipPackage = new GetMembershipPackageDTO
+                {
+                    MembershipPackageId = requestedPackage.MembershipPackageId,
+                    MembershipPackageName = requestedPackage.MembershipPackageName,
+                    Price = requestedPackage.Price
+                }
+            };
+
+            return Ok(orderDetail);
+        }
 
 
         [HttpPost]
@@ -115,13 +165,13 @@ namespace SWD392.Controllers
         },
                 redirect_urls = new RedirectUrls
                 {
-                    return_url = $"https://localhost:7067/api/PayPal/execute-payment?idMbPackage={idPackage}",
-                    cancel_url = "https://localhost:7067/api/PayPal/cancel-payment"
+                    return_url = $"https://swd39220250217220816.azurewebsites.net/api/PayPal/execute-payment?idMbPackage={idPackage}",
+                    cancel_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/cancel-payment"
                 }
             };
 
             try
-            {
+            {   
                 var createdPayment = payment.Create(apiContext);
                 var paymentId = createdPayment.id;
 
