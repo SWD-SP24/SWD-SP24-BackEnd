@@ -180,7 +180,7 @@ namespace SWD392.Controllers
 
 
         /// <summary>
-        /// Login user
+        /// Login user (All user)
         /// </summary>
         /// <remarks>
         /// Errors:
