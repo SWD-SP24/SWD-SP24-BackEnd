@@ -43,7 +43,7 @@ namespace SWD392.Controllers
   */
         // POST api/<BuyMembershipPackage>
 
-
+        
         [HttpGet("{idPackage}")]
         public async Task<IActionResult> GetOrderDetail(int idPackage)
         {
@@ -85,7 +85,7 @@ namespace SWD392.Controllers
                 }
             }
             var startDate = DateTime.UtcNow;
-            var validityPeriod = requestedPackage.ValidityPeriod; // Số tháng của gói
+            var validityPeriod = requestedPackage.ValidityPeriod;
             var endDate = startDate.AddDays(validityPeriod);
 
             var orderDetail = new GetOrderDetailDTO

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using SWD392.Data;
 using SWD392.DTOs.MembershipPackagesDTO;
 using SWD392.Models;
+using SWD392.Service;
 
 namespace SWD392.Controllers
 {
@@ -30,10 +31,14 @@ namespace SWD392.Controllers
         /// </remarks>
         /// <response code="200">Returns the list of membership packages.</response>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetMembershipPackages()
+        public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetMembershipPackages(int pageNumber = 1, int pageSize = 8)
         {
+            var totalPackages = await _context.MembershipPackages.CountAsync();
+
             var packages = await _context.MembershipPackages
                 .Include(p => p.Permissions)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .Select(p => new GetMembershipPackageDTO
                 {
                     MembershipPackageId = p.MembershipPackageId,
@@ -50,8 +55,19 @@ namespace SWD392.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(new { status = "success", data = packages });
+            if (!packages.Any())
+            {
+                return NotFound(new { message = "No membership packages found" });
+            }
+
+            var hasNext = (pageNumber * pageSize) < totalPackages;
+            var maxPages = (int)Math.Ceiling(totalPackages / (double)pageSize);
+
+            var pagination = new Pagination(maxPages, hasNext);
+
+            return Ok(ApiResponse<object>.Success(packages, pagination));
         }
+
 
         /// <summary>
         /// Create a new membership package.(Admin only)
