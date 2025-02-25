@@ -69,6 +69,36 @@ namespace SWD392.Controllers
         }
 
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<GetMembershipPackageDTO>> GetMembershipPackageById(int id)
+        {
+            var package = await _context.MembershipPackages
+                .Include(p => p.Permissions)
+                .FirstOrDefaultAsync(p => p.MembershipPackageId == id);
+
+            if (package == null)
+            {
+                return NotFound(new { status = "error", message = "Membership package not found" });
+            }
+
+            var resultDto = new GetMembershipPackageDTO
+            {
+                MembershipPackageId = package.MembershipPackageId,
+                MembershipPackageName = package.MembershipPackageName,
+                Price = package.Price,
+                Status = package.Status,
+                ValidityPeriod = package.ValidityPeriod,
+                Permissions = package.Permissions.Select(p => new PermissionDTO
+                {
+                    PermissionId = p.PermissionId,
+                    PermissionName = p.PermissionName,
+                    Description = p.Description
+                }).ToList()
+            };
+
+            return Ok(new { status = "successfully", data = resultDto });
+        }
+
 
         /// <summary>
         /// Create a new membership package.(Admin only)
