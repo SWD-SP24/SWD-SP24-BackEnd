@@ -227,9 +227,9 @@ namespace SWD392.Controllers
             }
 
             // Nếu cập nhật sang trạng thái "Active", kiểm tra số lượng gói đã Active
-            if (dto.Status == "Active")
+            if (dto.Status == "active")
             {
-                int activePackagesCount = await _context.MembershipPackages.CountAsync(p => p.Status == "Active");
+                int activePackagesCount = await _context.MembershipPackages.CountAsync(p => p.Status == "active");
 
                 if (activePackagesCount >= 3)
                 {
