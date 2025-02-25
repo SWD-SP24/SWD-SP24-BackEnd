@@ -129,7 +129,7 @@ namespace SWD392.Controllers
         /// <response code="404">Permission not found.</response>
         /// <response code="500">Internal server error.</response>
         [Authorize(Roles = "admin")]
-        [HttpPatch("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePermission(int id, [FromBody] CreatePermissionDTO dto)
         {
             if (!IsAdmin())

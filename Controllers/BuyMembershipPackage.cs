@@ -63,7 +63,9 @@ namespace SWD392.Controllers
             }
 
             var requestedPackage = await _context.MembershipPackages
-                .FirstOrDefaultAsync(x => x.MembershipPackageId == idPackage);
+    .Include(p => p.Permissions)
+    .FirstOrDefaultAsync(x => x.MembershipPackageId == idPackage);
+
 
             if (requestedPackage == null)
             {
@@ -94,9 +96,17 @@ namespace SWD392.Controllers
                 PaymentTransactionId = null,
                 MembershipPackage = new GetMembershipPackageDTO
                 {
-                    MembershipPackageId = requestedPackage.MembershipPackageId,
+                     MembershipPackageId = requestedPackage.MembershipPackageId,
                     MembershipPackageName = requestedPackage.MembershipPackageName,
-                    Price = requestedPackage.Price
+                    Price = requestedPackage.Price,
+                    Status = requestedPackage.Status,
+                    ValidityPeriod = requestedPackage.ValidityPeriod,
+                    Permissions = requestedPackage.Permissions.Select(p => new PermissionDTO
+                    {
+                        PermissionId = p.PermissionId,
+                        PermissionName = p.PermissionName,
+                        Description = p.Description
+                    }).ToList()
                 }
             };
 

@@ -123,7 +123,7 @@ namespace SWD392.Controllers
         /// <response code="200">Membership package updated successfully.</response>
         /// <response code="404">Membership package not found.</response>
         [Authorize(Roles = "admin")]
-        [HttpPatch("{id}")]
+        [HttpPut("{id}")]
         public async Task<ActionResult> UpdateMembershipPackage(int id, [FromBody] CreatePackageDTO dto)
         {
             
