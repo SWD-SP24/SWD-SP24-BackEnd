@@ -194,6 +194,40 @@ namespace SWD392.Controllers
             return Ok(new { status = "success", data = resultDto });
         }
 
+        [Authorize(Roles = "admin")]
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> UpdatePackageStatus(int id, [FromBody] EditPackageStatus dto)
+        {
+            if (dto == null || string.IsNullOrEmpty(dto.Status))
+            {
+                return BadRequest(new { status = "error", message = "Invalid status data" });
+            }
+
+            var package = await _context.MembershipPackages.FindAsync(id);
+            if (package == null)
+            {
+                return NotFound(new { status = "error", message = "Membership package not found" });
+            }
+
+            // Nếu cập nhật sang trạng thái "Active", kiểm tra số lượng gói đã Active
+            if (dto.Status == "Active")
+            {
+                int activePackagesCount = await _context.MembershipPackages.CountAsync(p => p.Status == "Active");
+
+                if (activePackagesCount >= 3)
+                {
+                    return BadRequest(new { status = "error", message = "Only 3 membership packages can be active at the same time." });
+                }
+            }
+
+            package.Status = dto.Status;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { status = "success", message = "Package status updated successfully"});
+        }
+
+
+
         /// <summary>
         /// Delete a membership package.(Admin only)
         /// </summary>
