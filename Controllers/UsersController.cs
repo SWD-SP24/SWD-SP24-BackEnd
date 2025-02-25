@@ -702,6 +702,44 @@ namespace SWD392.Controllers
 
             return Ok(ApiResponse<object>.Success("Password reset successfully"));
         }
+
+        // GET: api/Users/children-count
+        /// <summary>
+        /// Get the total number of children for the currently logged-in user (Authorized only)
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No JWT key
+        /// - JWT token has expired
+        /// - Invalid JWT key
+        /// </remarks>
+        /// <response code="200">Children count retrieved</response>
+        [Authorize]
+        [HttpGet("children-count")]
+        public async Task<ActionResult<object>> GetChildrenCount()
+        {
+            if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(ApiResponse<object>.Error("No JWT key"));
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+
+            User user;
+            try
+            {
+                user = await ValidateJwtToken(authHeader);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(ApiResponse<object>.Error(e.Message));
+            }
+
+            var childrenCount = await _context.Children.CountAsync(c => c.MemberId == user.UserId);
+
+            return Ok(ApiResponse<object>.Success(new { childno = childrenCount }));
+        }
+
+
+
         private async Task<User> ValidateJwtToken(string authHeader)
         {
             var handler = new JwtSecurityTokenHandler();
