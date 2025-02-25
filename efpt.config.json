@@ -35,6 +35,14 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[Deviation_Analysis]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FAQ]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[feedbacks]",
          "ObjectType": 0
       },
@@ -63,11 +71,35 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[TeethingRecord]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Tooth]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[user_memberships]",
          "ObjectType": 0
       },
       {
          "Name": "[dbo].[users]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Vaccination_Schedule]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Vaccine]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VaccineRecord]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[WHO_Growth_Standards]",
          "ObjectType": 0
       }
    ],

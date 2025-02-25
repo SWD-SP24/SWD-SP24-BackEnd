@@ -22,6 +22,10 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<ConsultationNote> ConsultationNotes { get; set; }
 
+    public virtual DbSet<DeviationAnalysis> DeviationAnalyses { get; set; }
+
+    public virtual DbSet<Faq> Faqs { get; set; }
+
     public virtual DbSet<Feedback> Feedbacks { get; set; }
 
     public virtual DbSet<GrowthIndicator> GrowthIndicators { get; set; }
@@ -34,9 +38,21 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Reply> Replies { get; set; }
 
+    public virtual DbSet<TeethingRecord> TeethingRecords { get; set; }
+
+    public virtual DbSet<Tooth> Teeth { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserMembership> UserMemberships { get; set; }
+
+    public virtual DbSet<VaccinationSchedule> VaccinationSchedules { get; set; }
+
+    public virtual DbSet<Vaccine> Vaccines { get; set; }
+
+    public virtual DbSet<VaccineRecord> VaccineRecords { get; set; }
+
+    public virtual DbSet<WhoGrowthStandard> WhoGrowthStandards { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -169,6 +185,46 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.MemberId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_consultation_notes_member");
+        });
+
+        modelBuilder.Entity<DeviationAnalysis>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Deviatio__3213E83F5D5BD057");
+
+            entity.ToTable("Deviation_Analysis");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.ComputedValue)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("computed_value");
+            entity.Property(e => e.DeviationPercentage)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("deviation_percentage");
+            entity.Property(e => e.GrowthRecordId).HasColumnName("growth_record_id");
+
+            entity.HasOne(d => d.GrowthRecord).WithMany(p => p.DeviationAnalyses)
+                .HasForeignKey(d => d.GrowthRecordId)
+                .HasConstraintName("FK__Deviation__growt__0662F0A3");
+        });
+
+        modelBuilder.Entity<Faq>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__FAQ__3213E83F6D123802");
+
+            entity.ToTable("FAQ");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.AdminId).HasColumnName("admin_id");
+            entity.Property(e => e.Answer)
+                .HasMaxLength(255)
+                .HasColumnName("answer");
+            entity.Property(e => e.Question)
+                .HasMaxLength(255)
+                .HasColumnName("question");
         });
 
         modelBuilder.Entity<Feedback>(entity =>
@@ -321,6 +377,54 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_replies_feedbacks");
         });
 
+        modelBuilder.Entity<TeethingRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Teething__3213E83FC9E32CFF");
+
+            entity.ToTable("TeethingRecord");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ChildId).HasColumnName("child_id");
+            entity.Property(e => e.EruptionDate)
+                .HasColumnType("datetime")
+                .HasColumnName("eruption_date");
+            entity.Property(e => e.RecordTime)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("record_time");
+            entity.Property(e => e.ToothId).HasColumnName("tooth_id");
+
+            entity.HasOne(d => d.Child).WithMany(p => p.TeethingRecords)
+                .HasForeignKey(d => d.ChildId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__TeethingR__child__1B5E0D89");
+
+            entity.HasOne(d => d.Tooth).WithMany(p => p.TeethingRecords)
+                .HasForeignKey(d => d.ToothId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__TeethingR__tooth__1C5231C2");
+        });
+
+        modelBuilder.Entity<Tooth>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Tooth__3213E83F80926536");
+
+            entity.ToTable("Tooth");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("name");
+            entity.Property(e => e.NumberOfTeeth).HasColumnName("number_of_teeth");
+            entity.Property(e => e.TeethingPeriod)
+                .IsRequired()
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("teething_period");
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370F263DB4ED");
@@ -330,10 +434,18 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => e.Email, "UQ__users__AB6E61648F5CECDA").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Address)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("address");
             entity.Property(e => e.Avatar)
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("avatar");
+            entity.Property(e => e.Country)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("country");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
@@ -366,6 +478,10 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("role");
+            entity.Property(e => e.State)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("state");
             entity.Property(e => e.Status)
                 .IsRequired()
                 .HasMaxLength(50)
@@ -373,6 +489,10 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Uid)
                 .HasMaxLength(255)
                 .HasColumnName("uid");
+            entity.Property(e => e.Zipcode)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("zipcode");
 
             entity.HasOne(d => d.MembershipPackage).WithMany(p => p.Users)
                 .HasForeignKey(d => d.MembershipPackageId)
@@ -413,6 +533,110 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_user_memberships_users");
+        });
+
+        modelBuilder.Entity<VaccinationSchedule>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Vaccinat__3213E83FE9EF4CBE");
+
+            entity.ToTable("Vaccination_Schedule");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.ChildId).HasColumnName("child_id");
+            entity.Property(e => e.RecommendedAgeMonths).HasColumnName("recommended_age_months");
+            entity.Property(e => e.ScheduledDate)
+                .HasColumnType("datetime")
+                .HasColumnName("scheduled_date");
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.VaccineId).HasColumnName("vaccine_id");
+
+            entity.HasOne(d => d.Child).WithMany(p => p.VaccinationSchedules)
+                .HasForeignKey(d => d.ChildId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_child");
+
+            entity.HasOne(d => d.Vaccine).WithMany(p => p.VaccinationSchedules)
+                .HasForeignKey(d => d.VaccineId)
+                .HasConstraintName("FK__Vaccinati__vacci__00AA174D");
+        });
+
+        modelBuilder.Entity<Vaccine>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Vaccine__3213E83F87A90ADA");
+
+            entity.ToTable("Vaccine");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.Description)
+                .HasMaxLength(255)
+                .HasColumnName("description");
+            entity.Property(e => e.DosesRequired).HasColumnName("doses_required");
+            entity.Property(e => e.Name)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<VaccineRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__VaccineR__3213E83F34A6CE76");
+
+            entity.ToTable("VaccineRecord");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.AdministeredDate)
+                .HasColumnType("datetime")
+                .HasColumnName("administered_date");
+            entity.Property(e => e.ChildId).HasColumnName("child_id");
+            entity.Property(e => e.Dose)
+                .IsRequired()
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("dose");
+            entity.Property(e => e.VaccineId).HasColumnName("vaccine_id");
+
+            entity.HasOne(d => d.Child).WithMany(p => p.VaccineRecords)
+                .HasForeignKey(d => d.ChildId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__VaccineRe__child__14B10FFA");
+
+            entity.HasOne(d => d.Vaccine).WithMany(p => p.VaccineRecords)
+                .HasForeignKey(d => d.VaccineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__VaccineRe__vacci__15A53433");
+        });
+
+        modelBuilder.Entity<WhoGrowthStandard>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__WHO_Grow__3213E83F82C826BC");
+
+            entity.ToTable("WHO_Growth_Standards");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("id");
+            entity.Property(e => e.AgeMonths).HasColumnName("age_months");
+            entity.Property(e => e.BmiAvg)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("bmi_avg");
+            entity.Property(e => e.Gender)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("gender");
+            entity.Property(e => e.HeightAvg)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("height_avg");
+            entity.Property(e => e.WeightAvg)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("weight_avg");
         });
 
         OnModelCreatingPartial(modelBuilder);

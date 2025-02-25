@@ -393,6 +393,22 @@ namespace SWD392.Controllers
                 {
                     user.Uid = userDto.Uid;
                 }
+                if (userDto.Address != null)
+                {
+                    user.Address = userDto.Address;
+                }
+                if (userDto.Zipcode != null)
+                {
+                    user.Zipcode = userDto.Zipcode;
+                }
+                if (userDto.State != null)
+                {
+                    user.State = userDto.State;
+                }
+                if (userDto.Country != null)
+                {
+                    user.Country = userDto.Country;
+                }
             }
 
             _context.Entry(user).State = EntityState.Modified;

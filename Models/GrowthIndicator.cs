@@ -20,4 +20,6 @@ public partial class GrowthIndicator
     public int ChildrenId { get; set; }
 
     public virtual Child Children { get; set; }
+
+    public virtual ICollection<DeviationAnalysis> DeviationAnalyses { get; set; } = new List<DeviationAnalysis>();
 }

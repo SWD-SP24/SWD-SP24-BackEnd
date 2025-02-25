@@ -100,7 +100,11 @@ namespace SWD392.Mapper
                 MembershipPackageId = user.MembershipPackageId,
                 Uid = user.Uid,
                 Token = token,
-                EmailActivation = user.EmailActivation
+                EmailActivation = user.EmailActivation,
+                Address = user.Address,
+                Zipcode = user.Zipcode,
+                State = user.State,
+                Country = user.Country
             };
         }
     }

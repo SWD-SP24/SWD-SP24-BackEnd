@@ -31,6 +31,14 @@ public partial class User
 
     public string EmailActivation { get; set; }
 
+    public string Address { get; set; }
+
+    public string Zipcode { get; set; }
+
+    public string State { get; set; }
+
+    public string Country { get; set; }
+
     public virtual ICollection<BlogContent> BlogContents { get; set; } = new List<BlogContent>();
 
     public virtual ICollection<Child> Children { get; set; } = new List<Child>();

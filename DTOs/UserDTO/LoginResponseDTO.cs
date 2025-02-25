@@ -29,5 +29,10 @@ namespace SWD392.DTOs.UserDTO
         public required string Token { get; set; }
 
         public string? EmailActivation { get; set; }
+
+        public string? Address { get; set; }
+        public string? Zipcode { get; set; }
+        public string? State { get; set; }
+        public string? Country { get; set; }
     }
 }
