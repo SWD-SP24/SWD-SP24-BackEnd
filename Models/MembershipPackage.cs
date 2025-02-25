@@ -20,6 +20,7 @@ public partial class MembershipPackage
     public DateTime CreatedTime { get; set; }
 
     public int? AdminId { get; set; }
+    public string image { get; set; }
 
     public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
 

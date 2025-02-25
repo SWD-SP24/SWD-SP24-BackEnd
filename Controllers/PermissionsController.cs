@@ -63,13 +63,14 @@ namespace SWD392.Controllers
                 return NotFound(new { message = "No permissions found" });
             }
 
-            var hasNext = (pageNumber * pageSize) < totalPermissions;
             var maxPages = (int)Math.Ceiling(totalPermissions / (double)pageSize);
+            var hasNext = pageNumber < maxPages;
 
-            var pagination = new Pagination(maxPages, hasNext);
+            var pagination = new Pagination(maxPages, hasNext, totalPermissions); // Thêm tổng số quyền
 
             return Ok(ApiResponse<object>.Success(permissions, pagination));
         }
+
 
 
         /// <summary>

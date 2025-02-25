@@ -60,13 +60,14 @@ namespace SWD392.Controllers
                 return NotFound(new { message = "No membership packages found" });
             }
 
-            var hasNext = (pageNumber * pageSize) < totalPackages;
             var maxPages = (int)Math.Ceiling(totalPackages / (double)pageSize);
+            var hasNext = pageNumber < maxPages;
 
-            var pagination = new Pagination(maxPages, hasNext);
+            var pagination = new Pagination(maxPages, hasNext, totalPackages); // Truyền tổng số gói vào
 
             return Ok(ApiResponse<object>.Success(packages, pagination));
         }
+
 
 
         /// <summary>
