@@ -240,12 +240,21 @@ namespace SWD392.Controllers
         /// <response code="200">Users retrieved</response>
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetUsers(int pageNumber = 1, int pageSize = 8)
         {
-            var users = await _context.Users.ToListAsync();
-            var userDTOs = users.Select(user => user.ToGetUserDTO()).ToList();
-            return Ok(ApiResponse<object>.Success(userDTOs));
+            var totalUsers = await _context.Users.CountAsync();
+            var users = await _context.Users
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
+            var userDTOs = users.Select(user => user.ToGetUserDTO()).ToList();
+            var hasNext = (pageNumber * pageSize) < totalUsers;
+            var maxPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
+
+            var pagination = new Pagination(maxPages, hasNext);
+
+            return Ok(ApiResponse<object>.Success(userDTOs, pagination));
         }
 
         /// <summary>
