@@ -76,7 +76,7 @@ namespace SWD392.Controllers
                 var currentPackage = await _context.MembershipPackages
                     .FirstOrDefaultAsync(x => x.MembershipPackageId == currentMembership.MembershipPackageId);
 
-                if (currentPackage != null && requestedPackage.Price < currentPackage.Price)
+                if (currentPackage != null && requestedPackage.Price < currentPackage.Price && requestedPackage.Price == 0)
                 {
                     return BadRequest(new { message = "Bạn không thể mua gói có giá thấp hơn gói hiện tại." });
                 }
