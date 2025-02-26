@@ -216,9 +216,9 @@ public partial class AppDbContext : DbContext
             entity.ToTable("FAQ");
 
             entity.Property(e => e.Id)
-                .ValueGeneratedNever()
+                .ValueGeneratedOnAdd()
                 .HasColumnName("id");
-            entity.Property(e => e.AdminId).HasColumnName("admin_id");
+            
             entity.Property(e => e.Answer)
                 .HasMaxLength(255)
                 .HasColumnName("answer");
