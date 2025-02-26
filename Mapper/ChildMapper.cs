@@ -11,10 +11,14 @@ namespace SWD392.Mapper
             {
                 ChildrenId = child.ChildrenId,
                 FullName = child.FullName,
-                Age = child.Age,
                 Avatar = child.Avatar,
                 MemberId = child.MemberId,
-                CreatedAt = child.CreatedAt
+                CreatedAt = child.CreatedAt,
+                Dob = child.Dob,
+                BloodType = child.BloodType,
+                Allergies = child.Allergies,
+                ChronicConditions = child.ChronicConditions,
+                Gender = child.Gender
             };
         }
     }

@@ -132,19 +132,31 @@ public partial class AppDbContext : DbContext
             entity.ToTable("children");
 
             entity.Property(e => e.ChildrenId).HasColumnName("children_id");
-            entity.Property(e => e.Age).HasColumnName("age");
+            entity.Property(e => e.Allergies)
+                .HasMaxLength(255)
+                .HasColumnName("allergies");
             entity.Property(e => e.Avatar)
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("avatar");
+            entity.Property(e => e.BloodType)
+                .HasMaxLength(10)
+                .HasColumnName("blood_type");
+            entity.Property(e => e.ChronicConditions)
+                .HasMaxLength(255)
+                .HasColumnName("chronic_conditions");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
+            entity.Property(e => e.Dob).HasColumnName("dob");
             entity.Property(e => e.FullName)
                 .IsRequired()
                 .HasMaxLength(255)
                 .HasColumnName("full_name");
+            entity.Property(e => e.Gender)
+                .HasMaxLength(50)
+                .HasColumnName("gender");
             entity.Property(e => e.MemberId).HasColumnName("member_id");
 
             entity.HasOne(d => d.Member).WithMany(p => p.Children)
@@ -189,13 +201,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<DeviationAnalysis>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Deviatio__3213E83F5D5BD057");
+            entity.HasKey(e => e.Id).HasName("PK__Deviatio__3213E83FACDFE037");
 
             entity.ToTable("Deviation_Analysis");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ComputedValue)
                 .HasColumnType("decimal(5, 2)")
                 .HasColumnName("computed_value");
@@ -206,19 +216,16 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.GrowthRecord).WithMany(p => p.DeviationAnalyses)
                 .HasForeignKey(d => d.GrowthRecordId)
-                .HasConstraintName("FK__Deviation__growt__0662F0A3");
+                .HasConstraintName("FK__Deviation__growt__28B808A7");
         });
 
         modelBuilder.Entity<Faq>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__FAQ__3213E83F6D123802");
+            entity.HasKey(e => e.Id).HasName("PK__FAQ__3213E83FFE70170F");
 
             entity.ToTable("FAQ");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
-            
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Answer)
                 .HasMaxLength(255)
                 .HasColumnName("answer");
@@ -280,6 +287,7 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("created_time");
+            entity.Property(e => e.Image).HasColumnName("image");
             entity.Property(e => e.MembershipPackageName)
                 .IsRequired()
                 .HasMaxLength(255)
@@ -537,13 +545,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<VaccinationSchedule>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Vaccinat__3213E83FE9EF4CBE");
+            entity.HasKey(e => e.Id).HasName("PK__Vaccinat__3213E83F587A275C");
 
             entity.ToTable("Vaccination_Schedule");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ChildId).HasColumnName("child_id");
             entity.Property(e => e.RecommendedAgeMonths).HasColumnName("recommended_age_months");
             entity.Property(e => e.ScheduledDate)
@@ -563,18 +569,16 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Vaccine).WithMany(p => p.VaccinationSchedules)
                 .HasForeignKey(d => d.VaccineId)
-                .HasConstraintName("FK__Vaccinati__vacci__00AA174D");
+                .HasConstraintName("FK__Vaccinati__vacci__25DB9BFC");
         });
 
         modelBuilder.Entity<Vaccine>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Vaccine__3213E83F87A90ADA");
+            entity.HasKey(e => e.Id).HasName("PK__Vaccine__3213E83FA3A6D328");
 
             entity.ToTable("Vaccine");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Description)
                 .HasMaxLength(255)
                 .HasColumnName("description");
@@ -607,22 +611,15 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.ChildId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__VaccineRe__child__14B10FFA");
-
-            entity.HasOne(d => d.Vaccine).WithMany(p => p.VaccineRecords)
-                .HasForeignKey(d => d.VaccineId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__VaccineRe__vacci__15A53433");
         });
 
         modelBuilder.Entity<WhoGrowthStandard>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__WHO_Grow__3213E83F82C826BC");
+            entity.HasKey(e => e.Id).HasName("PK__WHO_Grow__3213E83F75671391");
 
             entity.ToTable("WHO_Growth_Standards");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AgeMonths).HasColumnName("age_months");
             entity.Property(e => e.BmiAvg)
                 .HasColumnType("decimal(5, 2)")

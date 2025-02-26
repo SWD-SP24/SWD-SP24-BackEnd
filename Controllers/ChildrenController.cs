@@ -176,16 +176,29 @@ namespace SWD392.Controllers
             {
                 child.FullName = childDto.FullName;
             }
-            if (childDto.Age != null)
-            {
-                if (childDto.Age.HasValue)
-                {
-                    child.Age = childDto.Age.Value;
-                }
-            }
             if (childDto.Avatar != null)
             {
                 child.Avatar = childDto.Avatar;
+            }
+            if (childDto.Dob.HasValue)
+            {
+                child.Dob = childDto.Dob.Value;
+            }
+            if (childDto.BloodType != null)
+            {
+                child.BloodType = childDto.BloodType;
+            }
+            if (childDto.Allergies != null)
+            {
+                child.Allergies = childDto.Allergies;
+            }
+            if (childDto.ChronicConditions != null)
+            {
+                child.ChronicConditions = childDto.ChronicConditions;
+            }
+            if (childDto.Gender != null)
+            {
+                child.Gender = childDto.Gender;
             }
 
             _context.Entry(child).State = EntityState.Modified;
@@ -246,16 +259,29 @@ namespace SWD392.Controllers
             {
                 child.FullName = childDto.FullName;
             }
-            if (childDto.Age != null)
-            {
-                if (childDto.Age.HasValue)
-                {
-                    child.Age = childDto.Age.Value;
-                }
-            }
             if (childDto.Avatar != null)
             {
                 child.Avatar = childDto.Avatar;
+            }
+            if (childDto.Dob.HasValue)
+            {
+                child.Dob = childDto.Dob.Value;
+            }
+            if (childDto.BloodType != null)
+            {
+                child.BloodType = childDto.BloodType;
+            }
+            if (childDto.Allergies != null)
+            {
+                child.Allergies = childDto.Allergies;
+            }
+            if (childDto.ChronicConditions != null)
+            {
+                child.ChronicConditions = childDto.ChronicConditions;
+            }
+            if (childDto.Gender != null)
+            {
+                child.Gender = childDto.Gender;
             }
 
             _context.Entry(child).State = EntityState.Modified;
@@ -315,10 +341,14 @@ namespace SWD392.Controllers
             var child = new Child
             {
                 FullName = childDto.FullName,
-                Age = childDto.Age,
                 Avatar = childDto.Avatar,
                 MemberId = user.UserId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Dob = childDto.Dob,
+                BloodType = childDto.BloodType,
+                Allergies = childDto.Allergies,
+                ChronicConditions = childDto.ChronicConditions,
+                Gender = childDto.Gender
             };
 
             _context.Children.Add(child);
@@ -345,10 +375,14 @@ namespace SWD392.Controllers
             var child = new Child
             {
                 FullName = newChildDto.FullName,
-                Age = newChildDto.Age,
                 Avatar = newChildDto.Avatar ?? null,
                 MemberId = newChildDto.MemberId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Dob = newChildDto.Dob,
+                BloodType = newChildDto.BloodType,
+                Allergies = newChildDto.Allergies,
+                ChronicConditions = newChildDto.ChronicConditions,
+                Gender = newChildDto.Gender
             };
 
             _context.Children.Add(child);
