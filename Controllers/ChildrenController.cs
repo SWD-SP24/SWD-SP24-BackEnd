@@ -102,6 +102,57 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<IEnumerable<GetChildDTO>>.Success(childrenDTOs, pagination));
         }
 
+        // GET: api/Children/child/{id}
+        /// <summary>
+        /// Get a specific child by ID (Authorized only)
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No JWT key
+        /// - JWT token has expired
+        /// - Invalid JWT key
+        /// - Child not found
+        /// - Unauthorized to access this child
+        /// </remarks>
+        /// <response code="200">Child retrieved</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="404">Child not found</response>
+        [Authorize]
+        [HttpGet("child/{id}")]
+        public async Task<ActionResult<ApiResponse<GetChildDTO>>> GetChild(int id)
+        {
+            if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(ApiResponse<object>.Error("No JWT key"));
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+
+            User user;
+            try
+            {
+                user = await ValidateJwtToken(authHeader);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(ApiResponse<object>.Error(e.Message));
+            }
+
+            var child = await _context.Children.FindAsync(id);
+
+            if (child == null)
+            {
+                return NotFound(ApiResponse<GetChildDTO>.Error("Child not found"));
+            }
+
+            if (child.MemberId != user.UserId)
+            {
+                return Unauthorized(ApiResponse<object>.Error("Unauthorized to access this child"));
+            }
+
+            var childDTO = child.ToGetChildDTO();
+            return Ok(ApiResponse<GetChildDTO>.Success(childDTO));
+        }
+
+
         // GET: api/Children/5
         /// <summary>
         /// Get a child by ID (Admin only)
