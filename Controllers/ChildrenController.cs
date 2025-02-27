@@ -39,7 +39,7 @@ namespace SWD392.Controllers
         /// <response code="200">Children retrieved</response>
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<Child>>>> GetChildren([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 8)
+        public async Task<ActionResult<ApiResponse<IEnumerable<GetChildDTO>>>> GetChildren([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 8)
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
                 return Unauthorized(ApiResponse<object>.Error("No JWT key"));
