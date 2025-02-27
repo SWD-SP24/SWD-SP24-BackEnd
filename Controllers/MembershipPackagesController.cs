@@ -68,6 +68,37 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<object>.Success(packages, pagination));
         }
 
+        [HttpGet("PricingPlan")]
+        public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetActiveMembershipPackages()
+        {
+            var packages = await _context.MembershipPackages
+                .Include(p => p.Permissions)
+                .Where(p => p.Status == "active") 
+                .Select(p => new GetMembershipPackageDTO
+                {
+                    MembershipPackageId = p.MembershipPackageId,
+                    MembershipPackageName = p.MembershipPackageName,
+                    Price = p.Price,
+                    Status = p.Status,
+                    ValidityPeriod = p.ValidityPeriod,
+                    Permissions = p.Permissions.Select(perm => new PermissionDTO
+                    {
+                        PermissionId = perm.PermissionId,
+                        PermissionName = perm.PermissionName,
+                        Description = perm.Description
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            if (!packages.Any())
+            {
+                return NotFound(new { message = "No active membership packages found" });
+            }
+
+            return Ok(ApiResponse<object>.Success(packages));
+        }
+
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<GetMembershipPackageDTO>> GetMembershipPackageById(int id)
