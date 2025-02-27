@@ -81,7 +81,11 @@ namespace SWD392.Mapper
                 CreatedAt = user.CreatedAt,
                 MembershipPackageId = user.MembershipPackageId,
                 Uid = user.Uid,
-                EmailActivation = user.EmailActivation
+                EmailActivation = user.EmailActivation,
+                Address = user.Address,
+                Zipcode = user.Zipcode,
+                State = user.State,
+                Country = user.Country
             };
         }
 
