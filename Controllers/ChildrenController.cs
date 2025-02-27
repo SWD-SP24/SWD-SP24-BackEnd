@@ -39,7 +39,7 @@ namespace SWD392.Controllers
         /// <response code="200">Children retrieved</response>
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<Child>>>> GetChildren([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 8)
+        public async Task<ActionResult<ApiResponse<IEnumerable<GetChildDTO>>>> GetChildren([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 8)
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
                 return Unauthorized(ApiResponse<object>.Error("No JWT key"));
@@ -101,6 +101,57 @@ namespace SWD392.Controllers
 
             return Ok(ApiResponse<IEnumerable<GetChildDTO>>.Success(childrenDTOs, pagination));
         }
+
+        // GET: api/Children/child/{id}
+        /// <summary>
+        /// Get a specific child by ID (Authorized only)
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No JWT key
+        /// - JWT token has expired
+        /// - Invalid JWT key
+        /// - Child not found
+        /// - Unauthorized to access this child
+        /// </remarks>
+        /// <response code="200">Child retrieved</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="404">Child not found</response>
+        [Authorize]
+        [HttpGet("child/{id}")]
+        public async Task<ActionResult<ApiResponse<GetChildDTO>>> GetChild(int id)
+        {
+            if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(ApiResponse<object>.Error("No JWT key"));
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+
+            User user;
+            try
+            {
+                user = await ValidateJwtToken(authHeader);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(ApiResponse<object>.Error(e.Message));
+            }
+
+            var child = await _context.Children.FindAsync(id);
+
+            if (child == null)
+            {
+                return NotFound(ApiResponse<GetChildDTO>.Error("Child not found"));
+            }
+
+            if (child.MemberId != user.UserId)
+            {
+                return Unauthorized(ApiResponse<object>.Error("Unauthorized to access this child"));
+            }
+
+            var childDTO = child.ToGetChildDTO();
+            return Ok(ApiResponse<GetChildDTO>.Success(childDTO));
+        }
+
 
         // GET: api/Children/5
         /// <summary>
@@ -176,16 +227,29 @@ namespace SWD392.Controllers
             {
                 child.FullName = childDto.FullName;
             }
-            if (childDto.Age != null)
-            {
-                if (childDto.Age.HasValue)
-                {
-                    child.Age = childDto.Age.Value;
-                }
-            }
             if (childDto.Avatar != null)
             {
                 child.Avatar = childDto.Avatar;
+            }
+            if (childDto.Dob.HasValue)
+            {
+                child.Dob = childDto.Dob.Value;
+            }
+            if (childDto.BloodType != null)
+            {
+                child.BloodType = childDto.BloodType;
+            }
+            if (childDto.Allergies != null)
+            {
+                child.Allergies = childDto.Allergies;
+            }
+            if (childDto.ChronicConditions != null)
+            {
+                child.ChronicConditions = childDto.ChronicConditions;
+            }
+            if (childDto.Gender != null)
+            {
+                child.Gender = childDto.Gender;
             }
 
             _context.Entry(child).State = EntityState.Modified;
@@ -246,16 +310,29 @@ namespace SWD392.Controllers
             {
                 child.FullName = childDto.FullName;
             }
-            if (childDto.Age != null)
-            {
-                if (childDto.Age.HasValue)
-                {
-                    child.Age = childDto.Age.Value;
-                }
-            }
             if (childDto.Avatar != null)
             {
                 child.Avatar = childDto.Avatar;
+            }
+            if (childDto.Dob.HasValue)
+            {
+                child.Dob = childDto.Dob.Value;
+            }
+            if (childDto.BloodType != null)
+            {
+                child.BloodType = childDto.BloodType;
+            }
+            if (childDto.Allergies != null)
+            {
+                child.Allergies = childDto.Allergies;
+            }
+            if (childDto.ChronicConditions != null)
+            {
+                child.ChronicConditions = childDto.ChronicConditions;
+            }
+            if (childDto.Gender != null)
+            {
+                child.Gender = childDto.Gender;
             }
 
             _context.Entry(child).State = EntityState.Modified;
@@ -315,10 +392,14 @@ namespace SWD392.Controllers
             var child = new Child
             {
                 FullName = childDto.FullName,
-                Age = childDto.Age,
                 Avatar = childDto.Avatar,
                 MemberId = user.UserId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Dob = childDto.Dob,
+                BloodType = childDto.BloodType,
+                Allergies = childDto.Allergies,
+                ChronicConditions = childDto.ChronicConditions,
+                Gender = childDto.Gender
             };
 
             _context.Children.Add(child);
@@ -345,10 +426,14 @@ namespace SWD392.Controllers
             var child = new Child
             {
                 FullName = newChildDto.FullName,
-                Age = newChildDto.Age,
                 Avatar = newChildDto.Avatar ?? null,
                 MemberId = newChildDto.MemberId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Dob = newChildDto.Dob,
+                BloodType = newChildDto.BloodType,
+                Allergies = newChildDto.Allergies,
+                ChronicConditions = newChildDto.ChronicConditions,
+                Gender = newChildDto.Gender
             };
 
             _context.Children.Add(child);
