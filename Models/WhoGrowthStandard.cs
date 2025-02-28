@@ -13,9 +13,9 @@ public partial class WhoGrowthStandard
 
     public string Gender { get; set; }
 
-    public decimal? HeightAvg { get; set; }
+    public decimal HeightAvg { get; set; }
 
-    public decimal? WeightAvg { get; set; }
+    public decimal WeightAvg { get; set; }
 
-    public decimal? BmiAvg { get; set; }
+    public decimal BmiAvg { get; set; }
 }

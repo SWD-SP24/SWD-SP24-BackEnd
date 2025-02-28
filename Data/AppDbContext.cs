@@ -258,14 +258,20 @@ public partial class AppDbContext : DbContext
             entity.ToTable("growth_indicators");
 
             entity.Property(e => e.GrowthIndicatorsId).HasColumnName("growth_indicators_id");
-            entity.Property(e => e.Bmi).HasColumnName("bmi");
+            entity.Property(e => e.Bmi)
+                .HasColumnType("decimal(10, 4)")
+                .HasColumnName("bmi");
             entity.Property(e => e.ChildrenId).HasColumnName("children_id");
-            entity.Property(e => e.Height).HasColumnName("height");
+            entity.Property(e => e.Height)
+                .HasColumnType("decimal(10, 4)")
+                .HasColumnName("height");
             entity.Property(e => e.RecordTime)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("record_time");
-            entity.Property(e => e.Weight).HasColumnName("weight");
+            entity.Property(e => e.Weight)
+                .HasColumnType("decimal(10, 4)")
+                .HasColumnName("weight");
 
             entity.HasOne(d => d.Children).WithMany(p => p.GrowthIndicators)
                 .HasForeignKey(d => d.ChildrenId)
@@ -622,17 +628,17 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AgeMonths).HasColumnName("age_months");
             entity.Property(e => e.BmiAvg)
-                .HasColumnType("decimal(5, 2)")
+                .HasColumnType("decimal(10, 4)")
                 .HasColumnName("bmi_avg");
             entity.Property(e => e.Gender)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("gender");
             entity.Property(e => e.HeightAvg)
-                .HasColumnType("decimal(5, 2)")
+                .HasColumnType("decimal(10, 4)")
                 .HasColumnName("height_avg");
             entity.Property(e => e.WeightAvg)
-                .HasColumnType("decimal(5, 2)")
+                .HasColumnType("decimal(10, 4)")
                 .HasColumnName("weight_avg");
         });
 

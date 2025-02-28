@@ -9,11 +9,11 @@ public partial class GrowthIndicator
 {
     public int GrowthIndicatorsId { get; set; }
 
-    public int Height { get; set; }
+    public decimal Height { get; set; }
 
-    public int Weight { get; set; }
+    public decimal Weight { get; set; }
 
-    public int Bmi { get; set; }
+    public decimal Bmi { get; set; }
 
     public DateTime RecordTime { get; set; }
 
