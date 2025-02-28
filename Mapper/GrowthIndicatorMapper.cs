@@ -13,7 +13,8 @@ namespace SWD392.Mapper
                 Height = growthIndicator.Height,
                 Weight = growthIndicator.Weight,
                 Bmi = growthIndicator.Bmi,
-                ChildrenId = growthIndicator.ChildrenId
+                ChildrenId = growthIndicator.ChildrenId,
+                RecordTime = growthIndicator.RecordTime
             };
         }
     }

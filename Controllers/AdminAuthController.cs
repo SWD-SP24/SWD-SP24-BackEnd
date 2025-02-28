@@ -193,8 +193,6 @@ namespace SWD392.Controllers
         private async Task<ActionResult<LoginResponseDTO>> LoginSystem(LoginUserDTO userDTO)
         {
             // TODO: support login with multiple methods
-            // TODO: Confirm email
-            // TODO: Reset password
 
             var loginUser = await _context.Users.FirstOrDefaultAsync(x => x.Email == userDTO.Email);
             if (loginUser == null) { return BadRequest(ApiResponse<object>.Error("Account does not exist")); }
