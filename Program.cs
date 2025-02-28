@@ -43,8 +43,15 @@ builder.Services.AddCors(options =>
 });
 
 // Database context
+// Database context
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null);
+    }));
 
 // Authentication and Authorization setup
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
