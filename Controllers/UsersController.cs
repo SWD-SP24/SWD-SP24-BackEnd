@@ -9,6 +9,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Communication.Email;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -35,17 +37,18 @@ namespace SWD392.Controllers
         private readonly TokenService _tokenService;
         private readonly EmailService _emailService;
         private readonly IConfiguration _configuration;
-        private readonly string conString;
+        private readonly Cloudinary _cloudinary;
 
-        public UsersController(AppDbContext context, IConfiguration configuration)
+        public UsersController(AppDbContext context, IConfiguration configuration, Cloudinary cloudinary)
         {
             _context = context;
             //_authentication = new FirebaseService();
             _tokenService = new TokenService(configuration);
             var connectionString = configuration["AzureCommunicationServices:ConnectionString"];
-            conString = configuration["ConnectionStrings:DefaultConnection"];
             _emailService = new EmailService(connectionString ?? "", configuration);
             _configuration = configuration;
+            _cloudinary = cloudinary;
+
         }
 
         // POST: api/Users/
@@ -736,7 +739,53 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<object>.Success(new { childno = childrenCount }));
         }
 
+        // POST: api/Users/UploadAvatar
+        /// <summary>
+        /// Upload an avatar for the currently logged-in user
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No file uploaded
+        /// - Upload failed
+        /// </remarks>
+        /// <response code="200">Avatar uploaded successfully</response>
+        /// <response code="400">No file uploaded</response>
+        /// <response code="500">Upload failed</response>
+        [Authorize]
+        [HttpPost("UploadAvatar")]
+        public async Task<ActionResult<ApiResponse<object>>> UploadAvatar(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(ApiResponse<object>.Error("No file uploaded."));
+            }
 
+            var uploadParams = new ImageUploadParams()
+            {
+                File = new FileDescription(file.FileName, file.OpenReadStream()),
+                UseFilename = true,
+                UniqueFilename = false,
+                Overwrite = true
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+            if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                var authHeader = HttpContext.Request.Headers["Authorization"][0];
+                var user = await ValidateJwtToken(authHeader);
+
+                user.Avatar = uploadResult.Url.ToString();
+                _context.Entry(user).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return Ok(ApiResponse<object>.Success(new { uploadResult.Url }, message: "Avatar uploaded successfully"));
+            }
+            else
+            {
+                return StatusCode((int)uploadResult.StatusCode, ApiResponse<object>.Error(uploadResult.Error.Message));
+            }
+        }
 
         private async Task<User> ValidateJwtToken(string authHeader)
         {
