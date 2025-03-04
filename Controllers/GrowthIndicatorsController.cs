@@ -81,7 +81,10 @@ namespace SWD392.Controllers
                 query = query.Where(gi => gi.RecordTime <= endTime.Value);
             }
 
-            var growthIndicators = await query.Where(gi => gi.ChildrenId == childrenId).ToListAsync();
+            var growthIndicators = await query
+                .Where(gi => gi.ChildrenId == childrenId)
+                .OrderByDescending(gi => gi.RecordTime)
+                .ToListAsync();
 
             var growthIndicatorDtos = growthIndicators.Select(gi => gi.ToGrowthIndicatorDto());
 
