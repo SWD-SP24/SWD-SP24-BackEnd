@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,10 +22,12 @@ namespace SWD392.Controllers
     public class ChildrenController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly Cloudinary _cloudinary;
 
-        public ChildrenController(AppDbContext context)
+        public ChildrenController(AppDbContext context, Cloudinary cloudinary)
         {
             _context = context;
+            _cloudinary = cloudinary;
         }
 
         // GET: api/Children
@@ -529,6 +533,68 @@ namespace SWD392.Controllers
         private bool ChildExists(int id)
         {
             return _context.Children.Any(e => e.ChildrenId == id);
+        }
+
+        // POST: api/Children/UploadAvatar/{id}
+        /// <summary>
+        /// Upload an avatar for a specific child (Authorized only)
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No file uploaded
+        /// - Upload failed
+        /// - Child not found
+        /// - Unauthorized to upload avatar for this child
+        /// </remarks>
+        /// <response code="200">Avatar uploaded successfully</response>
+        /// <response code="400">No file uploaded</response>
+        /// <response code="404">Child not found</response>
+        /// <response code="500">Upload failed</response>
+        [Authorize]
+        [HttpPost("UploadAvatar/{id}")]
+        public async Task<ActionResult<ApiResponse<object>>> UploadAvatar(int id, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(ApiResponse<object>.Error("No file uploaded."));
+            }
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+            var user = await ValidateJwtToken(authHeader);
+
+            var child = await _context.Children.FindAsync(id);
+            if (child == null)
+            {
+                return NotFound(ApiResponse<object>.Error("Child not found"));
+            }
+
+            if (child.MemberId != user.UserId)
+            {
+                return Unauthorized(ApiResponse<object>.Error("Unauthorized to upload avatar for this child"));
+            }
+
+            var uploadParams = new ImageUploadParams()
+            {
+                File = new FileDescription(file.FileName, file.OpenReadStream()),
+                UseFilename = true,
+                UniqueFilename = false,
+                Overwrite = true
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+            if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                child.Avatar = uploadResult.Url.ToString();
+                _context.Entry(child).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return Ok(ApiResponse<object>.Success(new { uploadResult.Url }, message: "Avatar uploaded successfully"));
+            }
+            else
+            {
+                return StatusCode((int)uploadResult.StatusCode, ApiResponse<object>.Error(uploadResult.Error.Message));
+            }
         }
 
         private async Task<User> ValidateJwtToken(string authHeader)

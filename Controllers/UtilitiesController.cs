@@ -1,23 +1,69 @@
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mono.TextTemplating;
+using SWD392.Service;
 
 namespace SWD392.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class UtilitiesController : ControllerBase
     {
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-        private readonly ILogger<WeatherForecastController> _logger;
+        private readonly ILogger<UtilitiesController> _logger;
+        private readonly Cloudinary _cloudinary;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public UtilitiesController(ILogger<UtilitiesController> logger, Cloudinary cloudinary)
         {
             _logger = logger;
+            _cloudinary = cloudinary;
+        }
+
+        // POST: WeatherForecast/UploadImage
+        /// <summary>
+        /// Upload an image to Cloudinary
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No file uploaded
+        /// - Upload failed
+        /// </remarks>
+        /// <response code="200">Image uploaded successfully</response>
+        /// <response code="400">No file uploaded</response>
+        /// <response code="500">Upload failed</response>
+        [Authorize]
+        [HttpPost("UploadImage")]
+        public async Task<ActionResult<ApiResponse<object>>> UploadImage(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(ApiResponse<object>.Error("No file uploaded."));
+            }
+
+            var uploadParams = new ImageUploadParams()
+            {
+                File = new FileDescription(file.FileName, file.OpenReadStream()),
+                UseFilename = true,
+                UniqueFilename = false,
+                Overwrite = true
+            };
+
+            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+
+            if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                return Ok(ApiResponse<object>.Success(new { uploadResult.Url }, message: "Image uploaded successfully"));
+            }
+            else
+            {
+                return StatusCode((int)uploadResult.StatusCode, ApiResponse<object>.Error(uploadResult.Error.Message));
+            }
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
