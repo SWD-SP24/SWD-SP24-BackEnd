@@ -1,4 +1,5 @@
-﻿using FirebaseAdmin;
+﻿using CloudinaryDotNet;
+using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -13,11 +14,19 @@ using SWD392.Service;
 using System.Reflection;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+
+Cloudinary cloudinary = new Cloudinary(builder.Configuration["Cloudinary:Url"]);
+cloudinary.Api.Secure = true;
+
+// Add this line to register Cloudinary as a singleton service
+builder.Services.AddSingleton(cloudinary);
 
 // Add services to the container.
 builder.Services.AddControllers();
