@@ -396,5 +396,58 @@ namespace SWD392.Controllers
             var user = await _context.Users.FindAsync(id) ?? throw new UnauthorizedAccessException("Invalid JWT key");
             return user;
         }
+
+        /// <summary>
+        /// Retrieves the latest growth indicator for a specified child (Authorized only)
+        /// </summary>
+        /// <param name="childrenId">The ID of the child whose latest growth indicator is to be retrieved.</param>
+        /// <returns>An <see cref="ApiResponse{T}"/> containing the latest <see cref="GrowthIndicatorDTO"/> object.</returns>
+        /// <response code="200">Returns the latest growth indicator.</response>
+        /// <response code="401">If the user is not authorized.</response>
+        /// <response code="404">If the child or growth indicator is not found.</response>
+        [Authorize]
+        [HttpGet("latest")]
+        public async Task<ActionResult<ApiResponse<GrowthIndicatorDTO>>> GetLatestGrowthIndicator([FromQuery] int childrenId)
+        {
+            if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(ApiResponse<object>.Error("No JWT key"));
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+
+            User user;
+            try
+            {
+                user = await ValidateJwtToken(authHeader);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(ApiResponse<object>.Error(e.Message));
+            }
+
+            var child = await _context.Children.FindAsync(childrenId);
+            if (child == null)
+            {
+                return NotFound(ApiResponse<object>.Error("Child not found"));
+            }
+
+            if (child.MemberId != user.UserId)
+            {
+                return Unauthorized(ApiResponse<object>.Error("Unauthorized to view this child's growth indicators"));
+            }
+
+            var latestGrowthIndicator = await _context.GrowthIndicators
+                .Where(gi => gi.ChildrenId == childrenId)
+                .OrderByDescending(gi => gi.RecordTime)
+                .FirstOrDefaultAsync();
+
+            if (latestGrowthIndicator == null)
+            {
+                return NotFound(ApiResponse<object>.Error("Growth indicator not found"));
+            }
+
+            var growthIndicatorDto = latestGrowthIndicator.ToGrowthIndicatorDto();
+            return Ok(ApiResponse<GrowthIndicatorDTO>.Success(growthIndicatorDto));
+        }
+
     }
 }
