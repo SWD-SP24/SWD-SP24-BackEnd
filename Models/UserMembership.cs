@@ -25,5 +25,7 @@ public partial class UserMembership
 
     public virtual PaymentTransaction PaymentTransaction { get; set; }
 
+    public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
+
     public virtual User User { get; set; }
 }

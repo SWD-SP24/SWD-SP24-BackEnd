@@ -8,6 +8,8 @@ using SWD392.DTOs.MembershipPackagesDTO;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.EntityFrameworkCore;
+using Azure.Core;
+using Microsoft.IdentityModel.Tokens;
 
 namespace SWD392.Controllers
 {
@@ -31,10 +33,20 @@ namespace SWD392.Controllers
             {
                 MembershipPackageId = package.MembershipPackageId,
                 MembershipPackageName = package.MembershipPackageName,
-                Price = package.Price,
+                YearlyPrice = package.YearlyPrice,
             };
-            var total = mebershipPackage.Price;
+            var total = mebershipPackage.YearlyPrice;
             var idPackage = mebershipPackage.MembershipPackageId;
+
+            // Giả sử bạn có thể lấy userMembership từ đâu đó
+            var userMembership = _Context.UserMemberships
+                .FirstOrDefault(um => um.MembershipPackageId == idPackage); // Lấy UserMembership theo idPackage, bạn có thể thay đổi logic này theo yêu cầu
+
+            if (userMembership == null)
+            {
+                throw new Exception("Không tìm thấy thông tin thành viên.");
+            }
+
             var apiContext = PayPalConfiguration.GetAPIContext(_configuration);
 
             var payment = new Payment
@@ -55,8 +67,8 @@ namespace SWD392.Controllers
         },
                 redirect_urls = new RedirectUrls
                 {
-                    return_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/execute-payment?idMbPackage=" + idPackage,
-                    cancel_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/cancel-payment"
+                    return_url = $"https://localhost:7067/api/PayPal/execute-payment?idMbPackage={Uri.EscapeDataString(idPackage.ToString())}&paymentType={Uri.EscapeDataString("paypal")}&userMembershipId={Uri.EscapeDataString(userMembership.UserMembershipId.ToString())}",
+                    cancel_url = "https://localhost:7067/api/PayPal/cancel-payment"
                 }
             };
 
@@ -74,8 +86,9 @@ namespace SWD392.Controllers
         }
 
 
+
         [HttpGet("execute-payment")]
-        public IActionResult ExecutePayment(string paymentId, string PayerID, int idMbPackage)
+        public IActionResult ExecutePayment(string paymentId, string PayerID, int idMbPackage, int validityDays)
         {
             // Kiểm tra thông tin đầu vào
             if (string.IsNullOrEmpty(paymentId) || string.IsNullOrEmpty(PayerID))
@@ -123,7 +136,6 @@ namespace SWD392.Controllers
                         // Cập nhật trạng thái PaymentTransaction thành "success"
                         paymentTransaction.Status = "success";
                         _Context.PaymentTransactions.Update(paymentTransaction);
-                        _Context.SaveChanges();
 
                         // Lấy thông tin chi tiết của gói thành viên mới
                         var membershipPackage = _Context.MembershipPackages
@@ -143,34 +155,27 @@ namespace SWD392.Controllers
                         {
                             if (activeMembership.MembershipPackageId == idMbPackage)
                             {
-                                // Trường hợp gia hạn gói: Nếu gói hiện tại giống với gói gửi lên API,
-                                // thì gia hạn EndDate bằng cách cộng thêm ValidityPeriod.
+                                // Gia hạn gói thành viên
                                 activeMembership.EndDate = activeMembership.EndDate.Value.AddDays(membershipPackage.ValidityPeriod);
                                 _Context.UserMemberships.Update(activeMembership);
-                                _Context.SaveChanges();
                             }
-
                             else
                             {
-                                // Trường hợp nâng cấp gói:
-                                // Kết thúc gói hiện tại ngay lập tức.
+                                // Kết thúc gói thành viên hiện tại và tạo mới gói thành viên
                                 activeMembership.EndDate = DateTime.UtcNow;
                                 activeMembership.Status = "expired";
                                 _Context.UserMemberships.Update(activeMembership);
-                                _Context.SaveChanges();
 
-                                // Tạo mới UserMembership cho gói nâng cấp
                                 var newMembership = new UserMembership
                                 {
                                     UserId = userId,
                                     MembershipPackageId = idMbPackage,
                                     StartDate = DateTime.UtcNow,
-                                    EndDate = DateTime.UtcNow.AddDays(membershipPackage.ValidityPeriod),
+                                    EndDate = DateTime.UtcNow.AddDays(validityDays),
                                     Status = "active",
                                     PaymentTransactionId = paymentTransaction.PaymentTransactionId
                                 };
                                 _Context.UserMemberships.Add(newMembership);
-                                _Context.SaveChanges();
                             }
                         }
                         else
@@ -186,12 +191,13 @@ namespace SWD392.Controllers
                                 PaymentTransactionId = paymentTransaction.PaymentTransactionId
                             };
                             _Context.UserMemberships.Add(newMembership);
-                            _Context.SaveChanges();
                         }
 
                         // Cập nhật MembershipPackageId của người dùng trong bảng Users
                         user.MembershipPackageId = idMbPackage;
                         _Context.Users.Update(user);
+
+                        // Lưu tất cả thay đổi vào cơ sở dữ liệu một lần duy nhất
                         _Context.SaveChanges();
 
                         return Redirect("https://www.google.com");
@@ -214,8 +220,6 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Có lỗi không xác định", error = ex.Message });
             }
         }
-
-
 
 
 

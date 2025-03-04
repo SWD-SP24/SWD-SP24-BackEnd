@@ -23,9 +23,13 @@ public partial class PaymentTransaction
 
     public string PreviousMembershipPackageName { get; set; }
 
+    public int? UserMembershipId { get; set; }
+
     public virtual MembershipPackage MembershipPackage { get; set; }
 
     public virtual User User { get; set; }
+
+    public virtual UserMembership UserMembership { get; set; }
 
     public virtual ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
 }

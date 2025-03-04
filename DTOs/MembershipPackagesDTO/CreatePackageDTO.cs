@@ -7,6 +7,7 @@
         public decimal Price { get; set; }
         public string Status { get; set; }
         public int ValidityPeriod { get; set; }
+        public decimal PercentDiscount { get; set; }
         public List<int> Permissions { get; set; } = new List<int>();
     }
 }

@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PayPal;
 using PayPal.Api;
 using SWD392.Data;
 using SWD392.DTOs.MembershipPackagesDTO;
+using SWD392.DTOs.PaymentTransactionDTO;
 using SWD392.DTOs.UserMembershipDTO;
 using SWD392.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -21,11 +21,13 @@ namespace SWD392.Controllers
         private readonly AppDbContext _context;
         private readonly PayPalController _paypal;
         private readonly IConfiguration _configuration;
+
         public BuyMembershipPackage(AppDbContext context, PayPalController paypal, IConfiguration configuration)
         {
             _context = context;
-            _paypal = paypal;   
+            _paypal = paypal;
             _configuration = configuration;
+
         }
         /*  // GET: api/<BuyMembershipPackage>
           [HttpGet]
@@ -43,7 +45,7 @@ namespace SWD392.Controllers
   */
         // POST api/<BuyMembershipPackage>
 
-        
+
         [HttpGet("{idPackage}")]
         public async Task<IActionResult> GetOrderDetail(int idPackage)
         {
@@ -96,7 +98,7 @@ namespace SWD392.Controllers
                 PaymentTransactionId = null,
                 MembershipPackage = new GetMembershipPackageDTO
                 {
-                     MembershipPackageId = requestedPackage.MembershipPackageId,
+                    MembershipPackageId = requestedPackage.MembershipPackageId,
                     MembershipPackageName = requestedPackage.MembershipPackageName,
                     Price = requestedPackage.Price,
                     Status = requestedPackage.Status,
@@ -114,8 +116,8 @@ namespace SWD392.Controllers
         }
 
 
-        [HttpPost]
-        public async Task<IActionResult> Post([FromBody] int idPackage)
+        [HttpPost("BuyMembershipPackage")]
+        public async Task<IActionResult> BuyMembership([FromBody] BuyMembershipRequest request)
         {
             var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
             if (string.IsNullOrEmpty(authHeader))
@@ -132,51 +134,85 @@ namespace SWD392.Controllers
                 return Unauthorized(new { message = "Invalid token" });
             }
 
+            // Lấy gói đăng ký cần mua
             var requestedPackage = await _context.MembershipPackages
-                .FirstOrDefaultAsync(x => x.MembershipPackageId == idPackage);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.MembershipPackageId == request.IdPackage);
+
             if (requestedPackage == null)
             {
                 return BadRequest(new { message = "Package not found" });
             }
 
+            // Xác định giá gói theo loại thanh toán
+            int validityDays = request.PaymentType == "yearly" ? 365 : requestedPackage.ValidityPeriod;
+            decimal packagePrice = request.PaymentType == "yearly" ? requestedPackage.YearlyPrice : requestedPackage.Price;
+
+            // Kiểm tra membership hiện tại của user
             var currentMembership = await _context.UserMemberships
-                .FirstOrDefaultAsync(um => um.UserId == userId && um.EndDate > DateTime.UtcNow);
+                .Where(um => um.UserId == userId && um.EndDate > DateTime.UtcNow)
+                .FirstOrDefaultAsync();
 
             string previousPackageName = null;
-
             if (currentMembership != null)
             {
                 var currentPackage = await _context.MembershipPackages
-                    .FirstOrDefaultAsync(x => x.MembershipPackageId == currentMembership.MembershipPackageId);
+                    .Where(x => x.MembershipPackageId == currentMembership.MembershipPackageId)
+                    .FirstOrDefaultAsync();
 
-                if (currentPackage != null)
+                if (packagePrice > (request.PaymentType == "yearly" ? currentPackage.YearlyPrice : currentPackage.Price))
                 {
-                    if (requestedPackage.Price < currentPackage.Price && requestedPackage.Price == 0)
-                    {
-                        return BadRequest(new { message = "Bạn không thể mua gói có giá thấp hơn gói hiện tại." });
-                    }
+                    previousPackageName = currentPackage.MembershipPackageName;
 
-                    // Nếu nâng cấp lên gói cao hơn, lưu tên gói cũ
-                    if (requestedPackage.Price > currentPackage.Price)
+                    // Tính số ngày còn dư của gói cũ
+                    DateTime now = DateTime.UtcNow;
+                    TimeSpan remainingTime = (currentMembership.EndDate ?? now) - now; // Chuyển từ nullable thành TimeSpan
+                    int remainingDays = Math.Max(0, remainingTime.Days); // Đảm bảo số ngày không âm
+
+                    if (remainingDays > 0)
                     {
-                        previousPackageName = currentPackage.MembershipPackageName;
+                        // Giá của gói cũ
+                        decimal currentPackagePrice = request.PaymentType == "yearly" ? currentPackage.YearlyPrice : currentPackage.Price;
+                        int currentPackageDays = request.PaymentType == "yearly" ? 365 : currentPackage.ValidityPeriod;
+
+                        // Giá trị mỗi ngày của gói cũ
+                        decimal dailyRateOld = currentPackagePrice / currentPackageDays;
+
+                        // Tổng giá trị còn lại
+                        decimal remainingValue = remainingDays * dailyRateOld;
+
+                        // Giá trị mỗi ngày của gói mới
+                        decimal dailyRateNew = packagePrice / validityDays;
+
+                        // Số ngày cộng vào gói mới
+                        int extraDays = (int)(remainingValue / dailyRateNew);
+
+                        // Cộng thêm số ngày vào thời hạn gói mới
+                        validityDays += extraDays;
                     }
                 }
             }
 
+            
+
+            
+            // Tạo transaction thanh toán
             var paymentTransaction = new PaymentTransaction
             {
                 UserId = userId,
-                MembershipPackageId = idPackage,
-                Amount = requestedPackage.Price,
+                MembershipPackageId = request.IdPackage,
+                Amount = packagePrice,
                 TransactionDate = DateTime.UtcNow,
                 Status = "pending",
-                PreviousMembershipPackageName = previousPackageName // Lưu tên gói cũ nếu nâng cấp
+                PreviousMembershipPackageName = previousPackageName,
             };
 
             _context.PaymentTransactions.Add(paymentTransaction);
             await _context.SaveChangesAsync();
 
+            // Tạo UserMembership với status là "pending"
+            
+            // Tạo thanh toán PayPal
             var apiContext = PayPalConfiguration.GetAPIContext(_configuration);
 
             var payment = new Payment
@@ -190,16 +226,14 @@ namespace SWD392.Controllers
                 amount = new Amount
                 {
                     currency = "USD",
-                    total = requestedPackage.Price.ToString("F2")
+                    total = packagePrice.ToString("F2")
                 },
-                description = "Membership package purchase"
+                description = $"Purchase {request.PaymentType} membership package"
             }
         },
                 redirect_urls = new RedirectUrls
                 {
-                    /* return_url = $"https://swd39220250217220816.azurewebsites.net/api/PayPal/execute-payment?idMbPackage={idPackage}",
-                     cancel_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/cancel-payment"*/
-                    return_url = $"https://localhost:7067/api/PayPal/execute-payment?idMbPackage={idPackage}",
+                    return_url = $"https://localhost:7067/api/PayPal/execute-payment?idMbPackage={request.IdPackage}&paymentType={request.PaymentType}&validityDays={validityDays}",
                     cancel_url = "https://localhost:7067/api/PayPal/cancel-payment"
                 }
             };
@@ -228,6 +262,8 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Có lỗi xảy ra khi thực hiện thanh toán", error = ex.Message });
             }
         }
+
+
 
 
         /*
