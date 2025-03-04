@@ -11,6 +11,7 @@ namespace SWD392.DTOs.MembershipPackagesDTO
         public decimal Price { get; set; }
         public string Status { get; set; }
         public bool IsActive { get; set; }
+        public string Image { get; set; }
 
         public decimal YearlyPrice { get; set; }
         public int ValidityPeriod { get; set; }

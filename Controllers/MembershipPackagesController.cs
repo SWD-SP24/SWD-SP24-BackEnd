@@ -46,6 +46,7 @@ namespace SWD392.Controllers
                     MembershipPackageName = p.MembershipPackageName,
                     Price = p.Price,
                     Status = p.Status,
+                    Image = p.Image,
                     ValidityPeriod = p.ValidityPeriod,
                     Permissions = p.Permissions.Select(perm => new PermissionDTO
                     {
@@ -115,6 +116,7 @@ namespace SWD392.Controllers
                     MembershipPackageName = p.MembershipPackageName,
                     Price = p.Price,
                     Status = p.Status,
+                    Image = p.Image,
                     ValidityPeriod = p.ValidityPeriod,
                     IsActive = (userPackage.HasValue && p.MembershipPackageId == userPackage.Value), 
                     SavingPerMonth = p.Price - p.YearlyPrice/12,
@@ -157,6 +159,7 @@ namespace SWD392.Controllers
                 MembershipPackageName = package.MembershipPackageName,
                 Price = package.Price,
                 Status = package.Status,
+                Image = package.Image,
                 ValidityPeriod = package.ValidityPeriod,
                 Permissions = package.Permissions.Select(p => new PermissionDTO
                 {
