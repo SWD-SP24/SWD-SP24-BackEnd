@@ -118,8 +118,13 @@ namespace SWD392.Controllers
                     Status = p.Status,
                     Image = p.Image,
                     ValidityPeriod = p.ValidityPeriod,
-                    IsActive = (userPackage.HasValue && p.MembershipPackageId == userPackage.Value), 
-                    SavingPerMonth = p.Price - p.YearlyPrice/12,
+                    IsActive = (userPackage.HasValue && p.MembershipPackageId == userPackage.Value),
+                    SavingPerMonth = p.YearlyPrice > 0 ? p.Price - (p.YearlyPrice / 12) : 0,
+                    PercentDiscount = (p.YearlyPrice > 0 && p.Price > 0)
+    ? (int)(((p.Price - (p.YearlyPrice / 12)) / p.Price) * 100)
+    : 0,
+
+
                     Permissions = p.Permissions.Select(perm => new PermissionDTO
                     {
                         PermissionId = perm.PermissionId,

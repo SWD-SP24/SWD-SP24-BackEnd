@@ -10,6 +10,7 @@
         public string Status { get; set; }
 
         public decimal YearlyPrice { get; set; }
+        public decimal PercentDiscount { get; set; }
         public int ValidityPeriod { get; set; }
         public virtual ICollection<PermissionDTO> Permissions { get; set; } = new List<PermissionDTO>();
     }
