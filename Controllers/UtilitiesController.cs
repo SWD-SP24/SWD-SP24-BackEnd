@@ -9,17 +9,17 @@ namespace SWD392.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class UtilitiesController : ControllerBase
     {
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-        private readonly ILogger<WeatherForecastController> _logger;
+        private readonly ILogger<UtilitiesController> _logger;
         private readonly Cloudinary _cloudinary;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, Cloudinary cloudinary)
+        public UtilitiesController(ILogger<UtilitiesController> logger, Cloudinary cloudinary)
         {
             _logger = logger;
             _cloudinary = cloudinary;
