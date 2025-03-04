@@ -142,17 +142,27 @@ namespace SWD392.Controllers
             var currentMembership = await _context.UserMemberships
                 .FirstOrDefaultAsync(um => um.UserId == userId && um.EndDate > DateTime.UtcNow);
 
+            string previousPackageName = null;
+
             if (currentMembership != null)
             {
                 var currentPackage = await _context.MembershipPackages
                     .FirstOrDefaultAsync(x => x.MembershipPackageId == currentMembership.MembershipPackageId);
 
-                if (currentPackage != null && requestedPackage.Price < currentPackage.Price && requestedPackage.Price == 0)
+                if (currentPackage != null)
                 {
-                    return BadRequest(new { message = "Bạn không thể mua gói có giá thấp hơn gói hiện tại." });
+                    if (requestedPackage.Price < currentPackage.Price && requestedPackage.Price == 0)
+                    {
+                        return BadRequest(new { message = "Bạn không thể mua gói có giá thấp hơn gói hiện tại." });
+                    }
+
+                    // Nếu nâng cấp lên gói cao hơn, lưu tên gói cũ
+                    if (requestedPackage.Price > currentPackage.Price)
+                    {
+                        previousPackageName = currentPackage.MembershipPackageName;
+                    }
                 }
             }
-
 
             var paymentTransaction = new PaymentTransaction
             {
@@ -160,7 +170,8 @@ namespace SWD392.Controllers
                 MembershipPackageId = idPackage,
                 Amount = requestedPackage.Price,
                 TransactionDate = DateTime.UtcNow,
-                Status = "pending"
+                Status = "pending",
+                PreviousMembershipPackageName = previousPackageName // Lưu tên gói cũ nếu nâng cấp
             };
 
             _context.PaymentTransactions.Add(paymentTransaction);
@@ -186,13 +197,15 @@ namespace SWD392.Controllers
         },
                 redirect_urls = new RedirectUrls
                 {
-                    return_url = $"https://swd39220250217220816.azurewebsites.net/api/PayPal/execute-payment?idMbPackage={idPackage}",
-                    cancel_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/cancel-payment"
+                    /* return_url = $"https://swd39220250217220816.azurewebsites.net/api/PayPal/execute-payment?idMbPackage={idPackage}",
+                     cancel_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/cancel-payment"*/
+                    return_url = $"https://localhost:7067/api/PayPal/execute-payment?idMbPackage={idPackage}",
+                    cancel_url = "https://localhost:7067/api/PayPal/cancel-payment"
                 }
             };
 
             try
-            {   
+            {
                 var createdPayment = payment.Create(apiContext);
                 var paymentId = createdPayment.id;
 
@@ -215,6 +228,7 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Có lỗi xảy ra khi thực hiện thanh toán", error = ex.Message });
             }
         }
+
 
         /*
                 // PUT api/<BuyMembershipPackage>/5

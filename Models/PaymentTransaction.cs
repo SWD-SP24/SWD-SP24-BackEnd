@@ -21,6 +21,8 @@ public partial class PaymentTransaction
 
     public string Status { get; set; }
 
+    public string PreviousMembershipPackageName { get; set; }
+
     public virtual MembershipPackage MembershipPackage { get; set; }
 
     public virtual User User { get; set; }

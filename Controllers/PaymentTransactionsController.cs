@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PayPal.Api;
 using SWD392.Data;
+using SWD392.DTOs.MembershipPackagesDTO;
 using SWD392.DTOs.PaymentTransactionDTO;
 using SWD392.Models;
 
@@ -38,23 +39,47 @@ namespace SWD392.Controllers
 
             int userId = int.Parse(userIdHeader);
 
-           
+            // Lấy danh sách giao dịch và join trực tiếp với MembershipPackages từ database
             var transactions = _context.PaymentTransactions
-                .Where(t => t.UserId == userId && t.Status.ToLower() == "success" && t.PaymentId != "FREE") // Chỉ lấy status = "success"
-                .Select(t => new PaymentHistoryDTO
+                .Where(t => t.UserId == userId && t.PaymentId != "FREE")
+                .Join(_context.MembershipPackages,
+                      t => t.MembershipPackageId,
+                      p => p.MembershipPackageId,
+                      (t, p) => new
+                      {
+                          Transaction = t,
+                          MembershipPackage = p
+                      })
+                .Select(tp => new PaymentHistoryDTO
                 {
-                    PaymentId = t.PaymentId,
-                    UserId = t.UserId,
-                    MembershipPackageId = t.MembershipPackageId,
-                    Amount = t.Amount,
-                    TransactionDate = t.TransactionDate,
-                    
+                    PaymentId = tp.Transaction.PaymentId,
+                    UserId = tp.Transaction.UserId,
+                   
+                    Amount = tp.Transaction.Amount,
+                    TransactionDate = tp.Transaction.TransactionDate,
+                    Status = tp.Transaction.Status,
+                    PreviousMembershipPackageName = tp.Transaction.PreviousMembershipPackageName,
+                    MembershipPackage = new GetPackageUserHistoryDTO
+                    {
+                       
+                        MembershipPackageName = tp.MembershipPackage.MembershipPackageName,
+                        Price = tp.MembershipPackage.Price,
+                        Status = tp.MembershipPackage.Status,
+                        ValidityPeriod = tp.MembershipPackage.ValidityPeriod,
+                        Permissions = tp.MembershipPackage.Permissions.Select(perm => new PermissionDTO
+                        {
+                            PermissionId = perm.PermissionId,
+                            PermissionName = perm.PermissionName,
+                            Description = perm.Description
+                        }).ToList()
+                    }
                 })
-                .OrderByDescending(t => t.TransactionDate)
                 .ToList();
 
             return Ok(transactions);
         }
+
+
 
         /*// GET: api/PaymentTransactions/5
         [HttpGet("{id}")]

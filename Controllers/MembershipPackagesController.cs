@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -71,9 +72,43 @@ namespace SWD392.Controllers
         [HttpGet("PricingPlan")]
         public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetActiveMembershipPackages()
         {
+            int? userId = null;
+
+            // Kiểm tra nếu có User-Id trong header
+            if (Request.Headers.TryGetValue("User-Id", out var userIdHeader) && int.TryParse(userIdHeader, out int parsedUserId))
+            {
+                userId = parsedUserId;
+            }
+            else if (Request.Headers.TryGetValue("Authorization", out var authHeader))
+            {
+                // Giải mã token lấy userId từ claims
+                var token = authHeader.ToString().Replace("Bearer ", "");
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadToken(token) as JwtSecurityToken;
+
+                if (jwtToken != null)
+                {
+                    var idClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "id");
+                    if (idClaim != null && int.TryParse(idClaim.Value, out int tokenUserId))
+                    {
+                        userId = tokenUserId;
+                    }
+                }
+            }
+
+            // Nếu không có userId -> Mặc định false cho IsActive
+            int? userPackage = null;
+            if (userId.HasValue)
+            {
+                userPackage = await _context.UserMemberships
+                    .Where(um => um.UserId == userId.Value && um.Status == "active")
+                    .Select(um => um.MembershipPackageId)
+                    .FirstOrDefaultAsync();
+            }
+
             var packages = await _context.MembershipPackages
                 .Include(p => p.Permissions)
-                .Where(p => p.Status == "active") 
+                .Where(p => p.Status == "active")
                 .Select(p => new GetMembershipPackageDTO
                 {
                     MembershipPackageId = p.MembershipPackageId,
@@ -81,6 +116,8 @@ namespace SWD392.Controllers
                     Price = p.Price,
                     Status = p.Status,
                     ValidityPeriod = p.ValidityPeriod,
+                    IsActive = (userPackage.HasValue && p.MembershipPackageId == userPackage.Value), 
+                    SavingPerMonth = p.Price - p.YearlyPrice/12,
                     Permissions = p.Permissions.Select(perm => new PermissionDTO
                     {
                         PermissionId = perm.PermissionId,
@@ -97,6 +134,8 @@ namespace SWD392.Controllers
 
             return Ok(ApiResponse<object>.Success(packages));
         }
+
+
 
 
 

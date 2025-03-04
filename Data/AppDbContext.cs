@@ -306,6 +306,9 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("status");
             entity.Property(e => e.ValidityPeriod).HasColumnName("validity_period");
+            entity.Property(e => e.YearlyPrice)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("yearly_price");
 
             entity.HasMany(d => d.Permissions).WithMany(p => p.MembershipPackages)
                 .UsingEntity<Dictionary<string, object>>(
@@ -333,6 +336,9 @@ public partial class AppDbContext : DbContext
 
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.PaymentId).HasMaxLength(100);
+            entity.Property(e => e.PreviousMembershipPackageName)
+                .HasMaxLength(255)
+                .HasColumnName("previous_membership_package_name");
             entity.Property(e => e.Status)
                 .IsRequired()
                 .HasMaxLength(50);
