@@ -65,16 +65,20 @@ namespace SWD392.Controllers
             }
 
             var requestedPackage = await _context.MembershipPackages
-    .Include(p => p.Permissions)
-    .FirstOrDefaultAsync(x => x.MembershipPackageId == idPackage);
-
+                .Include(p => p.Permissions)
+                .FirstOrDefaultAsync(x => x.MembershipPackageId == idPackage);
 
             if (requestedPackage == null)
             {
                 return BadRequest(new { message = "Package not found" });
             }
+
             var currentMembership = await _context.UserMemberships
                 .FirstOrDefaultAsync(um => um.UserId == userId && um.EndDate > DateTime.UtcNow);
+
+            decimal remainingPrice = 0;
+            int remainingDays = 0;
+            int additionalDays = 0;
 
             if (currentMembership != null)
             {
@@ -85,22 +89,53 @@ namespace SWD392.Controllers
                 {
                     return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
                 }
+
+                // Calculate the remaining days based on the current membership's validity
+                var remainingTime = currentMembership.EndDate - DateTime.UtcNow;
+
+                // Check if the remainingTime has a value and access TotalDays
+                remainingDays = remainingTime.HasValue ? (int)remainingTime.Value.TotalDays : 0;
+
+                // Calculate additional days based on the new package's price and old package's remaining days
+                additionalDays = (int)((remainingDays * requestedPackage.Price) / currentPackage.Price);
+
+                // Ensure the additional days are non-negative
+                additionalDays = Math.Max(additionalDays, 0);
+
+                // Adjust the start date and end date for the new package
+                var startDate = DateTime.UtcNow;
+                var validityPeriod = requestedPackage.ValidityPeriod + additionalDays; // Add the additional days to the new package
+                var endDate = startDate.AddDays(validityPeriod);
+
+
+
+
+                // Ensure the price doesn't go negative
+                if (requestedPackage.Price < 0)
+                {
+                    requestedPackage.Price = 0;
+                }
             }
-            var startDate = DateTime.UtcNow;
-            var validityPeriod = requestedPackage.ValidityPeriod;
-            var endDate = startDate.AddDays(validityPeriod);
+            else
+            {
+                var startDate = DateTime.UtcNow;
+                var validityPeriod = requestedPackage.ValidityPeriod;
+                var endDate = startDate.AddDays(validityPeriod);
+            }
 
             var orderDetail = new GetOrderDetailDTO
             {
                 MembershipPackageId = idPackage,
-                StartDate = startDate,
-                EndDate = endDate,
-                PaymentTransactionId = null,
+                StartDate = DateTime.UtcNow,  // Start date of the new package
+                EndDate = DateTime.UtcNow.AddDays(requestedPackage.ValidityPeriod + additionalDays), // End date of the new package
+                RemainingPrice = remainingPrice,  // Add remaining price from the old package
+                RemainingDays = remainingDays,  // Add remaining days from the old package
+                AdditionalDays = additionalDays, // Add the additional days based on the new package's price
                 MembershipPackage = new GetMembershipPackageDTO
                 {
                     MembershipPackageId = requestedPackage.MembershipPackageId,
                     MembershipPackageName = requestedPackage.MembershipPackageName,
-                    Price = requestedPackage.Price,
+                    Price = requestedPackage.Price,  // Updated price after applying the remaining money
                     Status = requestedPackage.Status,
                     ValidityPeriod = requestedPackage.ValidityPeriod,
                     Permissions = requestedPackage.Permissions.Select(p => new PermissionDTO
@@ -114,6 +149,8 @@ namespace SWD392.Controllers
 
             return Ok(orderDetail);
         }
+
+
 
 
         [HttpPost("BuyMembershipPackage")]
