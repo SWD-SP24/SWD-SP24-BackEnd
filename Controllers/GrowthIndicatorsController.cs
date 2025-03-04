@@ -30,8 +30,8 @@ namespace SWD392.Controllers
         /// Retrieves a list of growth indicators for a specified child, optionally filtered by a time range. (Authorized only)
         /// </summary>
         /// <param name="childrenId">The ID of the child whose growth indicators are to be retrieved.</param>
-        /// <param name="startTime">The optional start time to filter the growth indicators.</param>
-        /// <param name="endTime">The optional end time to filter the growth indicators.</param>
+        /// <param name="startTime">The optional start time to filter the growth indicators in dd/MM/yyyy format.</param>
+        /// <param name="endTime">The optional end time to filter the growth indicators in dd/MM/yyyy format.</param>
         /// <returns>An <see cref="ApiResponse{T}"/> containing a list of <see cref="GrowthIndicatorDTO"/> objects.</returns>
         /// <response code="200">Returns the list of growth indicators.</response>
         /// <response code="401">If the user is not authorized.</response>
@@ -40,8 +40,8 @@ namespace SWD392.Controllers
         [HttpGet]
         public async Task<ActionResult<ApiResponse<IEnumerable<GrowthIndicatorDTO>>>> GetGrowthIndicators(
             [FromQuery] int childrenId,
-            [FromQuery] DateTime? startTime = null,
-            [FromQuery] DateTime? endTime = null)
+            [FromQuery] string startTime = null,
+            [FromQuery] string endTime = null)
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
                 return Unauthorized(ApiResponse<object>.Error("No JWT key"));
@@ -71,14 +71,14 @@ namespace SWD392.Controllers
 
             var query = _context.GrowthIndicators.AsQueryable();
 
-            if (startTime.HasValue)
+            if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsedStartTime))
             {
-                query = query.Where(gi => gi.RecordTime >= startTime.Value);
+                query = query.Where(gi => gi.RecordTime >= parsedStartTime);
             }
 
-            if (endTime.HasValue)
+            if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsedEndTime))
             {
-                query = query.Where(gi => gi.RecordTime <= endTime.Value);
+                query = query.Where(gi => gi.RecordTime <= parsedEndTime);
             }
 
             var growthIndicators = await query
@@ -90,6 +90,7 @@ namespace SWD392.Controllers
 
             return Ok(ApiResponse<IEnumerable<GrowthIndicatorDTO>>.Success(growthIndicatorDtos));
         }
+
 
         /// <summary>
         /// Retrieves a specific growth indicator by ID (Authorized only)
