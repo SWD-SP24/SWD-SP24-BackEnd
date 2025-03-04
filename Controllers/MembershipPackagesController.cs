@@ -48,6 +48,7 @@ namespace SWD392.Controllers
                     Status = p.Status,
                     Image = p.Image,
                     ValidityPeriod = p.ValidityPeriod,
+                    Summary = p.Summary,
                     Permissions = p.Permissions.Select(perm => new PermissionDTO
                     {
                         PermissionId = perm.PermissionId,
@@ -123,6 +124,7 @@ namespace SWD392.Controllers
                     PercentDiscount = (p.YearlyPrice > 0 && p.Price > 0)
     ? (int)(((p.Price - (p.YearlyPrice / 12)) / p.Price) * 100)
     : 0,
+                    Summary = p.Summary,
 
 
                     Permissions = p.Permissions.Select(perm => new PermissionDTO
@@ -166,6 +168,7 @@ namespace SWD392.Controllers
                 Status = package.Status,
                 Image = package.Image,
                 ValidityPeriod = package.ValidityPeriod,
+                Summary = package.Summary,
                 Permissions = package.Permissions.Select(p => new PermissionDTO
                 {
                     PermissionId = p.PermissionId,
@@ -202,10 +205,13 @@ namespace SWD392.Controllers
                 {
                     MembershipPackageName = dto.MembershipPackageName,
                     Price = dto.Price,
+
                     Status = dto.Status,
                     ValidityPeriod = dto.ValidityPeriod,
                     CreatedTime = DateTime.UtcNow,
-                    YearlyPrice = yearlyPrice
+                    YearlyPrice = yearlyPrice,
+                    Summary = dto.Summary
+
             };
 
                 if (dto.Permissions != null && dto.Permissions.Any())
@@ -227,6 +233,7 @@ namespace SWD392.Controllers
                     Status = package.Status,
                     ValidityPeriod = package.ValidityPeriod,
                     YearlyPrice = package.YearlyPrice,
+                    Summary = package.Summary,
                     Permissions = package.Permissions.Select(p => new PermissionDTO
                     {
                         PermissionId = p.PermissionId,
@@ -311,6 +318,7 @@ namespace SWD392.Controllers
                 Price = package.Price,
                 Status = package.Status,
                 ValidityPeriod = package.ValidityPeriod,
+                Summary = package.Summary,
                 Permissions = package.Permissions.Select(p => new PermissionDTO
                 {
                     PermissionId = p.PermissionId,

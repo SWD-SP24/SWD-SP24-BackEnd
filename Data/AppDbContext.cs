@@ -305,6 +305,7 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("status");
+            entity.Property(e => e.Summary).HasColumnName("summary");
             entity.Property(e => e.ValidityPeriod).HasColumnName("validity_period");
             entity.Property(e => e.YearlyPrice)
                 .HasColumnType("decimal(18, 2)")
