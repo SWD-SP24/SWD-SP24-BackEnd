@@ -47,7 +47,7 @@ namespace SWD392.Controllers
 
 
         [HttpGet("{idPackage}")]
-        public async Task<IActionResult> GetOrderDetail(int idPackage)
+        public async Task<IActionResult> GetOrderDetail(int idPackage, [FromQuery] string paymentType)
         {
             var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
             if (string.IsNullOrEmpty(authHeader))
@@ -73,8 +73,12 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Package not found" });
             }
 
+            // Xác định giá và thời hạn dựa trên loại gói (monthly hoặc yearly)
+            decimal selectedPrice = (paymentType.ToLower() == "yearly") ? requestedPackage.YearlyPrice : requestedPackage.Price;
+            int validityPeriod = (paymentType.ToLower() == "yearly") ? 365 : requestedPackage.ValidityPeriod;
+
             var currentMembership = await _context.UserMemberships
-                .FirstOrDefaultAsync(um => um.UserId == userId && um.EndDate > DateTime.UtcNow);
+                .FirstOrDefaultAsync(um => um.UserId == userId && um.EndDate > DateTime.UtcNow && um.Status == "active");
 
             decimal remainingPrice = 0;
             int remainingDays = 0;
@@ -85,59 +89,56 @@ namespace SWD392.Controllers
                 var currentPackage = await _context.MembershipPackages
                     .FirstOrDefaultAsync(x => x.MembershipPackageId == currentMembership.MembershipPackageId);
 
-                if (currentPackage != null && requestedPackage.Price < currentPackage.Price && requestedPackage.Price == 0)
+                if (currentPackage != null)
                 {
-                    return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
+                    decimal currentPrice = (paymentType.ToLower() == "yearly") ? currentPackage.YearlyPrice : currentPackage.Price;
+
+                    // Kiểm tra nếu giá gói mới thấp hơn gói hiện tại và không phải gói miễn phí
+                    if (selectedPrice < currentPrice)
+                    {
+                        return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
+                    }
                 }
 
-                // Calculate the remaining days based on the current membership's validity
-                var remainingTime = currentMembership.EndDate - DateTime.UtcNow;
 
-                // Check if the remainingTime has a value and access TotalDays
+                var remainingTime = currentMembership.EndDate - DateTime.UtcNow;
                 remainingDays = remainingTime.HasValue ? (int)remainingTime.Value.TotalDays : 0;
 
-                // Calculate additional days based on the new package's price and old package's remaining days
                 additionalDays = (int)((remainingDays * requestedPackage.Price) / currentPackage.Price);
 
-                // Ensure the additional days are non-negative
-                additionalDays = Math.Max(additionalDays, 0);
-
-                // Adjust the start date and end date for the new package
-                var startDate = DateTime.UtcNow;
-                var validityPeriod = requestedPackage.ValidityPeriod + additionalDays; // Add the additional days to the new package
-                var endDate = startDate.AddDays(validityPeriod);
-
-
-
-
-                // Ensure the price doesn't go negative
-                if (requestedPackage.Price < 0)
+                if (remainingDays > 0)
                 {
-                    requestedPackage.Price = 0;
+                    decimal pricePerDay = currentPackage.Price / 30;
+                    remainingPrice = Math.Round(pricePerDay * remainingDays, 2);
                 }
+
+                additionalDays = Math.Max(additionalDays, 0);
             }
-            else
-            {
-                var startDate = DateTime.UtcNow;
-                var validityPeriod = requestedPackage.ValidityPeriod;
-                var endDate = startDate.AddDays(validityPeriod);
-            }
+
+            var startDate = DateTime.UtcNow;
+            var endDate = startDate.AddDays(validityPeriod + additionalDays);
 
             var orderDetail = new GetOrderDetailDTO
             {
                 MembershipPackageId = idPackage,
-                StartDate = DateTime.UtcNow,  // Start date of the new package
-                EndDate = DateTime.UtcNow.AddDays(requestedPackage.ValidityPeriod + additionalDays), // End date of the new package
-                RemainingPrice = remainingPrice,  // Add remaining price from the old package
-                RemainingDays = remainingDays,  // Add remaining days from the old package
-                AdditionalDays = additionalDays, // Add the additional days based on the new package's price
-                MembershipPackage = new GetMembershipPackageDTO
+                StartDate = startDate,
+                EndDate = endDate,
+                RemainingPrice = remainingPrice,
+                RemainingDays = remainingDays,
+                AdditionalDays = additionalDays,
+                MembershipPackage = new OrderDetail2DTO
                 {
                     MembershipPackageId = requestedPackage.MembershipPackageId,
                     MembershipPackageName = requestedPackage.MembershipPackageName,
-                    Price = requestedPackage.Price,  // Updated price after applying the remaining money
+                    Price = selectedPrice,
+                    
                     Status = requestedPackage.Status,
-                    ValidityPeriod = requestedPackage.ValidityPeriod,
+                    ValidityPeriod = validityPeriod,
+                    Image = requestedPackage.Image,
+                    SavingPerMonth = (paymentType.ToLower() == "yearly")
+                        ? Math.Round(requestedPackage.Price - (requestedPackage.YearlyPrice / 12), 2)
+                        : Math.Round(requestedPackage.Price, 2),
+                    Summary = requestedPackage.Summary,
                     Permissions = requestedPackage.Permissions.Select(p => new PermissionDTO
                     {
                         PermissionId = p.PermissionId,
@@ -149,6 +150,7 @@ namespace SWD392.Controllers
 
             return Ok(orderDetail);
         }
+
 
 
 
@@ -270,8 +272,8 @@ namespace SWD392.Controllers
         },
                 redirect_urls = new RedirectUrls
                 {
-                    return_url = $"https://localhost:7067/api/PayPal/execute-payment?idMbPackage={request.IdPackage}&paymentType={request.PaymentType}&validityDays={validityDays}",
-                    cancel_url = "https://localhost:7067/api/PayPal/cancel-payment"
+                    return_url = $"https://swd39220250217220816.azurewebsites.net//api/PayPal/execute-payment?idMbPackage={request.IdPackage}&paymentType={request.PaymentType}&validityDays={validityDays}",
+                    cancel_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/cancel-payment"
                 }
             };
 
