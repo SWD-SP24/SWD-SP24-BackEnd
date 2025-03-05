@@ -200,7 +200,8 @@ namespace SWD392.Controllers
                         // Lưu tất cả thay đổi vào cơ sở dữ liệu một lần duy nhất
                         _Context.SaveChanges();
 
-                        return Redirect("https://localhost:3000/");
+                        return Redirect($"http://localhost:3000/upgrade-plan/confirm?paymentId={paymentId}");
+
                     }
                     catch (Exception ex)
                     {
