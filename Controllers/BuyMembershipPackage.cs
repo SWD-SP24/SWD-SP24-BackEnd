@@ -73,7 +73,6 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Package not found" });
             }
 
-            // Xác định giá và thời hạn dựa trên loại gói (monthly hoặc yearly)
             decimal selectedPrice = (paymentType.ToLower() == "yearly") ? requestedPackage.YearlyPrice : requestedPackage.Price;
             int validityPeriod = (paymentType.ToLower() == "yearly") ? 365 : requestedPackage.ValidityPeriod;
 
@@ -83,20 +82,23 @@ namespace SWD392.Controllers
             decimal remainingPrice = 0;
             int remainingDays = 0;
             int additionalDays = 0;
-            var PreviousMembershipPackageName = string.Empty;
+            string PreviousMembershipPackageName = string.Empty;
+
+            MembershipPackage currentPackage = null; // ✅ Khai báo để sử dụng sau
+
             if (currentMembership != null)
             {
-                var currentPackage = await _context.MembershipPackages
+                currentPackage = await _context.MembershipPackages
+                    .Include(p => p.Permissions) // ✅ Đảm bảo load cả Permissions
                     .FirstOrDefaultAsync(x => x.MembershipPackageId == currentMembership.MembershipPackageId);
 
                 if (currentPackage != null)
                 {
                     decimal currentPrice = (paymentType.ToLower() == "yearly") ? currentPackage.YearlyPrice : currentPackage.Price;
                     PreviousMembershipPackageName = currentPackage.MembershipPackageName;
-                    // Nếu gói hiện tại có giá = 0 thì bỏ qua việc tính toán
+
                     if (currentPrice > 0)
                     {
-                        // Kiểm tra nếu giá gói mới thấp hơn gói hiện tại
                         if (selectedPrice < currentPrice)
                         {
                             return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
@@ -118,7 +120,6 @@ namespace SWD392.Controllers
                 }
             }
 
-
             var startDate = DateTime.UtcNow;
             var endDate = startDate.AddDays(validityPeriod + additionalDays);
 
@@ -136,7 +137,6 @@ namespace SWD392.Controllers
                     MembershipPackageId = requestedPackage.MembershipPackageId,
                     MembershipPackageName = requestedPackage.MembershipPackageName,
                     Price = selectedPrice,
-                    
                     Status = requestedPackage.Status,
                     ValidityPeriod = validityPeriod,
                     Image = requestedPackage.Image,
@@ -150,11 +150,32 @@ namespace SWD392.Controllers
                         PermissionName = p.PermissionName,
                         Description = p.Description
                     }).ToList()
-                }
+                },
+                // ✅ Thêm thông tin gói hiện tại nếu có
+                CurrentMembershipPackage = currentPackage != null ? new OrderDetail2DTO
+                {
+                    MembershipPackageId = currentPackage.MembershipPackageId,
+                    MembershipPackageName = currentPackage.MembershipPackageName,
+                    Price = (paymentType.ToLower() == "yearly") ? currentPackage.YearlyPrice : currentPackage.Price,
+                    Status = currentPackage.Status,
+                    ValidityPeriod = currentPackage.ValidityPeriod,
+                    Image = currentPackage.Image,
+                    SavingPerMonth = (paymentType.ToLower() == "yearly")
+                        ? Math.Round(currentPackage.Price - (currentPackage.YearlyPrice / 12), 2)
+                        : Math.Round(currentPackage.Price, 2),
+                    Summary = currentPackage.Summary,
+                    Permissions = currentPackage.Permissions.Select(p => new PermissionDTO
+                    {
+                        PermissionId = p.PermissionId,
+                        PermissionName = p.PermissionName,
+                        Description = p.Description
+                    }).ToList()
+                } : null // Nếu không có gói hiện tại, trả về null
             };
 
             return Ok(orderDetail);
         }
+
 
 
 

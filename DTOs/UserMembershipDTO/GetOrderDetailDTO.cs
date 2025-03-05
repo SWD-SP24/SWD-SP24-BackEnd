@@ -15,5 +15,7 @@ namespace SWD392.DTOs.UserMembershipDTO
         public int RemainingDays { get; set; }   
         public int AdditionalDays { get; set; }
         public virtual OrderDetail2DTO MembershipPackage { get; set; }
+        public virtual OrderDetail2DTO CurrentMembershipPackage { get; set; }
     }
+
 }

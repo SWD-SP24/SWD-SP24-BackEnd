@@ -8,6 +8,7 @@
         public string Status { get; set; }
         public int ValidityPeriod { get; set; }
         public decimal PercentDiscount { get; set; }
+        public string Image { get; set; }
         public string Summary { get; set; }
         public List<int> Permissions { get; set; } = new List<int>();
     }

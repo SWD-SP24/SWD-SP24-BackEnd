@@ -207,7 +207,7 @@ namespace SWD392.Controllers
                 {
                     MembershipPackageName = dto.MembershipPackageName,
                     Price = dto.Price,
-
+                    Image = dto.Image,
                     Status = dto.Status,
                     ValidityPeriod = dto.ValidityPeriod,
                     CreatedTime = DateTime.UtcNow,
@@ -236,6 +236,7 @@ namespace SWD392.Controllers
                     ValidityPeriod = package.ValidityPeriod,
                     YearlyPrice = package.YearlyPrice,
                     Summary = package.Summary,
+                    Image = package.Image,
                     Permissions = package.Permissions.Select(p => new PermissionDTO
                     {
                         PermissionId = p.PermissionId,
@@ -321,6 +322,7 @@ namespace SWD392.Controllers
                 Status = package.Status,
                 ValidityPeriod = package.ValidityPeriod,
                 Summary = package.Summary,
+                Image = package.Image,
                 Permissions = package.Permissions.Select(p => new PermissionDTO
                 {
                     PermissionId = p.PermissionId,
