@@ -93,27 +93,31 @@ namespace SWD392.Controllers
                 {
                     decimal currentPrice = (paymentType.ToLower() == "yearly") ? currentPackage.YearlyPrice : currentPackage.Price;
 
-                    // Kiểm tra nếu giá gói mới thấp hơn gói hiện tại và không phải gói miễn phí
-                    if (selectedPrice < currentPrice)
+                    // Nếu gói hiện tại có giá = 0 thì bỏ qua việc tính toán
+                    if (currentPrice > 0)
                     {
-                        return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
+                        // Kiểm tra nếu giá gói mới thấp hơn gói hiện tại
+                        if (selectedPrice < currentPrice)
+                        {
+                            return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
+                        }
+
+                        var remainingTime = currentMembership.EndDate - DateTime.UtcNow;
+                        remainingDays = remainingTime.HasValue ? (int)remainingTime.Value.TotalDays : 0;
+
+                        additionalDays = (int)((remainingDays * requestedPackage.Price) / currentPrice);
+
+                        if (remainingDays > 0)
+                        {
+                            decimal pricePerDay = currentPrice / 30;
+                            remainingPrice = Math.Round(pricePerDay * remainingDays, 2);
+                        }
+
+                        additionalDays = Math.Max(additionalDays, 0);
                     }
                 }
-
-
-                var remainingTime = currentMembership.EndDate - DateTime.UtcNow;
-                remainingDays = remainingTime.HasValue ? (int)remainingTime.Value.TotalDays : 0;
-
-                additionalDays = (int)((remainingDays * requestedPackage.Price) / currentPackage.Price);
-
-                if (remainingDays > 0)
-                {
-                    decimal pricePerDay = currentPackage.Price / 30;
-                    remainingPrice = Math.Round(pricePerDay * remainingDays, 2);
-                }
-
-                additionalDays = Math.Max(additionalDays, 0);
             }
+
 
             var startDate = DateTime.UtcNow;
             var endDate = startDate.AddDays(validityPeriod + additionalDays);
