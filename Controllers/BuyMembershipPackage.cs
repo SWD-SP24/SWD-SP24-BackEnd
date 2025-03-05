@@ -107,7 +107,7 @@ namespace SWD392.Controllers
                         var remainingTime = currentMembership.EndDate - DateTime.UtcNow;
                         remainingDays = remainingTime.HasValue ? (int)remainingTime.Value.TotalDays : 0;
 
-                        additionalDays = (int)((remainingDays * requestedPackage.Price) / currentPrice);
+                        additionalDays = (int)((remainingDays * currentPrice) / requestedPackage.Price);
 
                         if (remainingDays > 0)
                         {
