@@ -73,7 +73,6 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Package not found" });
             }
 
-            decimal selectedPrice = (paymentType.ToLower() == "yearly") ? requestedPackage.YearlyPrice : requestedPackage.Price;
             int validityPeriod = (paymentType.ToLower() == "yearly") ? 365 : requestedPackage.ValidityPeriod;
 
             var currentMembership = await _context.UserMemberships
@@ -84,12 +83,12 @@ namespace SWD392.Controllers
             int additionalDays = 0;
             string PreviousMembershipPackageName = string.Empty;
 
-            MembershipPackage currentPackage = null; // ✅ Khai báo để sử dụng sau
+            MembershipPackage currentPackage = null;
 
             if (currentMembership != null)
             {
                 currentPackage = await _context.MembershipPackages
-                    .Include(p => p.Permissions) // ✅ Đảm bảo load cả Permissions
+                    .Include(p => p.Permissions)
                     .FirstOrDefaultAsync(x => x.MembershipPackageId == currentMembership.MembershipPackageId);
 
                 if (currentPackage != null)
@@ -99,7 +98,7 @@ namespace SWD392.Controllers
 
                     if (currentPrice > 0)
                     {
-                        if (selectedPrice < currentPrice)
+                        if ((paymentType.ToLower() == "yearly" ? requestedPackage.YearlyPrice : requestedPackage.Price) < currentPrice)
                         {
                             return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
                         }
@@ -136,13 +135,13 @@ namespace SWD392.Controllers
                 {
                     MembershipPackageId = requestedPackage.MembershipPackageId,
                     MembershipPackageName = requestedPackage.MembershipPackageName,
-                    Price = selectedPrice,
+                    Price = requestedPackage.Price,
+                    YearlyPrice = requestedPackage.YearlyPrice,
+                    PercentDiscount = (int)Math.Round(100 - ((requestedPackage.YearlyPrice / (requestedPackage.Price * 12)) * 100), 2),
                     Status = requestedPackage.Status,
                     ValidityPeriod = validityPeriod,
+                    SavingPerMonth = requestedPackage.Price - requestedPackage.YearlyPrice/12,
                     Image = requestedPackage.Image,
-                    SavingPerMonth = (paymentType.ToLower() == "yearly")
-                        ? Math.Round(requestedPackage.Price - (requestedPackage.YearlyPrice / 12), 2)
-                        : Math.Round(requestedPackage.Price, 2),
                     Summary = requestedPackage.Summary,
                     Permissions = requestedPackage.Permissions.Select(p => new PermissionDTO
                     {
@@ -151,18 +150,17 @@ namespace SWD392.Controllers
                         Description = p.Description
                     }).ToList()
                 },
-                // ✅ Thêm thông tin gói hiện tại nếu có
                 CurrentMembershipPackage = currentPackage != null ? new OrderDetail2DTO
                 {
                     MembershipPackageId = currentPackage.MembershipPackageId,
                     MembershipPackageName = currentPackage.MembershipPackageName,
-                    Price = (paymentType.ToLower() == "yearly") ? currentPackage.YearlyPrice : currentPackage.Price,
+                    Price = currentPackage.Price,
+                    YearlyPrice = currentPackage.YearlyPrice,
+                    PercentDiscount = (int)Math.Round(100 - ((currentPackage.YearlyPrice / (currentPackage.Price * 12)) * 100), 2),
                     Status = currentPackage.Status,
                     ValidityPeriod = currentPackage.ValidityPeriod,
+                    SavingPerMonth = currentPackage.Price - currentPackage.YearlyPrice/12,
                     Image = currentPackage.Image,
-                    SavingPerMonth = (paymentType.ToLower() == "yearly")
-                        ? Math.Round(currentPackage.Price - (currentPackage.YearlyPrice / 12), 2)
-                        : Math.Round(currentPackage.Price, 2),
                     Summary = currentPackage.Summary,
                     Permissions = currentPackage.Permissions.Select(p => new PermissionDTO
                     {
@@ -170,11 +168,12 @@ namespace SWD392.Controllers
                         PermissionName = p.PermissionName,
                         Description = p.Description
                     }).ToList()
-                } : null // Nếu không có gói hiện tại, trả về null
+                } : null
             };
 
             return Ok(orderDetail);
         }
+
 
 
 
