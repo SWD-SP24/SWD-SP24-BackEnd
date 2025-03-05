@@ -10,7 +10,7 @@ namespace SWD392.DTOs.UserMembershipDTO
         public DateTime StartDate { get; set; }
 
         public DateTime? EndDate { get; set; }
-
+        public string PreviousMembershipPackageName { get; set; }
         public decimal RemainingPrice { get; set; }  
         public int RemainingDays { get; set; }   
         public int AdditionalDays { get; set; }

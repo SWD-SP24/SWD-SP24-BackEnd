@@ -83,7 +83,7 @@ namespace SWD392.Controllers
             decimal remainingPrice = 0;
             int remainingDays = 0;
             int additionalDays = 0;
-
+            var PreviousMembershipPackageName = string.Empty;
             if (currentMembership != null)
             {
                 var currentPackage = await _context.MembershipPackages
@@ -92,7 +92,7 @@ namespace SWD392.Controllers
                 if (currentPackage != null)
                 {
                     decimal currentPrice = (paymentType.ToLower() == "yearly") ? currentPackage.YearlyPrice : currentPackage.Price;
-
+                    PreviousMembershipPackageName = currentPackage.MembershipPackageName;
                     // Nếu gói hiện tại có giá = 0 thì bỏ qua việc tính toán
                     if (currentPrice > 0)
                     {
@@ -127,6 +127,7 @@ namespace SWD392.Controllers
                 MembershipPackageId = idPackage,
                 StartDate = startDate,
                 EndDate = endDate,
+                PreviousMembershipPackageName = PreviousMembershipPackageName,
                 RemainingPrice = remainingPrice,
                 RemainingDays = remainingDays,
                 AdditionalDays = additionalDays,
