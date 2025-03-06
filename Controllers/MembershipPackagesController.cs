@@ -285,10 +285,16 @@ namespace SWD392.Controllers
             {
                 package.MembershipPackageName = dto.MembershipPackageName;
             }
-          
+            
+
             if (dto.Price != 0)
             {
                 package.Price = dto.Price;
+            }
+            if (dto.PercentDiscount != 0)
+            {
+                decimal percentDiscount = dto.PercentDiscount;
+                package.YearlyPrice = package.Price * 12 - (package.Price * 12 * percentDiscount / 100);
             }
             if (!string.IsNullOrEmpty(dto.Status))
             {
@@ -298,17 +304,8 @@ namespace SWD392.Controllers
             {
                 package.ValidityPeriod = dto.ValidityPeriod;
             }
-            if (!string.IsNullOrEmpty(dto.Summary))
-            {
-                package.Summary = dto.Summary;
-            }
 
-            if (!string.IsNullOrEmpty(dto.Image))
-            {
-                package.Image = dto.Image;
-            }
-
-
+           
             if (dto.Permissions != null)
             {
                
@@ -334,10 +331,12 @@ namespace SWD392.Controllers
                 MembershipPackageId = package.MembershipPackageId,
                 MembershipPackageName = package.MembershipPackageName,
                 Price = package.Price,
+                YearlyPrice = package.YearlyPrice,
                 Status = package.Status,
                 ValidityPeriod = package.ValidityPeriod,
                 Summary = package.Summary,
                 Image = package.Image,
+
                 Permissions = package.Permissions.Select(p => new PermissionDTO
                 {
                     PermissionId = p.PermissionId,
