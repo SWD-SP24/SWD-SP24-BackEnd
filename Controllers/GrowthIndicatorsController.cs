@@ -32,6 +32,8 @@ namespace SWD392.Controllers
         /// <param name="childrenId">The ID of the child whose growth indicators are to be retrieved.</param>
         /// <param name="startTime">The optional start time to filter the growth indicators in dd/MM/yyyy format.</param>
         /// <param name="endTime">The optional end time to filter the growth indicators in dd/MM/yyyy format.</param>
+        /// <param name="pageNumber">The optional page number for pagination.</param>
+        /// <param name="pageSize">The optional page size for pagination.</param>
         /// <returns>An <see cref="ApiResponse{T}"/> containing a list of <see cref="GrowthIndicatorDTO"/> objects.</returns>
         /// <response code="200">Returns the list of growth indicators.</response>
         /// <response code="401">If the user is not authorized.</response>
@@ -41,7 +43,9 @@ namespace SWD392.Controllers
         public async Task<ActionResult<ApiResponse<IEnumerable<GrowthIndicatorDTO>>>> GetGrowthIndicators(
             [FromQuery] int childrenId,
             [FromQuery] string startTime = null,
-            [FromQuery] string endTime = null)
+            [FromQuery] string endTime = null,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 999)
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
                 return Unauthorized(ApiResponse<object>.Error("No JWT key"));
@@ -81,15 +85,23 @@ namespace SWD392.Controllers
                 query = query.Where(gi => gi.RecordTime <= parsedEndTime);
             }
 
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
             var growthIndicators = await query
                 .Where(gi => gi.ChildrenId == childrenId)
                 .OrderByDescending(gi => gi.RecordTime)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             var growthIndicatorDtos = growthIndicators.Select(gi => gi.ToGrowthIndicatorDto());
 
-            return Ok(ApiResponse<IEnumerable<GrowthIndicatorDTO>>.Success(growthIndicatorDtos));
+            var pagination = new Pagination(pageNumber, pageNumber < totalPages, totalItems);
+
+            return Ok(ApiResponse<IEnumerable<GrowthIndicatorDTO>>.Success(growthIndicatorDtos, pagination));
         }
+
 
 
         /// <summary>

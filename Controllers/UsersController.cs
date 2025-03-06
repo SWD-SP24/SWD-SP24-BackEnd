@@ -241,7 +241,7 @@ namespace SWD392.Controllers
         /// <response code="200">Users retrieved</response>
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetUsers(int pageNumber = 1, int pageSize = 8)
+        public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetUsers(int pageNumber = 1, int pageSize = 999)
         {
             var totalUsers = await _context.Users.CountAsync();
             var users = await _context.Users
