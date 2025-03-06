@@ -1,8 +1,6 @@
-﻿using SWD392.Models;
-
-namespace SWD392.DTOs.MembershipPackagesDTO
+﻿namespace SWD392.DTOs.MembershipPackagesDTO
 {
-    public class GetMembershipPackageDTO
+    public class EditPackageDTO
     {
         public int MembershipPackageId { get; set; }
 

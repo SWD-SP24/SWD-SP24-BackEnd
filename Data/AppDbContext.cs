@@ -305,6 +305,7 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("status");
+            entity.Property(e => e.Summary).HasColumnName("summary");
             entity.Property(e => e.ValidityPeriod).HasColumnName("validity_period");
             entity.Property(e => e.YearlyPrice)
                 .HasColumnType("decimal(18, 2)")
@@ -345,6 +346,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.TransactionDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.UserMembershipId).HasColumnName("user_membership_id");
 
             entity.HasOne(d => d.MembershipPackage).WithMany(p => p.PaymentTransactions)
                 .HasForeignKey(d => d.MembershipPackageId)
@@ -355,6 +357,10 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PaymentTransactions_Users");
+
+            entity.HasOne(d => d.UserMembership).WithMany(p => p.PaymentTransactions)
+                .HasForeignKey(d => d.UserMembershipId)
+                .HasConstraintName("FK_PaymentTransactions_UserMembership");
         });
 
         modelBuilder.Entity<Permission>(entity =>

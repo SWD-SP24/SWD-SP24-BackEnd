@@ -48,6 +48,13 @@ namespace SWD392.Controllers
                     Status = p.Status,
                     Image = p.Image,
                     ValidityPeriod = p.ValidityPeriod,
+                    Summary = p.Summary,
+                    YearlyPrice = p.YearlyPrice,
+                    SavingPerMonth = Math.Round(p.YearlyPrice > 0 ? p.Price - (p.YearlyPrice / 12) : 0),
+                    PercentDiscount = (p.YearlyPrice > 0 && p.Price > 0)
+    ? (int)(((p.Price - (p.YearlyPrice / 12)) / p.Price) * 100)
+    : 0,
+                   
                     Permissions = p.Permissions.Select(perm => new PermissionDTO
                     {
                         PermissionId = perm.PermissionId,
@@ -118,11 +125,13 @@ namespace SWD392.Controllers
                     Status = p.Status,
                     Image = p.Image,
                     ValidityPeriod = p.ValidityPeriod,
+                    YearlyPrice = p.YearlyPrice,
                     IsActive = (userPackage.HasValue && p.MembershipPackageId == userPackage.Value),
                     SavingPerMonth = p.YearlyPrice > 0 ? p.Price - (p.YearlyPrice / 12) : 0,
                     PercentDiscount = (p.YearlyPrice > 0 && p.Price > 0)
     ? (int)(((p.Price - (p.YearlyPrice / 12)) / p.Price) * 100)
     : 0,
+                    Summary = p.Summary,
 
 
                     Permissions = p.Permissions.Select(perm => new PermissionDTO
@@ -166,6 +175,8 @@ namespace SWD392.Controllers
                 Status = package.Status,
                 Image = package.Image,
                 ValidityPeriod = package.ValidityPeriod,
+                YearlyPrice = package.YearlyPrice,
+                Summary = package.Summary,
                 Permissions = package.Permissions.Select(p => new PermissionDTO
                 {
                     PermissionId = p.PermissionId,
@@ -190,51 +201,59 @@ namespace SWD392.Controllers
         /// <response code="400">Invalid package data.</response>
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public async Task<ActionResult> CreateMembershipPackage([FromBody] CreatePackageDTO dto)
-        {
-            if (dto == null || string.IsNullOrEmpty(dto.MembershipPackageName))
+            public async Task<ActionResult> CreateMembershipPackage([FromBody] CreatePackageDTO dto)
             {
-                return BadRequest(new { status = "error", message = "Invalid package data" });
-            }
-
-            var package = new MembershipPackage
-            {
-                MembershipPackageName = dto.MembershipPackageName,
-                Price = dto.Price,
-                Status = dto.Status,
-                ValidityPeriod = dto.ValidityPeriod,
-                CreatedTime = DateTime.UtcNow
-            };
-
-            if (dto.Permissions != null && dto.Permissions.Any())
-            {
-                var permissions = await _context.Permissions
-                    .Where(p => dto.Permissions.Contains(p.PermissionId))
-                    .ToListAsync();
-                package.Permissions = permissions;
-            }
-
-            _context.MembershipPackages.Add(package);
-            await _context.SaveChangesAsync();
-
-            var resultDto = new GetMembershipPackageDTO
-            {
-                MembershipPackageId = package.MembershipPackageId,
-                MembershipPackageName = package.MembershipPackageName,
-                Price = package.Price,
-                Status = package.Status,
-                ValidityPeriod = package.ValidityPeriod,
-                Permissions = package.Permissions.Select(p => new PermissionDTO
+                if (dto == null || string.IsNullOrEmpty(dto.MembershipPackageName))
                 {
-                    PermissionId = p.PermissionId,
-                    PermissionName = p.PermissionName,
-                    Description = p.Description
-                }).ToList()
+                    return BadRequest(new { status = "error", message = "Invalid package data" });
+                }
+            decimal yearlyPrice = dto.Price * 12;
+            yearlyPrice -= yearlyPrice * (dto.PercentDiscount / 100);
+            var package = new MembershipPackage
+                {
+                    MembershipPackageName = dto.MembershipPackageName,
+                    Price = dto.Price,
+                    Image = dto.Image,
+                    Status = dto.Status,
+                    ValidityPeriod = dto.ValidityPeriod,
+                    CreatedTime = DateTime.UtcNow,
+                    YearlyPrice = yearlyPrice,
+                    Summary = dto.Summary
+
             };
 
-            return CreatedAtAction(nameof(GetMembershipPackages), new { id = package.MembershipPackageId },
-                new { status = "success", data = resultDto });
-        }
+                if (dto.Permissions != null && dto.Permissions.Any())
+                {
+                    var permissions = await _context.Permissions
+                        .Where(p => dto.Permissions.Contains(p.PermissionId))
+                        .ToListAsync();
+                    package.Permissions = permissions;
+                }
+
+                _context.MembershipPackages.Add(package);
+                await _context.SaveChangesAsync();
+
+                var resultDto = new GetMembershipPackageDTO
+                {
+                    MembershipPackageId = package.MembershipPackageId,
+                    MembershipPackageName = package.MembershipPackageName,
+                    Price = package.Price,
+                    Status = package.Status,
+                    ValidityPeriod = package.ValidityPeriod,
+                    YearlyPrice = package.YearlyPrice,
+                    Summary = package.Summary,
+                    Image = package.Image,
+                    Permissions = package.Permissions.Select(p => new PermissionDTO
+                    {
+                        PermissionId = p.PermissionId,
+                        PermissionName = p.PermissionName,
+                        Description = p.Description
+                    }).ToList()
+                };
+
+                return CreatedAtAction(nameof(GetMembershipPackages), new { id = package.MembershipPackageId },
+                    new { status = "success", data = resultDto });
+            }
 
         /// <summary>
         /// Update an existing membership package along with its permissions.(Admin only)
@@ -266,10 +285,16 @@ namespace SWD392.Controllers
             {
                 package.MembershipPackageName = dto.MembershipPackageName;
             }
-          
+            
+
             if (dto.Price != 0)
             {
                 package.Price = dto.Price;
+            }
+            if (dto.PercentDiscount != 0)
+            {
+                decimal percentDiscount = dto.PercentDiscount;
+                package.YearlyPrice = package.Price * 12 - (package.Price * 12 * percentDiscount / 100);
             }
             if (!string.IsNullOrEmpty(dto.Status))
             {
@@ -306,8 +331,12 @@ namespace SWD392.Controllers
                 MembershipPackageId = package.MembershipPackageId,
                 MembershipPackageName = package.MembershipPackageName,
                 Price = package.Price,
+                YearlyPrice = package.YearlyPrice,
                 Status = package.Status,
                 ValidityPeriod = package.ValidityPeriod,
+                Summary = package.Summary,
+                Image = package.Image,
+
                 Permissions = package.Permissions.Select(p => new PermissionDTO
                 {
                     PermissionId = p.PermissionId,

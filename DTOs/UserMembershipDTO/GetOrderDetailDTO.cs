@@ -10,9 +10,12 @@ namespace SWD392.DTOs.UserMembershipDTO
         public DateTime StartDate { get; set; }
 
         public DateTime? EndDate { get; set; }
-
-        public int? PaymentTransactionId { get; set; }
-
-        public virtual GetMembershipPackageDTO MembershipPackage { get; set; }
+        public string PreviousMembershipPackageName { get; set; }
+        public decimal RemainingPrice { get; set; }  
+        public int RemainingDays { get; set; }   
+        public int AdditionalDays { get; set; }
+        public virtual OrderDetail2DTO MembershipPackage { get; set; }
+        public virtual OrderDetail2DTO CurrentMembershipPackage { get; set; }
     }
+
 }

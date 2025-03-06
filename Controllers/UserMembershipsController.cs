@@ -60,6 +60,8 @@ namespace SWD392.Controllers
                     MembershipPackageName = userMembership.MembershipPackage.MembershipPackageName,
                     Price = userMembership.MembershipPackage.Price,
                     ValidityPeriod = userMembership.MembershipPackage.ValidityPeriod,
+                    YearlyPrice = userMembership.MembershipPackage.YearlyPrice,
+                    Image = userMembership.MembershipPackage.Image,
                     Permissions = userMembership.MembershipPackage.Permissions.Select(p => new PermissionDTO
                     {
                         PermissionId = p.PermissionId,
