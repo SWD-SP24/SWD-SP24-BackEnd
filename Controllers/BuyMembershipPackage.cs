@@ -73,6 +73,12 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Package not found" });
             }
 
+            // Nếu gói 0 đồng, bỏ qua luôn
+            if (requestedPackage.Price == 0 && requestedPackage.YearlyPrice == 0)
+            {
+                return BadRequest(new { message = "Gói miễn phí không thể đặt hàng." });
+            }
+
             int validityPeriod = (paymentType.ToLower() == "yearly") ? 365 : requestedPackage.ValidityPeriod;
 
             var currentMembership = await _context.UserMemberships
@@ -82,6 +88,7 @@ namespace SWD392.Controllers
             int remainingDays = 0;
             int additionalDays = 0;
             string PreviousMembershipPackageName = string.Empty;
+            decimal currentPrice = 0;
 
             MembershipPackage currentPackage = null;
 
@@ -93,12 +100,24 @@ namespace SWD392.Controllers
 
                 if (currentPackage != null)
                 {
-                    decimal currentPrice = (paymentType.ToLower() == "yearly") ? currentPackage.YearlyPrice : currentPackage.Price;
-                    PreviousMembershipPackageName = currentPackage.MembershipPackageName;
+                    var paymentTransactionId = currentMembership?.PaymentTransactionId;
 
+                    if (paymentTransactionId != null)
+                    {
+                        var transaction = await _context.PaymentTransactions
+                            .FirstOrDefaultAsync(t => t.PaymentTransactionId == paymentTransactionId);
+
+                        if (transaction != null)
+                        {
+                            currentPrice = transaction.Amount;
+                        }
+                    }
                     if (currentPrice > 0)
                     {
-                        if ((paymentType.ToLower() == "yearly" ? requestedPackage.YearlyPrice : requestedPackage.Price) < currentPrice)
+                        decimal requestedPrice = paymentType.ToLower() == "yearly" ? requestedPackage.YearlyPrice : requestedPackage.Price;
+                        decimal currentMonthlyPrice = currentPackage.Price;
+                        decimal requestedMonthlyPrice = requestedPackage.Price;
+                        if (requestedMonthlyPrice < currentMonthlyPrice)
                         {
                             return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
                         }
@@ -106,11 +125,11 @@ namespace SWD392.Controllers
                         var remainingTime = currentMembership.EndDate - DateTime.UtcNow;
                         remainingDays = remainingTime.HasValue ? (int)remainingTime.Value.TotalDays : 0;
 
-                        additionalDays = (int)((remainingDays * currentPrice) / requestedPackage.Price);
+                        additionalDays = requestedPrice > 0 ? (int)((remainingDays * currentMonthlyPrice) / requestedMonthlyPrice) : 0;
 
-                        if (remainingDays > 0)
+                        if (remainingDays > 0 && currentPrice > 0)
                         {
-                            decimal pricePerDay = currentPrice / 30;
+                            decimal pricePerDay = currentPrice > 100 ? currentPrice / 365 : currentPrice / 30;
                             remainingPrice = Math.Round(pricePerDay * remainingDays, 2);
                         }
 
@@ -137,10 +156,14 @@ namespace SWD392.Controllers
                     MembershipPackageName = requestedPackage.MembershipPackageName,
                     Price = requestedPackage.Price,
                     YearlyPrice = requestedPackage.YearlyPrice,
-                    PercentDiscount = (int)Math.Round(100 - ((requestedPackage.YearlyPrice / (requestedPackage.Price * 12)) * 100), 2),
+                    PercentDiscount = requestedPackage.Price > 0
+                        ? (int)Math.Round(100 - ((requestedPackage.YearlyPrice / (requestedPackage.Price * 12)) * 100), 2)
+                        : 0,
                     Status = requestedPackage.Status,
                     ValidityPeriod = validityPeriod,
-                    SavingPerMonth = requestedPackage.Price - requestedPackage.YearlyPrice/12,
+                    SavingPerMonth = Math.Round(requestedPackage.Price > 0
+                        ? requestedPackage.Price - (requestedPackage.YearlyPrice / 12)
+                        : 0, 2),
                     Image = requestedPackage.Image,
                     Summary = requestedPackage.Summary,
                     Permissions = requestedPackage.Permissions.Select(p => new PermissionDTO
@@ -156,10 +179,14 @@ namespace SWD392.Controllers
                     MembershipPackageName = currentPackage.MembershipPackageName,
                     Price = currentPackage.Price,
                     YearlyPrice = currentPackage.YearlyPrice,
-                    PercentDiscount = (int)Math.Round(100 - ((currentPackage.YearlyPrice / (currentPackage.Price * 12)) * 100), 2),
+                    PercentDiscount = currentPackage.Price > 0
+                        ? (int)Math.Round(100 - ((currentPackage.YearlyPrice / (currentPackage.Price * 12)) * 100), 2)
+                        : 0,
                     Status = currentPackage.Status,
                     ValidityPeriod = currentPackage.ValidityPeriod,
-                    SavingPerMonth = currentPackage.Price - currentPackage.YearlyPrice/12,
+                    SavingPerMonth = currentPackage.Price > 0
+                        ? currentPackage.Price - (currentPackage.YearlyPrice / 12)
+                        : 0,
                     Image = currentPackage.Image,
                     Summary = currentPackage.Summary,
                     Permissions = currentPackage.Permissions.Select(p => new PermissionDTO
@@ -173,6 +200,7 @@ namespace SWD392.Controllers
 
             return Ok(orderDetail);
         }
+
 
 
 
