@@ -298,8 +298,17 @@ namespace SWD392.Controllers
             {
                 package.ValidityPeriod = dto.ValidityPeriod;
             }
+            if (!string.IsNullOrEmpty(dto.Summary))
+            {
+                package.Summary = dto.Summary;
+            }
 
-           
+            if (!string.IsNullOrEmpty(dto.Image))
+            {
+                package.Image = dto.Image;
+            }
+
+
             if (dto.Permissions != null)
             {
                

@@ -184,9 +184,9 @@ namespace SWD392.Controllers
                         : 0,
                     Status = currentPackage.Status,
                     ValidityPeriod = currentPackage.ValidityPeriod,
-                    SavingPerMonth = currentPackage.Price > 0
+                    SavingPerMonth = Math.Round(currentPackage.Price > 0
                         ? currentPackage.Price - (currentPackage.YearlyPrice / 12)
-                        : 0,
+                        : 0, 2),
                     Image = currentPackage.Image,
                     Summary = currentPackage.Summary,
                     Permissions = currentPackage.Permissions.Select(p => new PermissionDTO
