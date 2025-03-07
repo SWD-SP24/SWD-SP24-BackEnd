@@ -23,7 +23,7 @@ public partial class MembershipPackage
 
     public string Image { get; set; }
 
-    public decimal? YearlyPrice { get; set; }
+    public decimal YearlyPrice { get; set; }
 
     public string Summary { get; set; }
 
