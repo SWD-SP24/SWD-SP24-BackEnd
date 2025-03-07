@@ -97,7 +97,7 @@ namespace SWD392.Controllers
 
             var growthIndicatorDtos = growthIndicators.Select(gi => gi.ToGrowthIndicatorDto());
 
-            var pagination = new Pagination(pageNumber, pageNumber < totalPages, totalItems);
+            var pagination = new Pagination(totalPages, pageNumber < totalPages, totalItems);
 
             return Ok(ApiResponse<IEnumerable<GrowthIndicatorDTO>>.Success(growthIndicatorDtos, pagination));
         }
