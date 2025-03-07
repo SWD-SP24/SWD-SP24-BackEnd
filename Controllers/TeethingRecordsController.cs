@@ -191,7 +191,14 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to edit this teething record"));
             }
 
+            var tooth = await _context.Teeth.FirstOrDefaultAsync(t => t.NumberOfTeeth == teethingRecordDto.ToothNumber);
+            if (tooth == null)
+            {
+                return NotFound(ApiResponse<object>.Error("Tooth not found"));
+            }
+
             // Update teething record properties with non-null values from teethingRecordDto
+            teethingRecord.ToothId = tooth.Id;
             if (teethingRecordDto.EruptionDate.HasValue)
             {
                 teethingRecord.EruptionDate = teethingRecordDto.EruptionDate.Value;
@@ -202,7 +209,7 @@ namespace SWD392.Controllers
             }
             if (!string.IsNullOrEmpty(teethingRecordDto.Note))
             {
-                teethingRecord.Note = teethingRecordDto.Note; // Add this line
+                teethingRecord.Note = teethingRecordDto.Note;
             }
 
             _context.Entry(teethingRecord).State = EntityState.Modified;
@@ -230,6 +237,7 @@ namespace SWD392.Controllers
             var teethingRecordDTO = teethingRecord.ToTeethingRecordDto();
             return Ok(ApiResponse<TeethingRecordDTO>.Success(teethingRecordDTO));
         }
+
 
 
         /// <summary>
@@ -270,13 +278,19 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to add teething record for this child"));
             }
 
+            var tooth = await _context.Teeth.FirstOrDefaultAsync(t => t.NumberOfTeeth == teethingRecordDto.ToothNumber);
+            if (tooth == null)
+            {
+                return NotFound(ApiResponse<object>.Error("Tooth not found"));
+            }
+
             var teethingRecord = new TeethingRecord
             {
                 ChildId = teethingRecordDto.ChildId,
-                ToothId = teethingRecordDto.ToothId,
+                ToothId = tooth.Id,
                 EruptionDate = teethingRecordDto.EruptionDate,
                 RecordTime = teethingRecordDto.RecordTime,
-                Note = teethingRecordDto.Note // Add this line
+                Note = teethingRecordDto.Note
             };
 
             _context.TeethingRecords.Add(teethingRecord);
@@ -285,7 +299,6 @@ namespace SWD392.Controllers
             var teethingRecordDTO = teethingRecord.ToTeethingRecordDto();
             return CreatedAtAction("GetTeethingRecord", new { id = teethingRecord.Id }, ApiResponse<TeethingRecordDTO>.Success(teethingRecordDTO));
         }
-
 
         /// <summary>
         /// Deletes a specific teething record by ID (Authorized only)
