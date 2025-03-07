@@ -8,7 +8,7 @@ namespace SWD392.DTOs.ToothDTO
 
         public int NumberOfTeeth { get; set; }
 
-        public required string TeethingPeriod { get; set; }
+        public int TeethingPeriod { get; set; }
 
         public required string Name { get; set; }
 

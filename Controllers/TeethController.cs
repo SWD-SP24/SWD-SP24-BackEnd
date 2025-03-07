@@ -76,7 +76,10 @@ namespace SWD392.Controllers
             }
 
             tooth.NumberOfTeeth = editToothDto.NumberOfTeeth ?? tooth.NumberOfTeeth;
-            tooth.TeethingPeriod = editToothDto.TeethingPeriod ?? tooth.TeethingPeriod;
+            if (editToothDto.TeethingPeriod.HasValue)
+            {
+                tooth.TeethingPeriod = editToothDto.TeethingPeriod.Value;
+            }
             tooth.Name = editToothDto.Name ?? tooth.Name;
 
             _context.Entry(tooth).State = EntityState.Modified;

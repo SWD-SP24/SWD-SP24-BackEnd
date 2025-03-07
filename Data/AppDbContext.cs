@@ -447,11 +447,7 @@ public partial class AppDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("name");
             entity.Property(e => e.NumberOfTeeth).HasColumnName("number_of_teeth");
-            entity.Property(e => e.TeethingPeriod)
-                .IsRequired()
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("teething_period");
+            entity.Property(e => e.TeethingPeriod).HasColumnName("teething_period");
         });
 
         modelBuilder.Entity<User>(entity =>
