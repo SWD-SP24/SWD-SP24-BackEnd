@@ -200,6 +200,10 @@ namespace SWD392.Controllers
             {
                 teethingRecord.RecordTime = teethingRecordDto.RecordTime.Value;
             }
+            if (!string.IsNullOrEmpty(teethingRecordDto.Note))
+            {
+                teethingRecord.Note = teethingRecordDto.Note; // Add this line
+            }
 
             _context.Entry(teethingRecord).State = EntityState.Modified;
 
@@ -226,6 +230,7 @@ namespace SWD392.Controllers
             var teethingRecordDTO = teethingRecord.ToTeethingRecordDto();
             return Ok(ApiResponse<TeethingRecordDTO>.Success(teethingRecordDTO));
         }
+
 
         /// <summary>
         /// Creates a new teething record (Authorized only)
@@ -270,7 +275,8 @@ namespace SWD392.Controllers
                 ChildId = teethingRecordDto.ChildId,
                 ToothId = teethingRecordDto.ToothId,
                 EruptionDate = teethingRecordDto.EruptionDate,
-                RecordTime = teethingRecordDto.RecordTime
+                RecordTime = teethingRecordDto.RecordTime,
+                Note = teethingRecordDto.Note // Add this line
             };
 
             _context.TeethingRecords.Add(teethingRecord);
@@ -279,6 +285,7 @@ namespace SWD392.Controllers
             var teethingRecordDTO = teethingRecord.ToTeethingRecordDto();
             return CreatedAtAction("GetTeethingRecord", new { id = teethingRecord.Id }, ApiResponse<TeethingRecordDTO>.Success(teethingRecordDTO));
         }
+
 
         /// <summary>
         /// Deletes a specific teething record by ID (Authorized only)

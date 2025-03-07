@@ -15,7 +15,8 @@ namespace SWD392.Mapper
                 EruptionDate = teethingRecord.EruptionDate,
                 RecordTime = teethingRecord.RecordTime,
                 ChildName = teethingRecord.Child!.FullName, // Using null-forgiving operator
-                ToothName = teethingRecord.Tooth!.Name // Using null-forgiving operator
+                ToothName = teethingRecord.Tooth!.Name, // Using null-forgiving operator
+                Note = teethingRecord.Note // Add this line
             };
         }
     }

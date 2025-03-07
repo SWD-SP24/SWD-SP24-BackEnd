@@ -9,6 +9,7 @@
         public DateTime? RecordTime { get; set; }
         public required string ChildName { get; set; }
         public required string ToothName { get; set; }
+        public string Note { get; set; } // Add this line
 
     }
 }
