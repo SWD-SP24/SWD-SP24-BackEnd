@@ -24,7 +24,11 @@ namespace SWD392.Controllers
             _context = context;
         }
 
-        // GET: api/Teeth
+        /// <summary>
+        /// Retrieves a list of all teeth.
+        /// </summary>
+        /// <returns>A list of <see cref="GetToothDTO"/> objects.</returns>
+        /// <response code="200">Returns the list of teeth.</response>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GetToothDTO>>> GetTeeth()
         {
@@ -33,7 +37,13 @@ namespace SWD392.Controllers
                 .ToListAsync();
         }
 
-        // GET: api/Teeth/5
+        /// <summary>
+        /// Retrieves a specific tooth by ID.
+        /// </summary>
+        /// <param name="id">The ID of the tooth to retrieve.</param>
+        /// <returns>A <see cref="GetToothDTO"/> object.</returns>
+        /// <response code="200">Returns the tooth.</response>
+        /// <response code="404">If the tooth is not found.</response>
         [HttpGet("{id}")]
         public async Task<ActionResult<GetToothDTO>> GetTooth(int id)
         {
@@ -47,8 +57,14 @@ namespace SWD392.Controllers
             return tooth.ToGetToothDTO();
         }
 
-        // PUT: api/Teeth/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Updates a specific tooth by ID (Authorized only).
+        /// </summary>
+        /// <param name="id">The ID of the tooth to update.</param>
+        /// <param name="editToothDto">The DTO containing the updated tooth data.</param>
+        /// <returns>An <see cref="IActionResult"/> indicating the result of the operation.</returns>
+        /// <response code="204">Tooth updated successfully.</response>
+        /// <response code="404">If the tooth is not found.</response>
         [HttpPut("{id}")]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> PutTooth(int id, EditToothDTO editToothDto)
@@ -84,8 +100,12 @@ namespace SWD392.Controllers
             return NoContent();
         }
 
-        // POST: api/Teeth
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        /// <summary>
+        /// Creates a new tooth (Authorized only).
+        /// </summary>
+        /// <param name="createToothDto">The DTO containing the new tooth data.</param>
+        /// <returns>A <see cref="GetToothDTO"/> object.</returns>
+        /// <response code="201">Tooth created successfully.</response>
         [HttpPost]
         [Authorize(Roles = "admin")]
         public async Task<ActionResult<GetToothDTO>> PostTooth(CreateToothDTO createToothDto)
@@ -105,7 +125,13 @@ namespace SWD392.Controllers
             return CreatedAtAction("GetTooth", new { id = tooth.Id }, getToothDto);
         }
 
-        // DELETE: api/Teeth/5
+        /// <summary>
+        /// Deletes a specific tooth by ID (Authorized only).
+        /// </summary>
+        /// <param name="id">The ID of the tooth to delete.</param>
+        /// <returns>An <see cref="IActionResult"/> indicating the result of the operation.</returns>
+        /// <response code="204">Tooth deleted successfully.</response>
+        /// <response code="404">If the tooth is not found.</response>
         [HttpDelete("{id}")]
         [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteTooth(int id)
