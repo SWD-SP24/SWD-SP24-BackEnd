@@ -91,6 +91,7 @@ namespace SWD392.Controllers
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
             var teethingRecords = await query
+                .Include(tr => tr.Tooth) // Include the related Tooth 
                 .OrderByDescending(tr => tr.RecordTime)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -132,6 +133,7 @@ namespace SWD392.Controllers
 
             var teethingRecord = await _context.TeethingRecords
                 .Include(tr => tr.Child)
+                .Include(tr => tr.Tooth)
                 .FirstOrDefaultAsync(tr => tr.Id == id);
 
             if (teethingRecord == null)
@@ -191,7 +193,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to edit this teething record"));
             }
 
-            var tooth = await _context.Teeth.FirstOrDefaultAsync(t => t.NumberOfTeeth == teethingRecordDto.ToothNumber);
+            var tooth = await _context.Teeth.FirstOrDefaultAsync(t => t.NumberOfTeeth == teethingRecord.ToothId);
             if (tooth == null)
             {
                 return NotFound(ApiResponse<object>.Error("Tooth not found"));
