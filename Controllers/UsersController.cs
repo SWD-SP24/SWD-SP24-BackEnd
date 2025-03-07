@@ -253,7 +253,7 @@ namespace SWD392.Controllers
             var hasNext = (pageNumber * pageSize) < totalUsers;
             var maxPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
 
-            var pagination = new Pagination(maxPages, hasNext);
+            var pagination = new Pagination(maxPages, hasNext, totalUsers);
 
             return Ok(ApiResponse<object>.Success(userDTOs, pagination));
         }

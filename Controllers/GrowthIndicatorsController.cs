@@ -85,11 +85,12 @@ namespace SWD392.Controllers
                 query = query.Where(gi => gi.RecordTime <= parsedEndTime);
             }
 
+            query = query.Where(gi => gi.ChildrenId == childrenId);
+
             var totalItems = await query.CountAsync();
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
             var growthIndicators = await query
-                .Where(gi => gi.ChildrenId == childrenId)
                 .OrderByDescending(gi => gi.RecordTime)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
