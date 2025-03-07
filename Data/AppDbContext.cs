@@ -414,6 +414,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.EruptionDate)
                 .HasColumnType("datetime")
                 .HasColumnName("eruption_date");
+            entity.Property(e => e.Note)
+                .HasMaxLength(255)
+                .HasColumnName("note");
             entity.Property(e => e.RecordTime)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
