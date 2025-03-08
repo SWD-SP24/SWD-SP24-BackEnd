@@ -201,14 +201,16 @@ namespace SWD392.Controllers
 
             // Update teething record properties with non-null values from teethingRecordDto
             teethingRecord.ToothId = tooth.Id;
-            if (teethingRecordDto.EruptionDate.HasValue)
+            if (!string.IsNullOrEmpty(teethingRecordDto.EruptionDate) && DateTime.TryParseExact(teethingRecordDto.EruptionDate, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsedEruptionDate))
             {
-                teethingRecord.EruptionDate = teethingRecordDto.EruptionDate.Value;
+                teethingRecord.EruptionDate = parsedEruptionDate;
             }
-            if (teethingRecordDto.RecordTime.HasValue)
+
+            if (!string.IsNullOrEmpty(teethingRecordDto.RecordTime) && DateTime.TryParseExact(teethingRecordDto.RecordTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsedRecordTime))
             {
-                teethingRecord.RecordTime = teethingRecordDto.RecordTime.Value;
+                teethingRecord.RecordTime = parsedRecordTime;
             }
+
             if (!string.IsNullOrEmpty(teethingRecordDto.Note))
             {
                 teethingRecord.Note = teethingRecordDto.Note;
@@ -286,12 +288,25 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("Tooth not found"));
             }
 
+            DateTime? parsedEruptionDate = null;
+            DateTime? parsedRecordTime = null;
+
+            if (!string.IsNullOrEmpty(teethingRecordDto.EruptionDate) && DateTime.TryParseExact(teethingRecordDto.EruptionDate, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime eruptionDate))
+            {
+                parsedEruptionDate = eruptionDate;
+            }
+
+            if (!string.IsNullOrEmpty(teethingRecordDto.RecordTime) && DateTime.TryParseExact(teethingRecordDto.RecordTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime recordTime))
+            {
+                parsedRecordTime = recordTime;
+            }
+
             var teethingRecord = new TeethingRecord
             {
                 ChildId = teethingRecordDto.ChildId,
                 ToothId = tooth.Id,
-                EruptionDate = teethingRecordDto.EruptionDate,
-                RecordTime = teethingRecordDto.RecordTime,
+                EruptionDate = parsedEruptionDate,
+                RecordTime = parsedRecordTime,
                 Note = teethingRecordDto.Note
             };
 
