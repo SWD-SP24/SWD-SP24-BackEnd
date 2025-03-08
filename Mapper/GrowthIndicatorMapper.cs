@@ -14,7 +14,7 @@ namespace SWD392.Mapper
                 Weight = growthIndicator.Weight,
                 Bmi = growthIndicator.Bmi,
                 ChildrenId = growthIndicator.ChildrenId,
-                RecordTime = growthIndicator.RecordTime
+                RecordTime = growthIndicator.RecordTime.ToString("dd/MM/yyyy")
             };
         }
     }
