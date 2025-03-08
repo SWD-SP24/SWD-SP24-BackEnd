@@ -21,5 +21,8 @@
         public string? Zipcode { get; set; }
         public string? State { get; set; }
         public string? Country { get; set; }
+        public string? Specialization { get; set; }
+        public string? LicenseNumber { get; set; }
+        public string? Hospital { get; set; }
     }
 }

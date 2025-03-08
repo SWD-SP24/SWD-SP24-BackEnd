@@ -489,6 +489,14 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(255)
                 .HasColumnName("full_name");
+            entity.Property(e => e.Hospital)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("hospital");
+            entity.Property(e => e.LicenseNumber)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("license_number");
             entity.Property(e => e.MembershipPackageId).HasColumnName("membership_package_id");
             entity.Property(e => e.PasswordHash)
                 .IsRequired()
@@ -503,6 +511,10 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("role");
+            entity.Property(e => e.Specialization)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("specialization");
             entity.Property(e => e.State)
                 .HasMaxLength(50)
                 .IsUnicode(false)

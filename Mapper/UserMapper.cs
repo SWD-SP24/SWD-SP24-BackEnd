@@ -85,7 +85,10 @@ namespace SWD392.Mapper
                 Address = user.Address,
                 Zipcode = user.Zipcode,
                 State = user.State,
-                Country = user.Country
+                Country = user.Country,
+                Specialization = user.Specialization,
+                LicenseNumber = user.LicenseNumber,
+                Hospital = user.Hospital
             };
         }
 

@@ -258,6 +258,33 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<object>.Success(userDTOs, pagination));
         }
 
+        // GET: api/Users/doctors
+        /// <summary>
+        /// Get list of doctors
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// </remarks>
+        /// <response code="200">Doctors retrieved</response>
+        [HttpGet("doctors")]
+        public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetDoctors(int pageNumber = 1, int pageSize = 999)
+        {
+            var totalDoctors = await _context.Users.CountAsync(u => u.Role == "doctor");
+            var doctors = await _context.Users
+                .Where(u => u.Role == "doctor")
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var doctorDTOs = doctors.Select(doctor => doctor.ToGetUserDTO()).ToList();
+            var hasNext = (pageNumber * pageSize) < totalDoctors;
+            var maxPages = (int)Math.Ceiling(totalDoctors / (double)pageSize);
+
+            var pagination = new Pagination(maxPages, hasNext, totalDoctors);
+
+            return Ok(ApiResponse<object>.Success(doctorDTOs, pagination));
+        }
+
         /// <summary>
         /// Get currently logged in user (Authorized only)
         /// </summary>
@@ -418,6 +445,18 @@ namespace SWD392.Controllers
                 if (userDto.Country != null)
                 {
                     user.Country = userDto.Country;
+                }
+                if (userDto.Specialization != null)
+                {
+                    user.Specialization = userDto.Specialization;
+                }
+                if (userDto.LicenseNumber != null)
+                {
+                    user.LicenseNumber = userDto.LicenseNumber;
+                }
+                if (userDto.Hospital != null)
+                {
+                    user.Hospital = userDto.Hospital;
                 }
             }
 
