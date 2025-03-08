@@ -4,7 +4,7 @@
     {
         public decimal? Height { get; set; }
         public decimal? Weight { get; set; }
-        public DateTime? RecordTime { get; set; }
+        public string? RecordTime { get; set; } // Changed to string
 
     }
 }

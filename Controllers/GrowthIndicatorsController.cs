@@ -168,6 +168,7 @@ namespace SWD392.Controllers
         /// - Invalid JWT key
         /// - Growth indicator not found
         /// - Unauthorized to edit this growth indicator
+        /// - Invalid date format. Use dd/MM/yyyy.
         /// </remarks>
         /// <param name="id">The ID of the growth indicator to update.</param>
         /// <param name="growthIndicatorDto">The DTO containing the updated growth indicator data.</param>
@@ -218,9 +219,16 @@ namespace SWD392.Controllers
             {
                 growthIndicator.Weight = growthIndicatorDto.Weight.Value;
             }
-            if (growthIndicatorDto.RecordTime.HasValue)
+            if (!string.IsNullOrEmpty(growthIndicatorDto.RecordTime))
             {
-                growthIndicator.RecordTime = growthIndicatorDto.RecordTime.Value;
+                if (DateTime.TryParseExact(growthIndicatorDto.RecordTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsedRecordTime))
+                {
+                    growthIndicator.RecordTime = parsedRecordTime;
+                }
+                else
+                {
+                    return BadRequest(ApiResponse<object>.Error("Invalid date format. Use dd/MM/yyyy."));
+                }
             }
 
             // Calculate BMI if either height or weight is provided
@@ -279,6 +287,7 @@ namespace SWD392.Controllers
         /// - Invalid JWT key
         /// - Child not found
         /// - Unauthorized to add growth indicator for this child
+        /// - Invalid date format. Use dd/MM/yyyy.
         /// </remarks>
         /// <param name="growthIndicatorDto">The DTO containing the new growth indicator data.</param>
         /// <returns>An <see cref="ApiResponse{T}"/> containing the created <see cref="GrowthIndicatorDTO"/> object.</returns>
@@ -315,6 +324,12 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to add growth indicator for this child"));
             }
 
+            // Parse RecordTime
+            if (!DateTime.TryParseExact(growthIndicatorDto.RecordTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsedRecordTime))
+            {
+                return BadRequest(ApiResponse<object>.Error("Invalid date format. Use dd/MM/yyyy."));
+            }
+
             // Calculate BMI
             decimal heightInMeters = growthIndicatorDto.Height / 100.0M;
             decimal bmi = growthIndicatorDto.Weight / (heightInMeters * heightInMeters);
@@ -324,7 +339,7 @@ namespace SWD392.Controllers
                 Height = growthIndicatorDto.Height,
                 Weight = growthIndicatorDto.Weight,
                 Bmi = (int)Math.Round(bmi), // TODO: change BMI type to not integer
-                RecordTime = growthIndicatorDto.RecordTime,
+                RecordTime = parsedRecordTime,
                 ChildrenId = growthIndicatorDto.ChildrenId
             };
 
