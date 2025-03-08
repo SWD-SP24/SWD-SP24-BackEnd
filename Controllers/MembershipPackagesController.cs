@@ -305,6 +305,10 @@ namespace SWD392.Controllers
                 package.ValidityPeriod = dto.ValidityPeriod;
             }
 
+            if (dto.Image != null)
+            {
+                package.Image = dto.Image;
+            }
            
             if (dto.Permissions != null)
             {
