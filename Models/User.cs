@@ -39,6 +39,12 @@ public partial class User
 
     public string Country { get; set; }
 
+    public string Specialization { get; set; }
+
+    public string LicenseNumber { get; set; }
+
+    public string Hospital { get; set; }
+
     public virtual ICollection<BlogContent> BlogContents { get; set; } = new List<BlogContent>();
 
     public virtual ICollection<Child> Children { get; set; } = new List<Child>();

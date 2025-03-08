@@ -7,7 +7,7 @@
         public decimal Weight { get; set; }
         public decimal Bmi { get; set; }
         public int ChildrenId { get; set; }
-        public DateTime RecordTime { get; set; }
+        public required string RecordTime { get; set; }
 
     }
 }

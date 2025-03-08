@@ -43,7 +43,7 @@ namespace SWD392.Controllers
         /// <response code="200">Children retrieved</response>
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<GetChildDTO>>>> GetChildren([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 8)
+        public async Task<ActionResult<ApiResponse<IEnumerable<GetChildDTO>>>> GetChildren([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 999)
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
                 return Unauthorized(ApiResponse<object>.Error("No JWT key"));
@@ -87,7 +87,7 @@ namespace SWD392.Controllers
         /// <response code="200">Children retrieved</response>
         [Authorize(Roles = "admin")]
         [HttpGet("admin")]
-        public async Task<ActionResult<ApiResponse<IEnumerable<GetChildDTO>>>> GetAllChildrenAdmin([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 8)
+        public async Task<ActionResult<ApiResponse<IEnumerable<GetChildDTO>>>> GetAllChildrenAdmin([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 999)
         {
             var query = _context.Children.AsQueryable();
 

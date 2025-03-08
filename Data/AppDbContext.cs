@@ -414,6 +414,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.EruptionDate)
                 .HasColumnType("datetime")
                 .HasColumnName("eruption_date");
+            entity.Property(e => e.Note)
+                .HasMaxLength(255)
+                .HasColumnName("note");
             entity.Property(e => e.RecordTime)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
@@ -444,11 +447,7 @@ public partial class AppDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("name");
             entity.Property(e => e.NumberOfTeeth).HasColumnName("number_of_teeth");
-            entity.Property(e => e.TeethingPeriod)
-                .IsRequired()
-                .HasMaxLength(255)
-                .IsUnicode(false)
-                .HasColumnName("teething_period");
+            entity.Property(e => e.TeethingPeriod).HasColumnName("teething_period");
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -490,6 +489,14 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(255)
                 .HasColumnName("full_name");
+            entity.Property(e => e.Hospital)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("hospital");
+            entity.Property(e => e.LicenseNumber)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("license_number");
             entity.Property(e => e.MembershipPackageId).HasColumnName("membership_package_id");
             entity.Property(e => e.PasswordHash)
                 .IsRequired()
@@ -504,6 +511,10 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasColumnName("role");
+            entity.Property(e => e.Specialization)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("specialization");
             entity.Property(e => e.State)
                 .HasMaxLength(50)
                 .IsUnicode(false)

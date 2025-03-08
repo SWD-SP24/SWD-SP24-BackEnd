@@ -17,6 +17,8 @@ public partial class TeethingRecord
 
     public DateTime? RecordTime { get; set; }
 
+    public string Note { get; set; }
+
     public virtual Child Child { get; set; }
 
     public virtual Tooth Tooth { get; set; }
