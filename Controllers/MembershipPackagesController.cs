@@ -268,7 +268,7 @@ namespace SWD392.Controllers
         /// <response code="404">Membership package not found.</response>
         [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateMembershipPackage(int id, [FromBody] GetMembershipPackageDTO dto)
+        public async Task<ActionResult> UpdateMembershipPackage(int id, [FromBody] CreatePackageDTO dto)
         {
             
             var package = await _context.MembershipPackages
