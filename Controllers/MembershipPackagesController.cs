@@ -305,18 +305,25 @@ namespace SWD392.Controllers
                 package.ValidityPeriod = dto.ValidityPeriod;
             }
 
-           
+            if (dto.Image != null)
+            {
+                package.Image = dto.Image;
+            }
+            if (dto.Summary != null) { 
+            package.Summary = dto.Summary;
+            }
+
             if (dto.Permissions != null)
             {
-               
+
                 var newPermissions = await _context.Permissions
                     .Where(p => dto.Permissions.Contains(p.PermissionId))
                     .ToListAsync();
 
-                
+
                 package.Permissions.Clear();
 
-                
+
                 foreach (var permission in newPermissions)
                 {
                     package.Permissions.Add(permission);
@@ -333,6 +340,7 @@ namespace SWD392.Controllers
                 Price = package.Price,
                 YearlyPrice = package.YearlyPrice,
                 Status = package.Status,
+                PercentDiscount = (package.Price-package.YearlyPrice/12)/package.Price*100,
                 ValidityPeriod = package.ValidityPeriod,
                 Summary = package.Summary,
                 Image = package.Image,
