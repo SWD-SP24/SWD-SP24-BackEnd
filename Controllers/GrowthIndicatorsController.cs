@@ -169,6 +169,7 @@ namespace SWD392.Controllers
         /// - Growth indicator not found
         /// - Unauthorized to edit this growth indicator
         /// - Invalid date format. Use dd/MM/yyyy.
+        /// - Height and weight must be greater than zero.
         /// </remarks>
         /// <param name="id">The ID of the growth indicator to update.</param>
         /// <param name="growthIndicatorDto">The DTO containing the updated growth indicator data.</param>
@@ -231,6 +232,12 @@ namespace SWD392.Controllers
                 }
             }
 
+            // Validate height and weight
+            if (growthIndicator.Height <= 0 || growthIndicator.Weight <= 0)
+            {
+                return BadRequest(ApiResponse<object>.Error("Height and weight must be greater than zero."));
+            }
+
             // Calculate BMI if either height or weight is provided
             if (growthIndicatorDto.Height.HasValue || growthIndicatorDto.Weight.HasValue)
             {
@@ -288,6 +295,7 @@ namespace SWD392.Controllers
         /// - Child not found
         /// - Unauthorized to add growth indicator for this child
         /// - Invalid date format. Use dd/MM/yyyy.
+        /// - Height and weight must be greater than zero.
         /// </remarks>
         /// <param name="growthIndicatorDto">The DTO containing the new growth indicator data.</param>
         /// <returns>An <see cref="ApiResponse{T}"/> containing the created <see cref="GrowthIndicatorDTO"/> object.</returns>
@@ -328,6 +336,12 @@ namespace SWD392.Controllers
             if (!DateTime.TryParseExact(growthIndicatorDto.RecordTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsedRecordTime))
             {
                 return BadRequest(ApiResponse<object>.Error("Invalid date format. Use dd/MM/yyyy."));
+            }
+
+            // Validate height and weight
+            if (growthIndicatorDto.Height <= 0 || growthIndicatorDto.Weight <= 0)
+            {
+                return BadRequest(ApiResponse<object>.Error("Height and weight must be greater than zero."));
             }
 
             // Calculate BMI
