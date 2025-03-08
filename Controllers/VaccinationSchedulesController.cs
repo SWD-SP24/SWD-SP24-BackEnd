@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SWD392.Data;
 using SWD392.DTOs.VaccinationScheduleDTOs;
-using SWD392.DTOs.VaccinationSchedulesDTO;
 using SWD392.Mapper;
 using SWD392.Models;
 using SWD392.Service;
@@ -96,14 +95,6 @@ namespace SWD392.Controllers
             if (editVaccinationScheduleDto.RecommendedAgeMonths.HasValue)
             {
                 vaccinationSchedule.RecommendedAgeMonths = editVaccinationScheduleDto.RecommendedAgeMonths;
-            }
-            if (editVaccinationScheduleDto.ScheduledDate.HasValue)
-            {
-                vaccinationSchedule.ScheduledDate = editVaccinationScheduleDto.ScheduledDate.Value;
-            }
-            if (!string.IsNullOrEmpty(editVaccinationScheduleDto.Status))
-            {
-                vaccinationSchedule.Status = editVaccinationScheduleDto.Status;
             }
 
             _context.Entry(vaccinationSchedule).State = EntityState.Modified;

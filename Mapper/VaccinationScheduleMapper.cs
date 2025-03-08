@@ -1,6 +1,27 @@
-﻿namespace SWD392.Mapper
+﻿using SWD392.DTOs.VaccinationScheduleDTOs;
+using SWD392.Models;
+
+namespace SWD392.Mapper
 {
-    public class VaccinationScheduleMapper
+    public static class VaccinationScheduleMapper
     {
+        public static VaccinationScheduleDTO ToVaccinationScheduleDto(this VaccinationSchedule vaccinationSchedule)
+        {
+            return new VaccinationScheduleDTO
+            {
+                Id = vaccinationSchedule.Id,
+                VaccineId = vaccinationSchedule.VaccineId,
+                RecommendedAgeMonths = vaccinationSchedule.RecommendedAgeMonths,
+            };
+        }
+
+        public static VaccinationSchedule ToVaccinationSchedule(this CreateVaccinationScheduleDTO createVaccinationScheduleDto)
+        {
+            return new VaccinationSchedule
+            {
+                VaccineId = createVaccinationScheduleDto.VaccineId,
+                RecommendedAgeMonths = createVaccinationScheduleDto.RecommendedAgeMonths,
+            };
+        }
     }
 }
