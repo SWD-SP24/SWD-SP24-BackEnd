@@ -27,6 +27,8 @@ public partial class MembershipPackage
 
     public string Summary { get; set; }
 
+    public int? PercentDiscount { get; set; }
+
     public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
 
     public virtual ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
