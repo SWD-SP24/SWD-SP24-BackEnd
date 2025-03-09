@@ -12,6 +12,7 @@ namespace SWD392.Mapper
                 Id = vaccinationSchedule.Id,
                 VaccineId = vaccinationSchedule.VaccineId,
                 RecommendedAgeMonths = vaccinationSchedule.RecommendedAgeMonths,
+                VaccineName = vaccinationSchedule.Vaccine?.Name,
             };
         }
 

@@ -31,6 +31,8 @@ namespace SWD392.Controllers
         /// <summary>
         /// Get all vaccine records of the currently logged-in user's children (Authorized only)
         /// </summary>
+        /// <param name="childId">Optional child ID to filter the vaccine records</param>
+        /// <param name="vaccineId">Optional vaccine ID to filter the vaccine records</param>
         /// <remarks>
         /// Errors:
         /// - No JWT key
@@ -41,7 +43,7 @@ namespace SWD392.Controllers
         /// <response code="401">Unauthorized</response>
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<VaccineRecordDto>>>> GetVaccineRecords()
+        public async Task<ActionResult<ApiResponse<IEnumerable<VaccineRecordDto>>>> GetVaccineRecords(int? childId = null, int? vaccineId = null)
         {
             if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
                 return Unauthorized(ApiResponse<object>.Error("No JWT key"));
@@ -58,16 +60,33 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
-            var vaccineRecords = await _context.VaccineRecords
+            var query = _context.VaccineRecords
                 .Include(vr => vr.Child)
                 .Include(vr => vr.Vaccine)
                 .Where(vr => vr.Child.MemberId == user.UserId)
-                .ToListAsync();
+                .AsQueryable();
 
+            if (childId.HasValue)
+            {
+                var child = await _context.Children.FindAsync(childId.Value);
+                if (child == null || child.MemberId != user.UserId)
+                {
+                    return Unauthorized(ApiResponse<object>.Error("You do not have access to this child"));
+                }
+                query = query.Where(vr => vr.ChildId == childId.Value);
+            }
+
+            if (vaccineId.HasValue)
+            {
+                query = query.Where(vr => vr.VaccineId == vaccineId.Value);
+            }
+
+            var vaccineRecords = await query.ToListAsync();
             var vaccineRecordDtos = vaccineRecords.Select(VaccineRecordMapper.ToDto).ToList();
 
             return Ok(ApiResponse<IEnumerable<VaccineRecordDto>>.Success(vaccineRecordDtos));
         }
+
 
         /// <summary>
         /// Get a specific vaccine record by ID (Authorized only)

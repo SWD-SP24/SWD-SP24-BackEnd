@@ -42,6 +42,32 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
+        /// Retrieves a list of all vaccination schedules for a specific vaccine.
+        /// </summary>
+        /// <param name="vaccineId">The ID of the vaccine to retrieve schedules for.</param>
+        /// <returns>
+        /// An <see cref="ActionResult"/> containing an <see cref="ApiResponse{T}"/> with a list of <see cref="VaccinationScheduleDTO"/> objects.
+        /// </returns>
+        /// <response code="200">Returns the list of vaccination schedules for the specified vaccine.</response>
+        /// <response code="404">If no vaccination schedules are found for the specified vaccine.</response>
+        /// <response code="500">If there is an internal server error.</response>
+        [HttpGet("vaccine/{vaccineId}")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<VaccinationScheduleDTO>>>> GetVaccinationSchedulesByVaccineId(int vaccineId)
+        {
+            var vaccinationSchedules = await _context.VaccinationSchedules
+                .Where(vs => vs.VaccineId == vaccineId)
+                .ToListAsync();
+
+            if (!vaccinationSchedules.Any())
+            {
+                return NotFound(ApiResponse<object>.Error("No vaccination schedules found for the specified vaccine"));
+            }
+
+            var vaccinationScheduleDtos = vaccinationSchedules.Select(vs => vs.ToVaccinationScheduleDto()).ToList();
+            return Ok(ApiResponse<object>.Success(vaccinationScheduleDtos));
+        }
+
+        /// <summary>
         /// Retrieves a specific vaccination schedule by its ID.
         /// </summary>
         /// <param name="id">The ID of the vaccination schedule to retrieve.</param>

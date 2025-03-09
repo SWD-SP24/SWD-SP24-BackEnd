@@ -5,6 +5,7 @@
         public int Id { get; set; }
         public int? VaccineId { get; set; }
         public int? RecommendedAgeMonths { get; set; }
+        public string? VaccineName { get; set; }
     }
 
     public class CreateVaccinationScheduleDTO
