@@ -255,6 +255,10 @@ namespace SWD392.Controllers
             {
                 child.Gender = childDto.Gender;
             }
+            if (childDto.Status.HasValue)
+            {
+                child.Status = childDto.Status.Value;
+            }
 
             _context.Entry(child).State = EntityState.Modified;
 
@@ -337,6 +341,10 @@ namespace SWD392.Controllers
             if (childDto.Gender != null)
             {
                 child.Gender = childDto.Gender;
+            }
+            if (childDto.Status != null) 
+            {
+                child.Status = childDto.Status.Value;
             }
 
             _context.Entry(child).State = EntityState.Modified;
