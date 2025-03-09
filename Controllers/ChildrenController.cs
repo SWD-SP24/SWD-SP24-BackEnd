@@ -60,7 +60,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
-            var query = _context.Children.Where(c => c.MemberId == user.UserId);
+            var query = _context.Children.Where(c => c.MemberId == user.UserId && c.Status != 0);
 
             var totalItems = await query.CountAsync();
             var children = await query.Skip((pageNumber - 1) * pageSize)
