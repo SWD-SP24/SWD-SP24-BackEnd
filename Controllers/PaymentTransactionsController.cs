@@ -11,6 +11,7 @@ using SWD392.Data;
 using SWD392.DTOs.MembershipPackagesDTO;
 using SWD392.DTOs.PaymentTransactionDTO;
 using SWD392.Models;
+using SWD392.Service;
 
 namespace SWD392.Controllers
 {
@@ -27,57 +28,67 @@ namespace SWD392.Controllers
 
         [Authorize(Roles = "member")]
         [HttpGet("history")]
-        public IActionResult GetPaymentHistory()
+        public async Task<IActionResult> GetPaymentHistory(int pageNumber = 1, int pageSize = 10)
         {
-            // Lấy "id" từ HTTP context header (Authorization Token)
-            var userIdHeader = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
+            if (pageNumber < 1 || pageSize < 1)
+            {
+                return BadRequest(new { message = "Page number and page size must be greater than 0." });
+            }
 
+            var userIdHeader = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "id")?.Value;
             if (string.IsNullOrEmpty(userIdHeader))
             {
-                return Unauthorized("User ID not found in token.");
+                return Unauthorized(new { message = "User ID not found in token." });
             }
 
             int userId = int.Parse(userIdHeader);
 
-            // Lấy danh sách giao dịch và join trực tiếp với MembershipPackages từ database
-            var transactions = _context.PaymentTransactions
-                .Where(t => t.UserId == userId && t.PaymentId != "FREE")
-                .Join(_context.MembershipPackages,
-                      t => t.MembershipPackageId,
-                      p => p.MembershipPackageId,
-                      (t, p) => new
-                      {
-                          Transaction = t,
-                          MembershipPackage = p
-                      })
-                .Select(tp => new PaymentHistoryDTO
-                {
-                    PaymentId = tp.Transaction.PaymentId,
-                    UserId = tp.Transaction.UserId,
-                   
-                    Amount = tp.Transaction.Amount,
-                    TransactionDate = tp.Transaction.TransactionDate,
-                    Status = tp.Transaction.Status,
-                    PreviousMembershipPackageName = tp.Transaction.PreviousMembershipPackageName,
-                    MembershipPackage = new GetPackageUserHistoryDTO
-                    {
-                       
-                        MembershipPackageName = tp.MembershipPackage.MembershipPackageName,
-                        Price = tp.MembershipPackage.Price,
-                        Status = tp.MembershipPackage.Status,
-                        ValidityPeriod = tp.MembershipPackage.ValidityPeriod,
-                        Permissions = tp.MembershipPackage.Permissions.Select(perm => new PermissionDTO
+            var query = from t in _context.PaymentTransactions
+                        join p in _context.MembershipPackages on t.MembershipPackageId equals p.MembershipPackageId
+                        where t.UserId == userId && t.PaymentId != "FREE"
+                        select new PaymentHistoryDTO
                         {
-                            PermissionId = perm.PermissionId,
-                            PermissionName = perm.PermissionName,
-                            Description = perm.Description
-                        }).ToList()
-                    }
-                })
-                .ToList();
+                            PaymentId = t.PaymentId,
+                            UserId = t.UserId,
+                            Amount = t.Amount,
+                            TransactionDate = t.TransactionDate,
+                            Status = t.Status,
+                            PreviousMembershipPackageName = t.PreviousMembershipPackageName,
+                            MembershipPackage = new GetPackageUserHistoryDTO
+                            {
+                                MembershipPackageId = p.MembershipPackageId,
+                                MembershipPackageName = p.MembershipPackageName,
+                                Price = p.Price,
+                                Status = p.Status,
+                                ValidityPeriod = p.ValidityPeriod,
+                                Permissions = p.Permissions.Select(perm => new PermissionDTO
+                                {
+                                    PermissionId = perm.PermissionId,
+                                    PermissionName = perm.PermissionName,
+                                    Description = perm.Description
+                                }).ToList()
+                            }
+                        };
 
-            return Ok(transactions);
+            int totalRecords = await query.CountAsync();
+            int maxPages = (int)Math.Ceiling(totalRecords / (double)pageSize);
+            bool hasNext = pageNumber < maxPages;
+
+            var transactions = await query
+                .OrderByDescending(t => t.TransactionDate)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            if (!transactions.Any())
+            {
+                return NotFound(new { message = "No transactions found." });
+            }
+
+            var pagination = new Pagination(maxPages, hasNext, totalRecords);
+            return Ok(ApiResponse<object>.Success(transactions, pagination));
         }
+
 
 
 
