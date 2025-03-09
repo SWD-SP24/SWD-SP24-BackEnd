@@ -126,12 +126,23 @@ namespace SWD392.Controllers
         /// An <see cref="ActionResult"/> containing an <see cref="ApiResponse{T}"/> with the created <see cref="VaccinationScheduleDTO"/> object.
         /// </returns>
         /// <response code="201">Returns the newly created vaccination schedule.</response>
-        /// <response code="400">If the provided data is invalid.</response>
+        /// <response code="400">If the provided data is invalid or the maximum number of schedules for the vaccine is exceeded.</response>
         /// <response code="500">If there is an internal server error.</response>
         [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult<ApiResponse<VaccinationScheduleDTO>>> PostVaccinationSchedule(CreateVaccinationScheduleDTO createVaccinationScheduleDto)
         {
+            const int MaxSchedulesPerVaccine = 5; // Define the maximum number of schedules allowed per vaccine
+
+            // Check if the number of schedules for the given vaccine exceeds the maximum allowed
+            var existingSchedulesCount = await _context.VaccinationSchedules
+                .CountAsync(vs => vs.VaccineId == createVaccinationScheduleDto.VaccineId);
+
+            if (existingSchedulesCount >= MaxSchedulesPerVaccine)
+            {
+                return BadRequest(ApiResponse<object>.Error("The maximum number of schedules for this vaccine has been exceeded."));
+            }
+
             var vaccinationSchedule = createVaccinationScheduleDto.ToVaccinationSchedule();
             _context.VaccinationSchedules.Add(vaccinationSchedule);
             await _context.SaveChangesAsync();

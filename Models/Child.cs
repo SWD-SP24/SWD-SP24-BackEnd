@@ -35,7 +35,5 @@ public partial class Child
 
     public virtual ICollection<TeethingRecord> TeethingRecords { get; set; } = new List<TeethingRecord>();
 
-    public virtual ICollection<VaccinationSchedule> VaccinationSchedules { get; set; } = new List<VaccinationSchedule>();
-
     public virtual ICollection<VaccineRecord> VaccineRecords { get; set; } = new List<VaccineRecord>();
 }
