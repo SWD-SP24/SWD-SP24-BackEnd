@@ -87,6 +87,97 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<IEnumerable<VaccineRecordDto>>.Success(vaccineRecordDtos));
         }
 
+        /// <summary>
+        /// Get the next vaccination date for a specific child and vaccine (Authorized only)
+        /// </summary>
+        /// <param name="childId">The ID of the child</param>
+        /// <param name="vaccineId">The ID of the vaccine</param>
+        /// <remarks>
+        /// Errors:
+        /// - No JWT key
+        /// - JWT token has expired
+        /// - Invalid JWT key
+        /// - Child not found
+        /// - Vaccine not found
+        /// - Unauthorized access to the child
+        /// </remarks>
+        /// <response code="200">Next vaccination date retrieved</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="404">Child or vaccine not found</response>
+        [Authorize]
+        [HttpGet("next-date")]
+        public async Task<ActionResult<ApiResponse<string>>> GetNextDate(int childId, int vaccineId)
+        {
+            if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(ApiResponse<object>.Error("No JWT key"));
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+
+            User user;
+            try
+            {
+                user = await ValidateJwtToken(authHeader);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(ApiResponse<object>.Error(e.Message));
+            }
+
+            var child = await _context.Children.FindAsync(childId);
+            if (child == null || child.MemberId != user.UserId)
+            {
+                return Unauthorized(ApiResponse<object>.Error("You do not have access to this child"));
+            }
+
+            var vaccine = await _context.Vaccines.FindAsync(vaccineId);
+            if (vaccine == null)
+            {
+                return NotFound(ApiResponse<object>.Error("Vaccine not found"));
+            }
+
+            var lastVaccineRecord = await _context.VaccineRecords
+                .Where(vr => vr.ChildId == childId && vr.VaccineId == vaccineId)
+                .OrderByDescending(vr => vr.AdministeredDate)
+                .FirstOrDefaultAsync();
+
+            if (lastVaccineRecord == null)
+            {
+                // No vaccination records found, calculate the recommended date based on the child's birthdate
+                var vaccinationSchedule = await _context.VaccinationSchedules
+                    .Where(vs => vs.VaccineId == vaccineId)
+                    .OrderBy(vs => vs.RecommendedAgeMonths)
+                    .FirstOrDefaultAsync();
+
+                if (vaccinationSchedule == null)
+                {
+                    return NotFound(ApiResponse<object>.Error("No vaccination schedule found for this vaccine"));
+                }
+
+                if (child.Dob == null)
+                {
+                    return BadRequest(ApiResponse<object>.Error("Child's date of birth is not available"));
+                }
+
+                if (!vaccinationSchedule.RecommendedAgeMonths.HasValue)
+                {
+                    return Ok(ApiResponse<string>.Success("No time recommendation available"));
+                }
+
+                var recommendedDate = child.Dob.Value.AddMonths(vaccinationSchedule.RecommendedAgeMonths.Value);
+                return Ok(ApiResponse<string>.Success(recommendedDate.ToString("dd/MM/yyyy")));
+            }
+
+            var nextDoseDate = lastVaccineRecord.NextDoseDate;
+            if (nextDoseDate == null)
+            {
+                return Ok(ApiResponse<string>.Success("No further doses required"));
+            }
+
+            return Ok(ApiResponse<string>.Success(nextDoseDate.Value.ToString("dd/MM/yyyy")));
+        }
+
+
+
 
         /// <summary>
         /// Get a specific vaccine record by ID (Authorized only)
