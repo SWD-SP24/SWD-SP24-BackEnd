@@ -34,12 +34,32 @@ namespace SWD392.Controllers
         /// <response code="200">Returns the list of vaccination schedules.</response>
         /// <response code="500">If there is an internal server error.</response>
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<IEnumerable<VaccinationScheduleDTO>>>> GetVaccinationSchedules()
+        public async Task<ActionResult<ApiResponse<IEnumerable<VaccinationScheduleDTO>>>> GetVaccinationSchedules(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 999,
+            [FromQuery] bool sortByAge = false)
         {
-            var vaccinationSchedules = await _context.VaccinationSchedules.Include(vs => vs.Vaccine).ToListAsync();
-            var vaccinationScheduleDtos = vaccinationSchedules.Select(vs => vs.ToVaccinationScheduleDto()).ToList();
-            return Ok(ApiResponse<object>.Success(vaccinationScheduleDtos));
+            var query = _context.VaccinationSchedules.Include(vs => vs.Vaccine).AsQueryable();
+
+            if (sortByAge)
+            {
+                query = query.OrderBy(vs => vs.RecommendedAgeMonths);
+            }
+
+            var totalItems = await query.CountAsync();
+            var vaccinationSchedules = await query.Skip((pageNumber - 1) * pageSize)
+                                                  .Take(pageSize)
+                                                  .ToListAsync();
+
+            var lastVisiblePage = (int)Math.Ceiling(totalItems / (double)pageSize);
+            var hasNextPage = pageNumber < lastVisiblePage;
+
+            var pagination = new Pagination(lastVisiblePage, hasNextPage, totalItems);
+
+            var vaccinationScheduleDtos = vaccinationSchedules.Select(vs => vs.ToVaccinationScheduleDto(_context)).ToList();
+            return Ok(ApiResponse<IEnumerable<VaccinationScheduleDTO>>.Success(vaccinationScheduleDtos, pagination));
         }
+
 
         /// <summary>
         /// Retrieves a list of all vaccination schedules for a specific vaccine.
@@ -64,7 +84,7 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("No vaccination schedules found for the specified vaccine"));
             }
 
-            var vaccinationScheduleDtos = vaccinationSchedules.Select(vs => vs.ToVaccinationScheduleDto()).ToList();
+            var vaccinationScheduleDtos = vaccinationSchedules.Select(vs => vs.ToVaccinationScheduleDto(_context)).ToList();
             return Ok(ApiResponse<object>.Success(vaccinationScheduleDtos));
         }
 
@@ -88,7 +108,7 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("Vaccination schedule not found"));
             }
 
-            var vaccinationScheduleDto = vaccinationSchedule.ToVaccinationScheduleDto();
+            var vaccinationScheduleDto = vaccinationSchedule.ToVaccinationScheduleDto(_context);
             return Ok(ApiResponse<VaccinationScheduleDTO>.Success(vaccinationScheduleDto));
         }
 
@@ -174,7 +194,7 @@ namespace SWD392.Controllers
             _context.VaccinationSchedules.Add(vaccinationSchedule);
             await _context.SaveChangesAsync();
 
-            var vaccinationScheduleDto = vaccinationSchedule.ToVaccinationScheduleDto();
+            var vaccinationScheduleDto = vaccinationSchedule.ToVaccinationScheduleDto(_context);
             return CreatedAtAction("GetVaccinationSchedule", new { id = vaccinationSchedule.Id }, ApiResponse<VaccinationScheduleDTO>.Success(vaccinationScheduleDto));
         }
 

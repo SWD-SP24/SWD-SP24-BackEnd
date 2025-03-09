@@ -74,7 +74,7 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("No vaccination schedules found for the specified vaccine"));
             }
 
-            var vaccinationScheduleDtos = vaccinationSchedules.Select(vs => vs.ToVaccinationScheduleDto()).ToList();
+            var vaccinationScheduleDtos = vaccinationSchedules.Select(vs => vs.ToVaccinationScheduleDto(_context)).ToList();
             return Ok(ApiResponse<object>.Success(vaccinationScheduleDtos));
         }
 
