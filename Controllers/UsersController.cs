@@ -21,6 +21,7 @@ using NuGet.Common;
 using OtpNet;
 using PayPal.Api;
 using SWD392.Data;
+using SWD392.DTOs.MembershipPackagesDTO;
 using SWD392.DTOs.UserDTO;
 using SWD392.Mapper;
 using SWD392.Models;
@@ -842,6 +843,50 @@ namespace SWD392.Controllers
 
             var user = await _context.Users.FindAsync(id) ?? throw new UnauthorizedAccessException("Invalid JWT key");
             return user;
+        }
+
+        [HttpGet("list-user-active-memberships")]
+        public async Task<IActionResult> GetActiveUsersWithMemberships()
+        {
+            var users = await (from u in _context.Users
+                               join um in _context.UserMemberships on u.UserId equals um.UserId
+                               join mp in _context.MembershipPackages on um.MembershipPackageId equals mp.MembershipPackageId
+                               where um.Status == "Active"
+                               select new ListCurrentUserPackageDTO
+                               {
+                                   UserId = u.UserId,
+                                   Email = u.Email,
+                                   FullName = u.FullName,
+                                   MembershipPackageId = um.MembershipPackageId,
+                                   StartDate = um.StartDate,
+                                   EndDate = um.EndDate,
+                                   MembershipPackage = new GetCurrentPackageAllUserDTO
+                                   {
+                                       MembershipPackageId = mp.MembershipPackageId,
+                                       MembershipPackageName = mp.MembershipPackageName,
+                                       Price = mp.Price,
+                                       Status = mp.Status,
+                                       IsActive = (mp.Status == "Active"),
+                                       Image = mp.Image,
+                                       Summary = mp.Summary,
+                                       YearlyPrice = mp.YearlyPrice,
+                                       ValidityPeriod = mp.ValidityPeriod,
+                                       SavingPerMonth = mp.YearlyPrice / 12, // Ví dụ tính toán
+                                       PercentDiscount = mp.PercentDiscount,
+                                       Permissions = mp.Permissions.Select(perm => new PermissionDTO
+                                       {
+                                           PermissionId = perm.PermissionId,
+                                           PermissionName = perm.PermissionName,
+                                           Description = perm.Description
+                                       }).ToList()
+                                   }
+                               }).ToListAsync();
+
+            if (users == null)
+            {
+                return NotFound("No active users found.");
+            }
+            return Ok(users);
         }
     }
 }

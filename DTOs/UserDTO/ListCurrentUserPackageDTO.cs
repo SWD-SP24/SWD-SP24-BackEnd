@@ -13,7 +13,6 @@ namespace SWD392.DTOs.UserDTO
 
         public DateTime? EndDate { get; set; }
 
-        public string Status { get; set; }
-        public virtual GetMembershipPackageDTO MembershipPackage { get; set; }
+        public virtual GetCurrentPackageAllUserDTO MembershipPackage { get; set; }
     }
 }
