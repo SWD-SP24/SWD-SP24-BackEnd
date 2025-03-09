@@ -846,8 +846,13 @@ namespace SWD392.Controllers
         }
 
         [HttpGet("list-user-active-memberships")]
-        public async Task<IActionResult> GetActiveUsersWithMemberships()
+        public async Task<IActionResult> GetActiveUsersWithMemberships(int pageNumber = 1, int pageSize = 8)
         {
+            var totalUsers = await _context.Users
+                .Join(_context.UserMemberships, u => u.UserId, um => um.UserId, (u, um) => new { u, um })
+                .Where(joined => joined.um.Status == "active")
+                .CountAsync();
+
             var users = await (from u in _context.Users
                                join um in _context.UserMemberships on u.UserId equals um.UserId
                                join mp in _context.MembershipPackages on um.MembershipPackageId equals mp.MembershipPackageId
@@ -871,7 +876,7 @@ namespace SWD392.Controllers
                                        Summary = mp.Summary,
                                        YearlyPrice = mp.YearlyPrice,
                                        ValidityPeriod = mp.ValidityPeriod,
-                                       SavingPerMonth = mp.Price - mp.YearlyPrice / 12, // Ví dụ tính toán
+                                       SavingPerMonth = mp.Price - mp.YearlyPrice / 12,
                                        PercentDiscount = mp.PercentDiscount,
                                        Permissions = mp.Permissions.Select(perm => new PermissionDTO
                                        {
@@ -880,13 +885,22 @@ namespace SWD392.Controllers
                                            Description = perm.Description
                                        }).ToList()
                                    }
-                               }).ToListAsync();
+                               })
+                               .Skip((pageNumber - 1) * pageSize)
+                               .Take(pageSize)
+                               .ToListAsync();
 
-            if (users == null)
+            if (!users.Any())
             {
-                return NotFound("No active users found.");
+                return NotFound(new { message = "No active users found." });
             }
-            return Ok(users);
+
+            var maxPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
+            var hasNext = pageNumber < maxPages;
+            var pagination = new Pagination(maxPages, hasNext, totalUsers);
+
+            return Ok(ApiResponse<object>.Success(users, pagination));
         }
+
     }
 }
