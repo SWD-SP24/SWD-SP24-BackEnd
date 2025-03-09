@@ -16,4 +16,6 @@ public partial class Vaccine
     public int? DosesRequired { get; set; }
 
     public virtual ICollection<VaccinationSchedule> VaccinationSchedules { get; set; } = new List<VaccinationSchedule>();
+
+    public virtual ICollection<VaccineRecord> VaccineRecords { get; set; } = new List<VaccineRecord>();
 }

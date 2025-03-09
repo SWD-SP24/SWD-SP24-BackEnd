@@ -640,6 +640,11 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.ChildId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__VaccineRe__child__14B10FFA");
+
+            entity.HasOne(d => d.Vaccine).WithMany(p => p.VaccineRecords)
+                .HasForeignKey(d => d.VaccineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_VaccineRecord_Vaccine");
         });
 
         modelBuilder.Entity<WhoGrowthStandard>(entity =>

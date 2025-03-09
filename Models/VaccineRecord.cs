@@ -18,4 +18,6 @@ public partial class VaccineRecord
     public string Dose { get; set; }
 
     public virtual Child Child { get; set; }
+
+    public virtual Vaccine Vaccine { get; set; }
 }
