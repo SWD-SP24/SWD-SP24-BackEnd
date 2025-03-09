@@ -158,6 +158,39 @@ namespace SWD392.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<GetMembershipPackageDTO>> GetMembershipPackageById(int id)
         {
+            int? userId = null;
+
+            // Kiểm tra nếu có User-Id trong header
+            if (Request.Headers.TryGetValue("User-Id", out var userIdHeader) && int.TryParse(userIdHeader, out int parsedUserId))
+            {
+                userId = parsedUserId;
+            }
+            else if (Request.Headers.TryGetValue("Authorization", out var authHeader))
+            {
+                // Giải mã token lấy userId từ claims
+                var token = authHeader.ToString().Replace("Bearer ", "");
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadToken(token) as JwtSecurityToken;
+
+                if (jwtToken != null)
+                {
+                    var idClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "id");
+                    if (idClaim != null && int.TryParse(idClaim.Value, out int tokenUserId))
+                    {
+                        userId = tokenUserId;
+                    }
+                }
+            }
+
+            // Nếu không có userId -> Mặc định false cho IsActive
+            int? userPackage = null;
+            if (userId.HasValue)
+            {
+                userPackage = await _context.UserMemberships
+                    .Where(um => um.UserId == userId.Value && um.Status == "active")
+                    .Select(um => um.MembershipPackageId)
+                    .FirstOrDefaultAsync();
+            }
             var package = await _context.MembershipPackages
                 .Include(p => p.Permissions)
                 .FirstOrDefaultAsync(p => p.MembershipPackageId == id);
@@ -177,6 +210,11 @@ namespace SWD392.Controllers
                 ValidityPeriod = package.ValidityPeriod,
                 YearlyPrice = package.YearlyPrice,
                 Summary = package.Summary,
+                IsActive = (userPackage.HasValue && package.MembershipPackageId == userPackage.Value),
+                SavingPerMonth = package.Price - package.YearlyPrice/12,
+                PercentDiscount = (package.YearlyPrice > 0 && package.Price > 0)
+    ? (int)(((package.Price - (package.YearlyPrice / 12)) / package.Price) * 100)
+    : 0,
                 Permissions = package.Permissions.Select(p => new PermissionDTO
                 {
                     PermissionId = p.PermissionId,
