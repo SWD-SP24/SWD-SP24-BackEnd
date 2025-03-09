@@ -301,7 +301,6 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(255)
                 .HasColumnName("membership_package_name");
-            entity.Property(e => e.PercentDiscount).HasColumnName("percent_discount");
             entity.Property(e => e.Price)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("price");
