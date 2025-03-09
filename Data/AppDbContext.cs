@@ -301,6 +301,7 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(255)
                 .HasColumnName("membership_package_name");
+            entity.Property(e => e.PercentDiscount).HasColumnName("percent_discount");
             entity.Property(e => e.Price)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("price");
@@ -445,9 +446,7 @@ public partial class AppDbContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Name)
-                .IsRequired()
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("name");
             entity.Property(e => e.NumberOfTeeth).HasColumnName("number_of_teeth");
             entity.Property(e => e.TeethingPeriod).HasColumnName("teething_period");
@@ -464,7 +463,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Address)
                 .HasMaxLength(100)
-                .IsUnicode(false)
                 .HasColumnName("address");
             entity.Property(e => e.Avatar)
                 .HasMaxLength(255)
@@ -472,7 +470,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("avatar");
             entity.Property(e => e.Country)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("country");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -494,11 +491,9 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("full_name");
             entity.Property(e => e.Hospital)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("hospital");
             entity.Property(e => e.LicenseNumber)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("license_number");
             entity.Property(e => e.MembershipPackageId).HasColumnName("membership_package_id");
             entity.Property(e => e.PasswordHash)
@@ -516,11 +511,9 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("role");
             entity.Property(e => e.Specialization)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("specialization");
             entity.Property(e => e.State)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("state");
             entity.Property(e => e.Status)
                 .IsRequired()
@@ -603,7 +596,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.DosesRequired).HasColumnName("doses_required");
             entity.Property(e => e.Name)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("name");
         });
 
