@@ -15,7 +15,11 @@ public partial class VaccineRecord
 
     public DateTime AdministeredDate { get; set; }
 
-    public string Dose { get; set; }
+    public int? Dose { get; set; }
+
+    public DateTime? NextDoseDate { get; set; }
 
     public virtual Child Child { get; set; }
+
+    public virtual Vaccine Vaccine { get; set; }
 }

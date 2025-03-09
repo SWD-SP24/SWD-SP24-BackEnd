@@ -10,12 +10,13 @@ namespace SWD392.Mapper
             return new TeethingRecordDTO
             {
                 Id = teethingRecord.Id,
-                RecordTime = teethingRecord.RecordTime,
-                Note = teethingRecord.Note,
                 ChildId = teethingRecord.Child?.ChildrenId ?? 0,
-                ChildName = teethingRecord.Child?.FullName ?? string.Empty,
                 ToothId = teethingRecord.Tooth?.Id ?? 0,
-                ToothName = teethingRecord.Tooth?.Name ?? string.Empty
+                EruptionDate = teethingRecord.EruptionDate?.ToString("dd/MM/yyyy"),
+                RecordTime = teethingRecord.RecordTime?.ToString("dd/MM/yyyy"),
+                ChildName = teethingRecord.Child?.FullName ?? string.Empty,
+                ToothName = teethingRecord.Tooth?.Name ?? string.Empty,
+                Note = teethingRecord.Note
             };
         }
     }

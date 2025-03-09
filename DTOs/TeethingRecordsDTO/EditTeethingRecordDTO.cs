@@ -2,8 +2,8 @@
 {
     public class EditTeethingRecordDTO
     {
-        public DateTime? EruptionDate { get; set; }
-        public DateTime? RecordTime { get; set; }
+        public string? EruptionDate { get; set; }
+        public string? RecordTime { get; set; }
         public string? Note { get; set; } // Add this line
 
     }

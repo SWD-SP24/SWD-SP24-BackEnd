@@ -579,22 +579,8 @@ public partial class AppDbContext : DbContext
             entity.ToTable("Vaccination_Schedule");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.ChildId).HasColumnName("child_id");
             entity.Property(e => e.RecommendedAgeMonths).HasColumnName("recommended_age_months");
-            entity.Property(e => e.ScheduledDate)
-                .HasColumnType("datetime")
-                .HasColumnName("scheduled_date");
-            entity.Property(e => e.Status)
-                .IsRequired()
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("status");
             entity.Property(e => e.VaccineId).HasColumnName("vaccine_id");
-
-            entity.HasOne(d => d.Child).WithMany(p => p.VaccinationSchedules)
-                .HasForeignKey(d => d.ChildId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_child");
 
             entity.HasOne(d => d.Vaccine).WithMany(p => p.VaccinationSchedules)
                 .HasForeignKey(d => d.VaccineId)
@@ -629,17 +615,21 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("administered_date");
             entity.Property(e => e.ChildId).HasColumnName("child_id");
-            entity.Property(e => e.Dose)
-                .IsRequired()
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("dose");
+            entity.Property(e => e.Dose).HasColumnName("dose");
+            entity.Property(e => e.NextDoseDate)
+                .HasColumnType("datetime")
+                .HasColumnName("next_dose_date");
             entity.Property(e => e.VaccineId).HasColumnName("vaccine_id");
 
             entity.HasOne(d => d.Child).WithMany(p => p.VaccineRecords)
                 .HasForeignKey(d => d.ChildId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__VaccineRe__child__14B10FFA");
+
+            entity.HasOne(d => d.Vaccine).WithMany(p => p.VaccineRecords)
+                .HasForeignKey(d => d.VaccineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_VaccineRecord_Vaccine");
         });
 
         modelBuilder.Entity<WhoGrowthStandard>(entity =>

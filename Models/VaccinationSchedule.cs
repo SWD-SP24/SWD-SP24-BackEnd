@@ -13,13 +13,5 @@ public partial class VaccinationSchedule
 
     public int? RecommendedAgeMonths { get; set; }
 
-    public int ChildId { get; set; }
-
-    public DateTime ScheduledDate { get; set; }
-
-    public string Status { get; set; }
-
-    public virtual Child Child { get; set; }
-
     public virtual Vaccine Vaccine { get; set; }
 }
