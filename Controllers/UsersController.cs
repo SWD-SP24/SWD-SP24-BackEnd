@@ -851,7 +851,7 @@ namespace SWD392.Controllers
             var users = await (from u in _context.Users
                                join um in _context.UserMemberships on u.UserId equals um.UserId
                                join mp in _context.MembershipPackages on um.MembershipPackageId equals mp.MembershipPackageId
-                               where um.Status == "Active"
+                               where um.Status == "active"
                                select new ListCurrentUserPackageDTO
                                {
                                    UserId = u.UserId,
@@ -866,12 +866,12 @@ namespace SWD392.Controllers
                                        MembershipPackageName = mp.MembershipPackageName,
                                        Price = mp.Price,
                                        Status = mp.Status,
-                                       IsActive = (mp.Status == "Active"),
+                                       IsActive = (mp.Status == "active"),
                                        Image = mp.Image,
                                        Summary = mp.Summary,
                                        YearlyPrice = mp.YearlyPrice,
                                        ValidityPeriod = mp.ValidityPeriod,
-                                       SavingPerMonth = mp.YearlyPrice / 12, // Ví dụ tính toán
+                                       SavingPerMonth = mp.Price - mp.YearlyPrice / 12, // Ví dụ tính toán
                                        PercentDiscount = mp.PercentDiscount,
                                        Permissions = mp.Permissions.Select(perm => new PermissionDTO
                                        {
