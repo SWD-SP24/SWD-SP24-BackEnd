@@ -193,7 +193,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to edit this teething record"));
             }
 
-            var tooth = await _context.Teeth.FirstOrDefaultAsync(t => t.NumberOfTeeth == teethingRecord.ToothId);
+            var tooth = await _context.Teeth.FirstOrDefaultAsync(t => t.Id == teethingRecord.ToothId);
             if (tooth == null)
             {
                 return NotFound(ApiResponse<object>.Error("Tooth not found"));
@@ -282,7 +282,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to add teething record for this child"));
             }
 
-            var tooth = await _context.Teeth.FirstOrDefaultAsync(t => t.NumberOfTeeth == teethingRecordDto.ToothNumber);
+            var tooth = await _context.Teeth.FirstOrDefaultAsync(t => t.Id == teethingRecordDto.ToothId);
             if (tooth == null)
             {
                 return NotFound(ApiResponse<object>.Error("Tooth not found"));
