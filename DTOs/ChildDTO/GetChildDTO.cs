@@ -12,6 +12,6 @@
         public string? Allergies { get; set; }
         public string? ChronicConditions { get; set; }
         public required string Gender { get; set; }
-
+        public required int Status { get; set; }
     }
 }

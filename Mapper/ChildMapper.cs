@@ -18,7 +18,8 @@ namespace SWD392.Mapper
                 BloodType = child.BloodType,
                 Allergies = child.Allergies,
                 ChronicConditions = child.ChronicConditions,
-                Gender = child.Gender
+                Gender = child.Gender,
+                Status = child.Status
             };
         }
     }

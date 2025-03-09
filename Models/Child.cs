@@ -27,6 +27,8 @@ public partial class Child
 
     public string Gender { get; set; }
 
+    public int Status { get; set; }
+
     public virtual ICollection<ConsultationNote> ConsultationNotes { get; set; } = new List<ConsultationNote>();
 
     public virtual ICollection<GrowthIndicator> GrowthIndicators { get; set; } = new List<GrowthIndicator>();

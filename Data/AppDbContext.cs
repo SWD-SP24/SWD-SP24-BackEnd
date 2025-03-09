@@ -158,6 +158,9 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("gender");
             entity.Property(e => e.MemberId).HasColumnName("member_id");
+            entity.Property(e => e.Status)
+                .HasDefaultValue(1)
+                .HasColumnName("status");
 
             entity.HasOne(d => d.Member).WithMany(p => p.Children)
                 .HasForeignKey(d => d.MemberId)
