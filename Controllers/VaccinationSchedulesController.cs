@@ -36,7 +36,7 @@ namespace SWD392.Controllers
         [HttpGet]
         public async Task<ActionResult<ApiResponse<IEnumerable<VaccinationScheduleDTO>>>> GetVaccinationSchedules()
         {
-            var vaccinationSchedules = await _context.VaccinationSchedules.ToListAsync();
+            var vaccinationSchedules = await _context.VaccinationSchedules.Include(vs => vs.Vaccine).ToListAsync();
             var vaccinationScheduleDtos = vaccinationSchedules.Select(vs => vs.ToVaccinationScheduleDto()).ToList();
             return Ok(ApiResponse<object>.Success(vaccinationScheduleDtos));
         }
@@ -56,6 +56,7 @@ namespace SWD392.Controllers
         {
             var vaccinationSchedules = await _context.VaccinationSchedules
                 .Where(vs => vs.VaccineId == vaccineId)
+                .Include(vs => vs.Vaccine)
                 .ToListAsync();
 
             if (!vaccinationSchedules.Any())
