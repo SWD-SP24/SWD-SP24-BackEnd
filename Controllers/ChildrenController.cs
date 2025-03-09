@@ -60,7 +60,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
-            var query = _context.Children.Where(c => c.MemberId == user.UserId);
+            var query = _context.Children.Where(c => c.MemberId == user.UserId && c.Status != 0);
 
             var totalItems = await query.CountAsync();
             var children = await query.Skip((pageNumber - 1) * pageSize)
@@ -447,10 +447,6 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<GetChildDTO>.Success(childDTO));
         }
 
-
-
-
-
         // DELETE: api/Children/5
         /// <summary>
         /// Delete a child by ID (Authorized only)
@@ -596,6 +592,80 @@ namespace SWD392.Controllers
                 return StatusCode((int)uploadResult.StatusCode, ApiResponse<object>.Error(uploadResult.Error.Message));
             }
         }
+
+        // GET: api/Children/status/{id}
+        /// <summary>
+        /// Get the status of a specific child by ID (Authorized only)
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - No JWT key
+        /// - JWT token has expired
+        /// - Invalid JWT key
+        /// - Child not found
+        /// - Unauthorized to access this child
+        /// </remarks>
+        /// <response code="200">Child status retrieved</response>
+        /// <response code="401">Unauthorized</response>
+        /// <response code="404">Child not found</response>
+        [Authorize]
+        [HttpGet("status/{id}")]
+        public async Task<ActionResult<ApiResponse<int>>> GetChildStatus(int id)
+        {
+            if (!HttpContext.Request.Headers.ContainsKey("Authorization"))
+                return Unauthorized(ApiResponse<object>.Error("No JWT key"));
+
+            var authHeader = HttpContext.Request.Headers["Authorization"][0];
+
+            User user;
+            try
+            {
+                user = await ValidateJwtToken(authHeader);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                return Unauthorized(ApiResponse<object>.Error(e.Message));
+            }
+
+            var child = await _context.Children.FindAsync(id);
+
+            if (child == null)
+            {
+                return NotFound(ApiResponse<int>.Error("Child not found"));
+            }
+
+            if (child.MemberId != user.UserId)
+            {
+                return Unauthorized(ApiResponse<object>.Error("Unauthorized to access this child"));
+            }
+
+            return Ok(ApiResponse<int>.Success(child.Status));
+        }
+
+        // GET: api/Children/admin/status/{id}
+        /// <summary>
+        /// Get the status of a specific child by ID (Admin only)
+        /// </summary>
+        /// <remarks>
+        /// Errors:
+        /// - Child not found
+        /// </remarks>
+        /// <response code="200">Child status retrieved</response>
+        /// <response code="404">Child not found</response>
+        [Authorize(Roles = "admin")]
+        [HttpGet("admin/status/{id}")]
+        public async Task<ActionResult<ApiResponse<int>>> GetChildStatusAdmin(int id)
+        {
+            var child = await _context.Children.FindAsync(id);
+
+            if (child == null)
+            {
+                return NotFound(ApiResponse<int>.Error("Child not found"));
+            }
+
+            return Ok(ApiResponse<int>.Success(child.Status));
+        }
+
 
         private async Task<User> ValidateJwtToken(string authHeader)
         {

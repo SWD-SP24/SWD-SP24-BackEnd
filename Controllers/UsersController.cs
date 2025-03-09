@@ -773,7 +773,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
-            var childrenCount = await _context.Children.CountAsync(c => c.MemberId == user.UserId);
+            var childrenCount = await _context.Children.CountAsync(c => c.MemberId == user.UserId && c.Status != 0);
 
             return Ok(ApiResponse<object>.Success(new { childno = childrenCount }));
         }
