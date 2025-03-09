@@ -51,9 +51,7 @@ namespace SWD392.Controllers
                     Summary = p.Summary,
                     YearlyPrice = p.YearlyPrice,
                     SavingPerMonth = Math.Round(p.YearlyPrice > 0 ? p.Price - (p.YearlyPrice / 12) : 0),
-                    PercentDiscount = (p.YearlyPrice > 0 && p.Price > 0)
-    ? (int)(((p.Price - (p.YearlyPrice / 12)) / p.Price) * 100)
-    : 0,
+                    PercentDiscount = p.PercentDiscount,
                    
                     Permissions = p.Permissions.Select(perm => new PermissionDTO
                     {
@@ -128,9 +126,7 @@ namespace SWD392.Controllers
                     YearlyPrice = p.YearlyPrice,
                     IsActive = (userPackage.HasValue && p.MembershipPackageId == userPackage.Value),
                     SavingPerMonth = p.YearlyPrice > 0 ? p.Price - (p.YearlyPrice / 12) : 0,
-                    PercentDiscount = (p.YearlyPrice > 0 && p.Price > 0)
-    ? (int)(((p.Price - (p.YearlyPrice / 12)) / p.Price) * 100)
-    : 0,
+                    PercentDiscount = p.PercentDiscount,
                     Summary = p.Summary,
 
 
@@ -212,9 +208,7 @@ namespace SWD392.Controllers
                 Summary = package.Summary,
                 IsActive = (userPackage.HasValue && package.MembershipPackageId == userPackage.Value),
                 SavingPerMonth = package.Price - package.YearlyPrice/12,
-                PercentDiscount = (package.YearlyPrice > 0 && package.Price > 0)
-    ? (int)(((package.Price - (package.YearlyPrice / 12)) / package.Price) * 100)
-    : 0,
+                PercentDiscount = package.PercentDiscount,
                 Permissions = package.Permissions.Select(p => new PermissionDTO
                 {
                     PermissionId = p.PermissionId,
@@ -256,7 +250,8 @@ namespace SWD392.Controllers
                     ValidityPeriod = dto.ValidityPeriod,
                     CreatedTime = DateTime.UtcNow,
                     YearlyPrice = yearlyPrice,
-                    Summary = dto.Summary
+                    Summary = dto.Summary,
+                    PercentDiscount = dto.PercentDiscount,
 
             };
 
@@ -281,6 +276,7 @@ namespace SWD392.Controllers
                     YearlyPrice = package.YearlyPrice,
                     Summary = package.Summary,
                     Image = package.Image,
+                    PercentDiscount= package.PercentDiscount,
                     Permissions = package.Permissions.Select(p => new PermissionDTO
                     {
                         PermissionId = p.PermissionId,
@@ -329,10 +325,10 @@ namespace SWD392.Controllers
             {
                 package.Price = dto.Price;
             }
-            if (dto.PercentDiscount != 0)
+            if (dto.PercentDiscount != null && dto.PercentDiscount >=0)
             {
-                decimal percentDiscount = dto.PercentDiscount;
-                package.YearlyPrice = package.Price * 12 - (package.Price * 12 * percentDiscount / 100);
+                package.PercentDiscount = dto.PercentDiscount;
+                package.YearlyPrice = package.Price * 12 - (package.Price * 12 * dto.PercentDiscount / 100);
             }
             if (!string.IsNullOrEmpty(dto.Status))
             {
@@ -378,7 +374,7 @@ namespace SWD392.Controllers
                 Price = package.Price,
                 YearlyPrice = package.YearlyPrice,
                 Status = package.Status,
-                PercentDiscount = (package.Price-package.YearlyPrice/12)/package.Price*100,
+                PercentDiscount = package.PercentDiscount,
                 ValidityPeriod = package.ValidityPeriod,
                 Summary = package.Summary,
                 Image = package.Image,

@@ -158,6 +158,9 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("gender");
             entity.Property(e => e.MemberId).HasColumnName("member_id");
+            entity.Property(e => e.Status)
+                .HasDefaultValue(1)
+                .HasColumnName("status");
 
             entity.HasOne(d => d.Member).WithMany(p => p.Children)
                 .HasForeignKey(d => d.MemberId)
@@ -298,6 +301,7 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(255)
                 .HasColumnName("membership_package_name");
+            entity.Property(e => e.PercentDiscount).HasColumnName("percent_discount");
             entity.Property(e => e.Price)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("price");
