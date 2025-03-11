@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SWD392.Data;
+using SWD392.Mapper;
 
 namespace SWD392.Controllers
 {
@@ -17,7 +18,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Get the total number of children with status 1.
+        /// Get the total number of children with active status.
         /// </summary>
         /// <response code="200">Returns the total number of children</response>
         [HttpGet("total-children")]
@@ -88,22 +89,26 @@ namespace SWD392.Controllers
         /// <summary>
         /// Get the average weight and height by age group.
         /// </summary>
-        /// <response code="200">Returns the average weight and height by age group</response>
+        /// <response code="200">Returns the average weight, height, and count of children by age group</response>
         [HttpGet("average-weight-height-by-age-group")]
         public async Task<IActionResult> GetAverageWeightHeightByAgeGroup()
         {
+            var currentYear = DateTime.Now.Year;
             var averageWeightHeight = await _context.GrowthIndicators
-                .GroupBy(gi => gi.Children.Dob.Value.Year)
+                .GroupBy(gi => gi.Children.Dob.HasValue ? gi.Children.Dob.Value.Year : 0)
                 .Select(g => new
                 {
-                    AgeGroup = DateTime.Now.Year - g.Key,
+                    AgeGroup = currentYear - g.Key,
                     AverageWeight = g.Average(gi => gi.Weight),
-                    AverageHeight = g.Average(gi => gi.Height)
+                    AverageHeight = g.Average(gi => gi.Height),
+                    Count = g.Count()
                 })
+                .Where(g => g.AgeGroup >= 0 && g.AgeGroup <= 30)
                 .ToListAsync();
 
             return Ok(averageWeightHeight);
         }
+
 
         /// <summary>
         /// Get children with abnormal growth deviations.
@@ -138,7 +143,9 @@ namespace SWD392.Controllers
                 .Where(u => u.Status == "active")
                 .ToListAsync();
 
-            return Ok(activeUsers);
+            var activeUserDTOs = activeUsers.Select(u => u.ToGetUserDTO()).ToList();
+
+            return Ok(activeUserDTOs);
         }
 
         /// <summary>
@@ -300,31 +307,11 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Get the number of children grouped by age.
+        /// Get children with allergies.
         /// </summary>
-        /// <response code="200">Returns the number of children by age group</response>
-        [HttpGet("children-by-age-group")]
-        public async Task<IActionResult> GetChildrenByAgeGroup()
-        {
-            var childrenByAgeGroup = await _context.Children
-                .GroupBy(c => DateTime.Now.Year - c.Dob.Value.Year)
-                .Select(g => new
-                {
-                    AgeGroup = g.Key,
-                    Count = g.Count()
-                })
-                .ToListAsync();
-
-            return Ok(childrenByAgeGroup);
-        }
-
-        /// <summary>
-        /// Get children with specific allergies.
-        /// </summary>
-        /// <param name="allergy">The specific allergy to filter by</param>
         /// <response code="200">Returns children with specific allergies</response>
-        [HttpGet("children-with-specific-allergies")]
-        public async Task<IActionResult> GetChildrenWithSpecificAllergies([FromQuery] string allergy)
+        [HttpGet("children-with-allergies")]
+        public async Task<IActionResult> GetChildrenWithSpecificAllergies()
         {
             var childrenWithAllergies = await _context.Children
                 .Where(c => !string.IsNullOrEmpty(c.Allergies))
@@ -354,17 +341,17 @@ namespace SWD392.Controllers
                 query = query.Where(gi => gi.RecordTime <= endTime.Value);
             }
 
-            var averageGrowthRate = await query
+            var growthRates = await query
                 .GroupBy(gi => gi.ChildrenId)
                 .Select(g => new
                 {
                     ChildId = g.Key,
-                    AverageHeightGrowth = g.Average(gi => gi.Height),
-                    AverageWeightGrowth = g.Average(gi => gi.Weight)
+                    HeightGrowthRate = g.Max(gi => gi.Height) - g.Min(gi => gi.Height),
+                    WeightGrowthRate = g.Max(gi => gi.Weight) - g.Min(gi => gi.Weight)
                 })
                 .ToListAsync();
 
-            return Ok(averageGrowthRate);
+            return Ok(growthRates);
         }
 
         /// <summary>
