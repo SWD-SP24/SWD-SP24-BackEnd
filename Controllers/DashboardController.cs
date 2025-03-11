@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SWD392.Data;
 using SWD392.Mapper;
+using SWD392.Service;
 
 namespace SWD392.Controllers
 {
@@ -25,7 +26,7 @@ namespace SWD392.Controllers
         public async Task<IActionResult> GetTotalChildren()
         {
             var totalChildren = await _context.Children.CountAsync(c => c.Status == 1);
-            return Ok(totalChildren);
+            return Ok(ApiResponse<int>.Success(totalChildren));
         }
 
         /// <summary>
@@ -36,7 +37,7 @@ namespace SWD392.Controllers
         public async Task<IActionResult> GetRevenue()
         {
             var totalRevenue = await _context.PaymentTransactions.SumAsync(pt => pt.Amount);
-            return Ok(totalRevenue);
+            return Ok(ApiResponse<decimal>.Success(totalRevenue));
         }
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace SWD392.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(vaccinationCompletion);
+            return Ok(ApiResponse<object>.Success(vaccinationCompletion));
         }
 
         /// <summary>
@@ -82,8 +83,7 @@ namespace SWD392.Controllers
             }
 
             var dosesAdministered = await query.CountAsync();
-
-            return Ok(dosesAdministered);
+            return Ok(ApiResponse<int>.Success(dosesAdministered));
         }
 
         /// <summary>
@@ -106,9 +106,8 @@ namespace SWD392.Controllers
                 .Where(g => g.AgeGroup >= 0 && g.AgeGroup <= 30)
                 .ToListAsync();
 
-            return Ok(averageWeightHeight);
+            return Ok(ApiResponse<object>.Success(averageWeightHeight));
         }
-
 
         /// <summary>
         /// Get children with abnormal growth deviations.
@@ -118,7 +117,7 @@ namespace SWD392.Controllers
         public async Task<IActionResult> GetChildrenWithAbnormalGrowthDeviations()
         {
             var abnormalGrowthDeviations = await _context.GrowthIndicators
-                .Where(gi => gi.Bmi > 30 || gi.Bmi < 15) // Example thresholds for abnormal BMI
+                .Where(gi => gi.Bmi > 30 || gi.Bmi < 15)
                 .Select(gi => new
                 {
                     ChildId = gi.ChildrenId,
@@ -129,7 +128,7 @@ namespace SWD392.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(abnormalGrowthDeviations);
+            return Ok(ApiResponse<object>.Success(abnormalGrowthDeviations));
         }
 
         /// <summary>
@@ -144,8 +143,7 @@ namespace SWD392.Controllers
                 .ToListAsync();
 
             var activeUserDTOs = activeUsers.Select(u => u.ToGetUserDTO()).ToList();
-
-            return Ok(activeUserDTOs);
+            return Ok(ApiResponse<object>.Success(activeUserDTOs));
         }
 
         /// <summary>
@@ -172,8 +170,7 @@ namespace SWD392.Controllers
             }
 
             var newSubscriptions = await query.ToListAsync();
-
-            return Ok(newSubscriptions);
+            return Ok(ApiResponse<object>.Success(newSubscriptions));
         }
 
         /// <summary>
@@ -200,8 +197,7 @@ namespace SWD392.Controllers
             }
 
             var totalRevenue = await query.SumAsync(pt => pt.Amount);
-
-            return Ok(totalRevenue);
+            return Ok(ApiResponse<decimal>.Success(totalRevenue));
         }
 
         /// <summary>
@@ -239,7 +235,7 @@ namespace SWD392.Controllers
                 .ThenBy(r => r.Month)
                 .ToListAsync();
 
-            return Ok(monthlyRevenue);
+            return Ok(ApiResponse<object>.Success(monthlyRevenue));
         }
 
         /// <summary>
@@ -281,7 +277,7 @@ namespace SWD392.Controllers
                 .ThenBy(r => r.Month)
                 .ToListAsync();
 
-            return Ok(activeSubscriptions);
+            return Ok(ApiResponse<object>.Success(activeSubscriptions));
         }
 
         /// <summary>
@@ -303,7 +299,7 @@ namespace SWD392.Controllers
                 .ThenBy(r => r.Month)
                 .ToListAsync();
 
-            return Ok(userGrowth);
+            return Ok(ApiResponse<object>.Success(userGrowth));
         }
 
         /// <summary>
@@ -317,7 +313,7 @@ namespace SWD392.Controllers
                 .Where(c => !string.IsNullOrEmpty(c.Allergies))
                 .ToListAsync();
 
-            return Ok(childrenWithAllergies);
+            return Ok(ApiResponse<object>.Success(childrenWithAllergies));
         }
 
         /// <summary>
@@ -351,7 +347,7 @@ namespace SWD392.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(growthRates);
+            return Ok(ApiResponse<object>.Success(growthRates));
         }
 
         /// <summary>
@@ -365,7 +361,11 @@ namespace SWD392.Controllers
                 .Where(c => !string.IsNullOrEmpty(c.ChronicConditions))
                 .ToListAsync();
 
-            return Ok(childrenWithChronicConditions);
+            var childrenWithChronicConditionsDTOs = childrenWithChronicConditions
+                .Select(c => c.ToGetChildDTO())
+                .ToList();
+
+            return Ok(ApiResponse<object>.Success(childrenWithChronicConditionsDTOs));
         }
 
         /// <summary>
@@ -381,7 +381,7 @@ namespace SWD392.Controllers
                 .CountAsync();
 
             var complianceRate = (double)compliantChildren / totalChildren * 100;
-            return Ok(complianceRate);
+            return Ok(ApiResponse<double>.Success(complianceRate));
         }
 
         /// <summary>
@@ -395,7 +395,7 @@ namespace SWD392.Controllers
                 .Where(vr => vr.NextDoseDate < DateTime.Now)
                 .ToListAsync();
 
-            return Ok(missedVaccinations);
+            return Ok(ApiResponse<object>.Success(missedVaccinations));
         }
 
         /// <summary>
@@ -409,7 +409,7 @@ namespace SWD392.Controllers
                 .Where(um => um.EndDate < DateTime.Now)
                 .ToListAsync();
 
-            return Ok(expiredMemberships);
+            return Ok(ApiResponse<object>.Success(expiredMemberships));
         }
     }
 }
