@@ -16,6 +16,10 @@ namespace SWD392.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Get the total number of children with status 1.
+        /// </summary>
+        /// <response code="200">Returns the total number of children</response>
         [HttpGet("total-children")]
         public async Task<IActionResult> GetTotalChildren()
         {
@@ -23,6 +27,10 @@ namespace SWD392.Controllers
             return Ok(totalChildren);
         }
 
+        /// <summary>
+        /// Get the total revenue from payment transactions.
+        /// </summary>
+        /// <response code="200">Returns the total revenue</response>
         [HttpGet("revenue")]
         public async Task<IActionResult> GetRevenue()
         {
@@ -30,6 +38,10 @@ namespace SWD392.Controllers
             return Ok(totalRevenue);
         }
 
+        /// <summary>
+        /// Get the vaccination completion count grouped by vaccine name.
+        /// </summary>
+        /// <response code="200">Returns the vaccination completion count</response>
         [HttpGet("vaccination-completion")]
         public async Task<IActionResult> GetVaccinationCompletion()
         {
@@ -45,6 +57,12 @@ namespace SWD392.Controllers
             return Ok(vaccinationCompletion);
         }
 
+        /// <summary>
+        /// Get the number of doses administered within a specified date range.
+        /// </summary>
+        /// <param name="startTime">Start date for the range</param>
+        /// <param name="endTime">End date for the range</param>
+        /// <response code="200">Returns the number of doses administered</response>
         [HttpGet("doses-administered")]
         public async Task<IActionResult> GetDosesAdministered(
             [FromQuery] DateTime? startTime,
@@ -67,6 +85,10 @@ namespace SWD392.Controllers
             return Ok(dosesAdministered);
         }
 
+        /// <summary>
+        /// Get the average weight and height by age group.
+        /// </summary>
+        /// <response code="200">Returns the average weight and height by age group</response>
         [HttpGet("average-weight-height-by-age-group")]
         public async Task<IActionResult> GetAverageWeightHeightByAgeGroup()
         {
@@ -83,6 +105,10 @@ namespace SWD392.Controllers
             return Ok(averageWeightHeight);
         }
 
+        /// <summary>
+        /// Get children with abnormal growth deviations.
+        /// </summary>
+        /// <response code="200">Returns children with abnormal growth deviations</response>
         [HttpGet("children-with-abnormal-growth-deviations")]
         public async Task<IActionResult> GetChildrenWithAbnormalGrowthDeviations()
         {
@@ -101,6 +127,10 @@ namespace SWD392.Controllers
             return Ok(abnormalGrowthDeviations);
         }
 
+        /// <summary>
+        /// Get active user accounts.
+        /// </summary>
+        /// <response code="200">Returns active user accounts</response>
         [HttpGet("active-user-accounts")]
         public async Task<IActionResult> GetActiveUserAccounts()
         {
@@ -111,6 +141,12 @@ namespace SWD392.Controllers
             return Ok(activeUsers);
         }
 
+        /// <summary>
+        /// Get new membership subscriptions within a specified date range.
+        /// </summary>
+        /// <param name="startTime">Start date for the range</param>
+        /// <param name="endTime">End date for the range</param>
+        /// <response code="200">Returns new membership subscriptions</response>
         [HttpGet("new-membership-subscriptions")]
         public async Task<IActionResult> GetNewMembershipSubscriptions(
             [FromQuery] DateTime? startTime,
@@ -133,6 +169,12 @@ namespace SWD392.Controllers
             return Ok(newSubscriptions);
         }
 
+        /// <summary>
+        /// Get revenue from subscriptions within a specified date range.
+        /// </summary>
+        /// <param name="startTime">Start date for the range</param>
+        /// <param name="endTime">End date for the range</param>
+        /// <response code="200">Returns revenue from subscriptions</response>
         [HttpGet("revenue-from-subscriptions")]
         public async Task<IActionResult> GetRevenueFromSubscriptions(
             [FromQuery] DateTime? startTime,
@@ -155,6 +197,12 @@ namespace SWD392.Controllers
             return Ok(totalRevenue);
         }
 
+        /// <summary>
+        /// Get monthly revenue within a specified date range.
+        /// </summary>
+        /// <param name="startTime">Start date for the range</param>
+        /// <param name="endTime">End date for the range</param>
+        /// <response code="200">Returns monthly revenue</response>
         [HttpGet("monthly-revenue")]
         public async Task<IActionResult> GetMonthlyRevenue(
             [FromQuery] DateTime? startTime,
@@ -187,6 +235,12 @@ namespace SWD392.Controllers
             return Ok(monthlyRevenue);
         }
 
+        /// <summary>
+        /// Get active subscriptions within a specified date range.
+        /// </summary>
+        /// <param name="startTime">Start date for the range</param>
+        /// <param name="endTime">End date for the range</param>
+        /// <response code="200">Returns active subscriptions</response>
         [HttpGet("active-subscriptions")]
         public async Task<IActionResult> GetActiveSubscriptions(
             [FromQuery] DateTime? startTime,
@@ -223,6 +277,10 @@ namespace SWD392.Controllers
             return Ok(activeSubscriptions);
         }
 
+        /// <summary>
+        /// Get user growth over time.
+        /// </summary>
+        /// <response code="200">Returns user growth over time</response>
         [HttpGet("user-growth-over-time")]
         public async Task<IActionResult> GetUserGrowthOverTime()
         {
@@ -241,6 +299,10 @@ namespace SWD392.Controllers
             return Ok(userGrowth);
         }
 
+        /// <summary>
+        /// Get the number of children grouped by age.
+        /// </summary>
+        /// <response code="200">Returns the number of children by age group</response>
         [HttpGet("children-by-age-group")]
         public async Task<IActionResult> GetChildrenByAgeGroup()
         {
@@ -256,6 +318,11 @@ namespace SWD392.Controllers
             return Ok(childrenByAgeGroup);
         }
 
+        /// <summary>
+        /// Get children with specific allergies.
+        /// </summary>
+        /// <param name="allergy">The specific allergy to filter by</param>
+        /// <response code="200">Returns children with specific allergies</response>
         [HttpGet("children-with-specific-allergies")]
         public async Task<IActionResult> GetChildrenWithSpecificAllergies([FromQuery] string allergy)
         {
@@ -266,6 +333,12 @@ namespace SWD392.Controllers
             return Ok(childrenWithAllergies);
         }
 
+        /// <summary>
+        /// Get the average growth rate within a specified date range.
+        /// </summary>
+        /// <param name="startTime">Start date for the range</param>
+        /// <param name="endTime">End date for the range</param>
+        /// <response code="200">Returns the average growth rate</response>
         [HttpGet("average-growth-rate")]
         public async Task<IActionResult> GetAverageGrowthRate([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime)
         {
@@ -294,6 +367,10 @@ namespace SWD392.Controllers
             return Ok(averageGrowthRate);
         }
 
+        /// <summary>
+        /// Get children with chronic conditions.
+        /// </summary>
+        /// <response code="200">Returns children with chronic conditions</response>
         [HttpGet("children-with-chronic-conditions")]
         public async Task<IActionResult> GetChildrenWithChronicConditions()
         {
@@ -304,6 +381,10 @@ namespace SWD392.Controllers
             return Ok(childrenWithChronicConditions);
         }
 
+        /// <summary>
+        /// Get the vaccination schedule compliance rate.
+        /// </summary>
+        /// <response code="200">Returns the vaccination schedule compliance rate</response>
         [HttpGet("vaccination-schedule-compliance")]
         public async Task<IActionResult> GetVaccinationScheduleCompliance()
         {
@@ -316,6 +397,10 @@ namespace SWD392.Controllers
             return Ok(complianceRate);
         }
 
+        /// <summary>
+        /// Get missed vaccinations.
+        /// </summary>
+        /// <response code="200">Returns missed vaccinations</response>
         [HttpGet("missed-vaccinations")]
         public async Task<IActionResult> GetMissedVaccinations()
         {
@@ -326,6 +411,10 @@ namespace SWD392.Controllers
             return Ok(missedVaccinations);
         }
 
+        /// <summary>
+        /// Get expired memberships.
+        /// </summary>
+        /// <response code="200">Returns expired memberships</response>
         [HttpGet("expired-memberships")]
         public async Task<IActionResult> GetExpiredMemberships()
         {
@@ -335,6 +424,5 @@ namespace SWD392.Controllers
 
             return Ok(expiredMemberships);
         }
-
     }
 }
