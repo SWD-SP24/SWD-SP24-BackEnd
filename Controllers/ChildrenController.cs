@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
@@ -87,9 +88,60 @@ namespace SWD392.Controllers
         /// <response code="200">Children retrieved</response>
         [Authorize(Roles = "admin, doctor")]
         [HttpGet("admin")]
-        public async Task<ActionResult<ApiResponse<IEnumerable<GetChildDTO>>>> GetAllChildrenAdmin([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 999)
+        public async Task<ActionResult<ApiResponse<IEnumerable<GetChildDTO>>>> GetAllChildrenAdmin(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 999,
+            [FromQuery] string? fullName = null,
+            [FromQuery] string? gender = null,
+            [FromQuery] string? dob = null,
+            [FromQuery] string? bloodType = null,
+            [FromQuery] string? allergies = null,
+            [FromQuery] string? chronicConditions = null,
+            [FromQuery] int? status = null)
         {
             var query = _context.Children.AsQueryable();
+
+            if (!string.IsNullOrEmpty(fullName))
+            {
+                query = query.Where(c => c.FullName.Contains(fullName));
+            }
+
+            if (!string.IsNullOrEmpty(gender))
+            {
+                query = query.Where(c => c.Gender == gender);
+            }
+
+            if (!string.IsNullOrEmpty(dob))
+            {
+                if (DateOnly.TryParseExact(dob, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedDob))
+                {
+                    query = query.Where(c => c.Dob == parsedDob);
+                }
+                else
+                {
+                    return BadRequest(ApiResponse<object>.Error("Invalid date format. Use dd/MM/yyyy."));
+                }
+            }
+
+            if (!string.IsNullOrEmpty(bloodType))
+            {
+                query = query.Where(c => c.BloodType == bloodType);
+            }
+
+            if (!string.IsNullOrEmpty(allergies))
+            {
+                query = query.Where(c => c.Allergies.Contains(allergies));
+            }
+
+            if (!string.IsNullOrEmpty(chronicConditions))
+            {
+                query = query.Where(c => c.ChronicConditions.Contains(chronicConditions));
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(c => c.Status == status);
+            }
 
             var totalItems = await query.CountAsync();
             var children = await query.Skip((pageNumber - 1) * pageSize)
@@ -105,6 +157,8 @@ namespace SWD392.Controllers
 
             return Ok(ApiResponse<IEnumerable<GetChildDTO>>.Success(childrenDTOs, pagination));
         }
+
+
 
         // GET: api/Children/child/{id}
         /// <summary>

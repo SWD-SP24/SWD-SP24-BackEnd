@@ -1,5 +1,6 @@
 ﻿using SWD392.DTOs.ChildDTO;
 using SWD392.Models;
+using System.Globalization;
 
 namespace SWD392.Mapper
 {
@@ -13,7 +14,7 @@ namespace SWD392.Mapper
                 FullName = child.FullName,
                 Avatar = child.Avatar,
                 MemberId = child.MemberId,
-                CreatedAt = child.CreatedAt,
+                CreatedAt = child.CreatedAt.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
                 Dob = child.Dob,
                 BloodType = child.BloodType,
                 Allergies = child.Allergies,
