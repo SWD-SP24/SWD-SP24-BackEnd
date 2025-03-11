@@ -62,24 +62,24 @@ namespace SWD392.Controllers
         /// <summary>
         /// Get the number of doses administered within a specified date range.
         /// </summary>
-        /// <param name="startTime">Start date for the range</param>
-        /// <param name="endTime">End date for the range</param>
+        /// <param name="startTime">Start date for the range in dd/MM/yyyy format</param>
+        /// <param name="endTime">End date for the range in dd/MM/yyyy format</param>
         /// <response code="200">Returns the number of doses administered</response>
         [HttpGet("doses-administered")]
         public async Task<IActionResult> GetDosesAdministered(
-            [FromQuery] DateTime? startTime,
-            [FromQuery] DateTime? endTime)
+            [FromQuery] string startTime,
+            [FromQuery] string endTime)
         {
             var query = _context.VaccineRecords.AsQueryable();
 
-            if (startTime.HasValue)
+            if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
             {
-                query = query.Where(vr => vr.AdministeredDate >= startTime.Value);
+                query = query.Where(vr => vr.AdministeredDate >= startDate);
             }
 
-            if (endTime.HasValue)
+            if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
             {
-                query = query.Where(vr => vr.AdministeredDate <= endTime.Value);
+                query = query.Where(vr => vr.AdministeredDate <= endDate);
             }
 
             var dosesAdministered = await query.CountAsync();
@@ -149,51 +149,52 @@ namespace SWD392.Controllers
         /// <summary>
         /// Get new membership subscriptions within a specified date range.
         /// </summary>
-        /// <param name="startTime">Start date for the range</param>
-        /// <param name="endTime">End date for the range</param>
+        /// <param name="startTime">Start date for the range in dd/MM/yyyy format</param>
+        /// <param name="endTime">End date for the range in dd/MM/yyyy format</param>
         /// <response code="200">Returns new membership subscriptions</response>
         [HttpGet("new-membership-subscriptions")]
         public async Task<IActionResult> GetNewMembershipSubscriptions(
-            [FromQuery] DateTime? startTime,
-            [FromQuery] DateTime? endTime)
+            [FromQuery] string startTime,
+            [FromQuery] string endTime)
         {
             var query = _context.UserMemberships.AsQueryable();
 
-            if (startTime.HasValue)
+            if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
             {
-                query = query.Where(um => um.StartDate >= startTime.Value);
+                query = query.Where(um => um.StartDate >= startDate);
             }
 
-            if (endTime.HasValue)
+            if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
             {
-                query = query.Where(um => um.StartDate <= endTime.Value);
+                query = query.Where(um => um.StartDate <= endDate);
             }
 
             var newSubscriptions = await query.ToListAsync();
             return Ok(ApiResponse<object>.Success(newSubscriptions));
         }
 
+
         /// <summary>
         /// Get revenue from subscriptions within a specified date range.
         /// </summary>
-        /// <param name="startTime">Start date for the range</param>
-        /// <param name="endTime">End date for the range</param>
+        /// <param name="startTime">Start date for the range in dd/MM/yyyy format</param>
+        /// <param name="endTime">End date for the range in dd/MM/yyyy format</param>
         /// <response code="200">Returns revenue from subscriptions</response>
         [HttpGet("revenue-from-subscriptions")]
         public async Task<IActionResult> GetRevenueFromSubscriptions(
-            [FromQuery] DateTime? startTime,
-            [FromQuery] DateTime? endTime)
+            [FromQuery] string startTime,
+            [FromQuery] string endTime)
         {
             var query = _context.PaymentTransactions.AsQueryable();
 
-            if (startTime.HasValue)
+            if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
             {
-                query = query.Where(pt => pt.TransactionDate >= startTime.Value);
+                query = query.Where(pt => pt.TransactionDate >= startDate);
             }
 
-            if (endTime.HasValue)
+            if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
             {
-                query = query.Where(pt => pt.TransactionDate <= endTime.Value);
+                query = query.Where(pt => pt.TransactionDate <= endDate);
             }
 
             var totalRevenue = await query.SumAsync(pt => pt.Amount);
@@ -203,24 +204,24 @@ namespace SWD392.Controllers
         /// <summary>
         /// Get monthly revenue within a specified date range.
         /// </summary>
-        /// <param name="startTime">Start date for the range</param>
-        /// <param name="endTime">End date for the range</param>
+        /// <param name="startTime">Start date for the range in dd/MM/yyyy format</param>
+        /// <param name="endTime">End date for the range in dd/MM/yyyy format</param>
         /// <response code="200">Returns monthly revenue</response>
         [HttpGet("monthly-revenue")]
         public async Task<IActionResult> GetMonthlyRevenue(
-            [FromQuery] DateTime? startTime,
-            [FromQuery] DateTime? endTime)
+            [FromQuery] string startTime,
+            [FromQuery] string endTime)
         {
             var query = _context.PaymentTransactions.AsQueryable();
 
-            if (startTime.HasValue)
+            if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
             {
-                query = query.Where(pt => pt.TransactionDate >= startTime.Value);
+                query = query.Where(pt => pt.TransactionDate >= startDate);
             }
 
-            if (endTime.HasValue)
+            if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
             {
-                query = query.Where(pt => pt.TransactionDate <= endTime.Value);
+                query = query.Where(pt => pt.TransactionDate <= endDate);
             }
 
             var monthlyRevenue = await query
@@ -238,30 +239,32 @@ namespace SWD392.Controllers
             return Ok(ApiResponse<object>.Success(monthlyRevenue));
         }
 
+
+
         /// <summary>
         /// Get active subscriptions within a specified date range.
         /// </summary>
-        /// <param name="startTime">Start date for the range</param>
-        /// <param name="endTime">End date for the range</param>
+        /// <param name="startTime">Start date for the range in dd/MM/yyyy format</param>
+        /// <param name="endTime">End date for the range in dd/MM/yyyy format</param>
         /// <response code="200">Returns active subscriptions</response>
         [HttpGet("active-subscriptions")]
         public async Task<IActionResult> GetActiveSubscriptions(
-            [FromQuery] DateTime? startTime,
-            [FromQuery] DateTime? endTime)
+            [FromQuery] string startTime,
+            [FromQuery] string endTime)
         {
             var query = _context.UserMemberships
                 .Include(um => um.MembershipPackage)
                 .Where(um => um.EndDate == null || um.EndDate > DateTime.Now)
                 .AsQueryable();
 
-            if (startTime.HasValue)
+            if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
             {
-                query = query.Where(um => um.StartDate >= startTime.Value);
+                query = query.Where(um => um.StartDate >= startDate);
             }
 
-            if (endTime.HasValue)
+            if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
             {
-                query = query.Where(um => um.StartDate <= endTime.Value);
+                query = query.Where(um => um.StartDate <= endDate);
             }
 
             var activeSubscriptions = await query
@@ -319,22 +322,24 @@ namespace SWD392.Controllers
         /// <summary>
         /// Get the average growth rate within a specified date range.
         /// </summary>
-        /// <param name="startTime">Start date for the range</param>
-        /// <param name="endTime">End date for the range</param>
+        /// <param name="startTime">Start date for the range in dd/MM/yyyy format</param>
+        /// <param name="endTime">End date for the range in dd/MM/yyyy format</param>
         /// <response code="200">Returns the average growth rate</response>
         [HttpGet("average-growth-rate")]
-        public async Task<IActionResult> GetAverageGrowthRate([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime)
+        public async Task<IActionResult> GetAverageGrowthRate(
+            [FromQuery] string startTime,
+            [FromQuery] string endTime)
         {
             var query = _context.GrowthIndicators.AsQueryable();
 
-            if (startTime.HasValue)
+            if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
             {
-                query = query.Where(gi => gi.RecordTime >= startTime.Value);
+                query = query.Where(gi => gi.RecordTime >= startDate);
             }
 
-            if (endTime.HasValue)
+            if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
             {
-                query = query.Where(gi => gi.RecordTime <= endTime.Value);
+                query = query.Where(gi => gi.RecordTime <= endDate);
             }
 
             var growthRates = await query
