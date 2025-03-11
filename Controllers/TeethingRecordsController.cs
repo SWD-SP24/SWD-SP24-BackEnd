@@ -27,7 +27,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Retrieves a list of teething records for a specified child, optionally filtered by a time range. (Authorized only)
+        /// Retrieves a list of teething records for a specified child, optionally filtered by a time range. (Authorized and Doctor only)
         /// </summary>
         /// <param name="childId">The ID of the child whose teething records are to be retrieved.</param>
         /// <param name="startTime">The optional start time to filter the teething records in dd/MM/yyyy format.</param>
@@ -68,7 +68,7 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("Child not found"));
             }
 
-            if (child.MemberId != user.UserId)
+            if (child.MemberId != user.UserId && user.Role != "doctor")
             {
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to view this child's teething records"));
             }
@@ -105,7 +105,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Retrieves a specific teething record by ID (Authorized only)
+        /// Retrieves a specific teething record by ID (Authorized and Doctor only)
         /// </summary>
         /// <param name="id">The ID of the teething record to retrieve.</param>
         /// <returns>An <see cref="ApiResponse{T}"/> containing the <see cref="TeethingRecordDTO"/> object.</returns>
@@ -141,7 +141,7 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("Teething record not found"));
             }
 
-            if (teethingRecord.Child.MemberId != user.UserId)
+            if (teethingRecord.Child.MemberId != user.UserId && user.Role != "doctor")
             {
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to view this teething record"));
             }

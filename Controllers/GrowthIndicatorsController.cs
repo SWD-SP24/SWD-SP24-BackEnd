@@ -27,7 +27,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Retrieves a list of growth indicators for a specified child, optionally filtered by a time range. (Authorized only)
+        /// Retrieves a list of growth indicators for a specified child, optionally filtered by a time range. (Authorized and Doctor only)
         /// </summary>
         /// <param name="childrenId">The ID of the child whose growth indicators are to be retrieved.</param>
         /// <param name="startTime">The optional start time to filter the growth indicators in dd/MM/yyyy format.</param>
@@ -68,7 +68,7 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("Child not found"));
             }
 
-            if (child.MemberId != user.UserId)
+            if (child.MemberId != user.UserId && user.Role != "doctor" )
             {
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to view this child's growth indicators"));
             }
@@ -444,7 +444,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Retrieves the latest growth indicator for a specified child (Authorized only)
+        /// Retrieves the latest growth indicator for a specified child (Authorized and Doctor only)
         /// </summary>
         /// <param name="childrenId">The ID of the child whose latest growth indicator is to be retrieved.</param>
         /// <returns>An <see cref="ApiResponse{T}"/> containing the latest <see cref="GrowthIndicatorDTO"/> object.</returns>
@@ -476,7 +476,7 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("Child not found"));
             }
 
-            if (child.MemberId != user.UserId)
+            if (child.MemberId != user.UserId && user.Role != "doctor")
             {
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to view this child's growth indicators"));
             }

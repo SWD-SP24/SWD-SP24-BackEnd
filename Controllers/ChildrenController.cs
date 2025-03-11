@@ -79,13 +79,13 @@ namespace SWD392.Controllers
 
         // GET: api/Children/admin
         /// <summary>
-        /// Get all children (Admin only)
+        /// Get all children (Admin and Doctor only)
         /// </summary>
         /// <remarks>
         /// Errors:
         /// </remarks>
         /// <response code="200">Children retrieved</response>
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin, doctor")]
         [HttpGet("admin")]
         public async Task<ActionResult<ApiResponse<IEnumerable<GetChildDTO>>>> GetAllChildrenAdmin([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 999)
         {
@@ -159,7 +159,7 @@ namespace SWD392.Controllers
 
         // GET: api/Children/5
         /// <summary>
-        /// Get a child by ID (Admin only)
+        /// Get a child by ID (Admin and Doctor only)
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -167,7 +167,7 @@ namespace SWD392.Controllers
         /// </remarks>
         /// <response code="200">Child retrieved</response>
         /// <response code="404">Child not found</response>
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin, doctor")]
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponse<GetChildDTO>>> GetChildAdmin(int id)
         {
@@ -288,7 +288,7 @@ namespace SWD392.Controllers
 
         // PUT: api/Children/5
         /// <summary>
-        /// Update a child by ID (Admin only)
+        /// Update a child by ID (Admin and Doctor only)
         /// </summary>
         /// <remarks>
         /// Errors:
@@ -298,7 +298,7 @@ namespace SWD392.Controllers
         /// <response code="204">Child updated</response>
         /// <response code="400">Child ID mismatch</response>
         /// <response code="404">Child not found</response>
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "admin, doctor")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutChildAdmin(int id, EditChildDTO childDto)
         {

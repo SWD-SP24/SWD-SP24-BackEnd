@@ -29,7 +29,7 @@ namespace SWD392.Controllers
 
         // GET: api/VaccineRecords
         /// <summary>
-        /// Get all vaccine records of the currently logged-in user's children (Authorized only)
+        /// Get all vaccine records of the currently logged-in user's children (Authorized and Doctor only)
         /// </summary>
         /// <param name="childId">Optional child ID to filter the vaccine records</param>
         /// <param name="vaccineId">Optional vaccine ID to filter the vaccine records</param>
@@ -69,7 +69,7 @@ namespace SWD392.Controllers
             if (childId.HasValue)
             {
                 var child = await _context.Children.FindAsync(childId.Value);
-                if (child == null || child.MemberId != user.UserId)
+                if (child == null || child.MemberId != user.UserId && user.Role != "doctor")
                 {
                     return Unauthorized(ApiResponse<object>.Error("You do not have access to this child"));
                 }
@@ -88,7 +88,7 @@ namespace SWD392.Controllers
         }
 
         /// <summary>
-        /// Get the next vaccination date for a specific child and vaccine (Authorized only)
+        /// Get the next vaccination date for a specific child and vaccine (Authorized and Doctor only)
         /// </summary>
         /// <param name="childId">The ID of the child</param>
         /// <param name="vaccineId">The ID of the vaccine</param>
@@ -124,7 +124,7 @@ namespace SWD392.Controllers
             }
 
             var child = await _context.Children.FindAsync(childId);
-            if (child == null || child.MemberId != user.UserId)
+            if (child == null || child.MemberId != user.UserId && user.Role != "doctor")
             {
                 return Unauthorized(ApiResponse<object>.Error("You do not have access to this child"));
             }
@@ -180,7 +180,7 @@ namespace SWD392.Controllers
 
 
         /// <summary>
-        /// Get a specific vaccine record by ID (Authorized only)
+        /// Get a specific vaccine record by ID (Authorized and Doctor only)
         /// </summary>
         /// <param name="id">The ID of the vaccine record</param>
         /// <remarks>
@@ -223,7 +223,7 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("Vaccine record not found"));
             }
 
-            if (vaccineRecord.Child.MemberId != user.UserId)
+            if (vaccineRecord.Child.MemberId != user.UserId && user.Role != "doctor")
             {
                 return Unauthorized(ApiResponse<object>.Error("You do not have access to this record"));
             }
