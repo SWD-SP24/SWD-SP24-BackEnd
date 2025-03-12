@@ -846,61 +846,75 @@ namespace SWD392.Controllers
         }
 
         [HttpGet("list-user-active-memberships")]
-        public async Task<IActionResult> GetActiveUsersWithMemberships(int pageNumber = 1, int pageSize = 8)
+        public async Task<IActionResult> GetActiveUsersWithMemberships(
+     int pageNumber = 1,
+     int pageSize = 8,
+     int? membershipPackageId = null) // Thêm bộ lọc theo ID gói membership
         {
-            var totalUsers = await _context.Users
+            // Bắt đầu xây dựng truy vấn
+            var query = _context.Users
                 .Join(_context.UserMemberships, u => u.UserId, um => um.UserId, (u, um) => new { u, um })
-                .Where(joined => joined.um.Status == "active")
-                .CountAsync();
+                .Where(joined => joined.um.Status == "active");
 
-            var users = await (from u in _context.Users
-                               join um in _context.UserMemberships on u.UserId equals um.UserId
-                               join mp in _context.MembershipPackages on um.MembershipPackageId equals mp.MembershipPackageId
-                               where um.Status == "active"
-                               select new ListCurrentUserPackageDTO
-                               {
-                                   UserId = u.UserId,
-                                   Email = u.Email,
-                                   FullName = u.FullName,
-                                   MembershipPackageId = um.MembershipPackageId,
-                                   StartDate = um.StartDate,
-                                   EndDate = um.EndDate,
-                                   MembershipPackage = new GetCurrentPackageAllUserDTO
-                                   {
-                                       MembershipPackageId = mp.MembershipPackageId,
-                                       MembershipPackageName = mp.MembershipPackageName,
-                                       Price = mp.Price,
-                                       Status = mp.Status,
-                                       IsActive = (mp.Status == "active"),
-                                       Image = mp.Image,
-                                       Summary = mp.Summary,
-                                       YearlyPrice = mp.YearlyPrice,
-                                       ValidityPeriod = mp.ValidityPeriod,
-                                       SavingPerMonth = mp.Price - mp.YearlyPrice / 12,
-                                       PercentDiscount = mp.PercentDiscount,
-                                       Permissions = mp.Permissions.Select(perm => new PermissionDTO
-                                       {
-                                           PermissionId = perm.PermissionId,
-                                           PermissionName = perm.PermissionName,
-                                           Description = perm.Description
-                                       }).ToList()
-                                   }
-                               })
-                               .Skip((pageNumber - 1) * pageSize)
-                               .Take(pageSize)
-                               .ToListAsync();
+            // Áp dụng bộ lọc theo ID gói nếu có
+            if (membershipPackageId.HasValue)
+            {
+                query = query
+                    .Where(joined => joined.um.MembershipPackageId == membershipPackageId); // Lọc theo ID gói membership
+            }
+
+            // Tính toán tổng số người dùng
+            var totalUsers = await query.CountAsync();
+
+            // Lấy danh sách người dùng có membership active
+            var users = await query
+                .Join(_context.MembershipPackages, joined => joined.um.MembershipPackageId, mp => mp.MembershipPackageId, (joined, mp) => new { joined, mp })
+                .Select(u => new ListCurrentUserPackageDTO
+                {
+                    UserId = u.joined.u.UserId,
+                    Email = u.joined.u.Email,
+                    FullName = u.joined.u.FullName,
+                    MembershipPackageId = u.joined.um.MembershipPackageId, // Truy cập MembershipPackageId từ 'um'
+                    StartDate = u.joined.um.StartDate,
+                    EndDate = u.joined.um.EndDate,
+                    MembershipPackage = new GetCurrentPackageAllUserDTO
+                    {
+                        MembershipPackageId = u.mp.MembershipPackageId,
+                        MembershipPackageName = u.mp.MembershipPackageName,
+                        Price = u.mp.Price,
+                        Status = u.mp.Status,
+                        IsActive = (u.mp.Status == "active"),
+                        Image = u.mp.Image,
+                        Summary = u.mp.Summary,
+                        YearlyPrice = u.mp.YearlyPrice,
+                        ValidityPeriod = u.mp.ValidityPeriod,
+                        SavingPerMonth = u.mp.Price - u.mp.YearlyPrice / 12,
+                        PercentDiscount = u.mp.PercentDiscount,
+                        Permissions = u.mp.Permissions.Select(perm => new PermissionDTO
+                        {
+                            PermissionId = perm.PermissionId,
+                            PermissionName = perm.PermissionName,
+                            Description = perm.Description
+                        }).ToList()
+                    }
+                })
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             if (!users.Any())
             {
-                return NotFound(new { message = "No active users found." });
+                return NotFound(new { message = "Không tìm thấy người dùng nào có gói membership active." });
             }
 
+            // Logic phân trang
             var maxPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
             var hasNext = pageNumber < maxPages;
             var pagination = new Pagination(maxPages, hasNext, totalUsers);
 
             return Ok(ApiResponse<object>.Success(users, pagination));
         }
+
 
     }
 }
