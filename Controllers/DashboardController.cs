@@ -67,8 +67,8 @@ namespace SWD392.Controllers
         /// <response code="200">Returns the number of doses administered</response>
         [HttpGet("doses-administered")]
         public async Task<IActionResult> GetDosesAdministered(
-            [FromQuery] string startTime,
-            [FromQuery] string endTime)
+            [FromQuery] string? startTime = null,
+            [FromQuery] string? endTime = null)
         {
             var query = _context.VaccineRecords.AsQueryable();
 
@@ -85,6 +85,7 @@ namespace SWD392.Controllers
             var dosesAdministered = await query.CountAsync();
             return Ok(ApiResponse<int>.Success(dosesAdministered));
         }
+
 
         /// <summary>
         /// Get the average weight and height by age group.
