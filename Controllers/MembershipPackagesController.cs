@@ -32,11 +32,43 @@ namespace SWD392.Controllers
         /// </remarks>
         /// <response code="200">Returns the list of membership packages.</response>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetMembershipPackages(int pageNumber = 1, int pageSize = 8)
+        public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetMembershipPackages(
+     int pageNumber = 1,
+     int pageSize = 8,
+     string membershipPackageName = null,
+     string status = null,
+     decimal? minPrice = null,
+     decimal? maxPrice = null)
         {
-            var totalPackages = await _context.MembershipPackages.CountAsync();
+            // Start building the query
+            var query = _context.MembershipPackages.AsQueryable();
 
-            var packages = await _context.MembershipPackages
+            // Apply filters
+            if (!string.IsNullOrEmpty(membershipPackageName))
+            {
+                query = query.Where(p => p.MembershipPackageName.Contains(membershipPackageName));
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(p => p.Status == status);
+            }
+
+            if (minPrice.HasValue)
+            {
+                query = query.Where(p => p.Price >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(p => p.Price <= maxPrice.Value);
+            }
+
+            // Get total count after applying filters
+            var totalPackages = await query.CountAsync();
+
+            // Apply pagination, sorting, and the projection
+            var packages = await query
                 .Include(p => p.Permissions)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -52,7 +84,6 @@ namespace SWD392.Controllers
                     YearlyPrice = p.YearlyPrice,
                     SavingPerMonth = Math.Round(p.YearlyPrice > 0 ? p.Price - (p.YearlyPrice / 12) : 0),
                     PercentDiscount = p.PercentDiscount,
-                   
                     Permissions = p.Permissions.Select(perm => new PermissionDTO
                     {
                         PermissionId = perm.PermissionId,
@@ -70,10 +101,11 @@ namespace SWD392.Controllers
             var maxPages = (int)Math.Ceiling(totalPackages / (double)pageSize);
             var hasNext = pageNumber < maxPages;
 
-            var pagination = new Pagination(maxPages, hasNext, totalPackages); // Truyền tổng số gói vào
+            var pagination = new Pagination(maxPages, hasNext, totalPackages); // Passing total packages
 
             return Ok(ApiResponse<object>.Success(packages, pagination));
         }
+
 
         [HttpGet("PricingPlan")]
         public async Task<ActionResult<IEnumerable<GetMembershipPackageDTO>>> GetActiveMembershipPackages()
