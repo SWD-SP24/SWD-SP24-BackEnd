@@ -63,13 +63,12 @@ namespace SWD392.Controllers
             var query = _context.VaccineRecords
                 .Include(vr => vr.Child)
                 .Include(vr => vr.Vaccine)
-                .Where(vr => vr.Child.MemberId == user.UserId)
                 .AsQueryable();
 
             if (childId.HasValue)
             {
                 var child = await _context.Children.FindAsync(childId.Value);
-                if (child == null || child.MemberId != user.UserId && user.Role != "doctor")
+                if (child == null || child.MemberId != user.UserId && user.Role != "doctor" && user.Role != "admin")
                 {
                     return Unauthorized(ApiResponse<object>.Error("You do not have access to this child"));
                 }
