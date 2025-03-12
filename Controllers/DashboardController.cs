@@ -210,8 +210,8 @@ namespace SWD392.Controllers
         /// <response code="200">Returns monthly revenue</response>
         [HttpGet("monthly-revenue")]
         public async Task<IActionResult> GetMonthlyRevenue(
-            [FromQuery] string startTime,
-            [FromQuery] string endTime)
+            [FromQuery] string? startTime,
+            [FromQuery] string? endTime)
         {
             var query = _context.PaymentTransactions.AsQueryable();
 
@@ -238,6 +238,52 @@ namespace SWD392.Controllers
                 .ToListAsync();
 
             return Ok(ApiResponse<object>.Success(monthlyRevenue));
+        }
+
+        /// <summary>
+        /// Get daily revenue within a specified date range.
+        /// </summary>
+        /// <param name="startTime">Start date for the range in dd/MM/yyyy format</param>
+        /// <param name="endTime">End date for the range in dd/MM/yyyy format</param>
+        /// <response code="200">Returns daily revenue</response>
+        [HttpGet("daily-revenue")]
+        public async Task<IActionResult> GetDailyRevenue(
+            [FromQuery] string? startTime,
+            [FromQuery] string? endTime)
+        {
+            var query = _context.PaymentTransactions.AsQueryable();
+
+            if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
+            {
+                query = query.Where(pt => pt.TransactionDate >= startDate);
+            }
+
+            if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
+            {
+                query = query.Where(pt => pt.TransactionDate <= endDate);
+            }
+
+            var dailyRevenue = await query
+                .GroupBy(pt => new { pt.TransactionDate.Year, pt.TransactionDate.Month, pt.TransactionDate.Day })
+                .Select(g => new
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Day = g.Key.Day,
+                    TotalRevenue = g.Sum(pt => pt.Amount)
+                })
+                .OrderBy(r => r.Year)
+                .ThenBy(r => r.Month)
+                .ThenBy(r => r.Day)
+                .ToListAsync();
+
+            var formattedDailyRevenue = dailyRevenue.Select(r => new
+            {
+                Date = new DateTime(r.Year, r.Month, r.Day).ToString("dd/MM/yyyy"),
+                r.TotalRevenue
+            });
+
+            return Ok(ApiResponse<object>.Success(formattedDailyRevenue));
         }
 
 
