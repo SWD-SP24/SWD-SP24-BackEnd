@@ -328,8 +328,8 @@ namespace SWD392.Controllers
         /// <response code="200">Returns the average growth rate</response>
         [HttpGet("average-growth-rate")]
         public async Task<IActionResult> GetAverageGrowthRate(
-            [FromQuery] string startTime,
-            [FromQuery] string endTime)
+            [FromQuery] string? startTime,
+            [FromQuery] string? endTime)
         {
             var query = _context.GrowthIndicators.AsQueryable();
 
@@ -355,6 +355,47 @@ namespace SWD392.Controllers
 
             return Ok(ApiResponse<object>.Success(growthRates));
         }
+
+        /// <summary>
+        /// Get the average growth rate of all children within a specified date range.
+        /// </summary>
+        /// <param name="startTime">Start date for the range in dd/MM/yyyy format</param>
+        /// <param name="endTime">End date for the range in dd/MM/yyyy format</param>
+        /// <response code="200">Returns the average growth rate</response>
+        [HttpGet("average-growth-rate-all")]
+        public async Task<IActionResult> GetAverageGrowthRateAll(
+            [FromQuery] string? startTime,
+            [FromQuery] string? endTime)
+        {
+            var query = _context.GrowthIndicators.AsQueryable();
+
+            if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
+            {
+                query = query.Where(gi => gi.RecordTime >= startDate);
+            }
+
+            if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
+            {
+                query = query.Where(gi => gi.RecordTime <= endDate);
+            }
+
+            var growthRates = await query
+                .GroupBy(gi => 1) // Group all records together
+                .Select(g => new
+                {
+                    AverageHeightGrowthRate = g.Average(gi => gi.Height),
+                    AverageWeightGrowthRate = g.Average(gi => gi.Weight)
+                })
+                .FirstOrDefaultAsync();
+
+            if (growthRates == null)
+            {
+                return Ok(ApiResponse<object>.Success(new { AverageHeightGrowthRate = 0, AverageWeightGrowthRate = 0 }));
+            }
+
+            return Ok(ApiResponse<object>.Success(growthRates));
+        }
+
 
         /// <summary>
         /// Get children with chronic conditions.
