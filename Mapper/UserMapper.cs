@@ -106,6 +106,8 @@ namespace SWD392.Mapper
                 CreatedAt = user.CreatedAt,
                 MembershipPackageId = user.MembershipPackageId,
                 Uid = user.Uid,
+                Specialization = user.Specialization,
+                Hospital = user.Hospital,
                 Token = token,
                 EmailActivation = user.EmailActivation,
                 Address = user.Address,
