@@ -67,8 +67,8 @@ namespace SWD392.Controllers
         },
                 redirect_urls = new RedirectUrls
                 {
-                    return_url = $"https://swd39220250217220816.azurewebsites.net//api/PayPal/execute-payment?idMbPackage={Uri.EscapeDataString(idPackage.ToString())}&paymentType={Uri.EscapeDataString("paypal")}&userMembershipId={Uri.EscapeDataString(userMembership.UserMembershipId.ToString())}",
-                    cancel_url = "https://swd39220250217220816.azurewebsites.net//api/PayPal/cancel-payment"
+                    return_url = $"https://growplus.hungngblog.com/api/PayPal/execute-payment?idMbPackage={Uri.EscapeDataString(idPackage.ToString())}&paymentType={Uri.EscapeDataString("paypal")}&userMembershipId={Uri.EscapeDataString(userMembership.UserMembershipId.ToString())}",
+                    cancel_url = "https://growplus.hungngblog.com//api/PayPal/cancel-payment"
                 }
             };
 
@@ -200,7 +200,7 @@ namespace SWD392.Controllers
                         // Lưu tất cả thay đổi vào cơ sở dữ liệu một lần duy nhất
                         _Context.SaveChanges();
 
-                        return Redirect($"http://localhost:3000/upgrade-plan/confirm?paymentId={paymentId}");
+                        return Redirect($"https://growplus.hungngblog.com/upgrade-plan/confirm?paymentId={paymentId}");
 
                     }
                     catch (Exception ex)

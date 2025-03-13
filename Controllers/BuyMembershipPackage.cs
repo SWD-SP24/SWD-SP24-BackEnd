@@ -325,7 +325,7 @@ namespace SWD392.Controllers
         },
                 redirect_urls = new RedirectUrls
                 {
-                    return_url = $"https://swd39220250217220816.azurewebsites.net//api/PayPal/execute-payment?idMbPackage={request.IdPackage}&paymentType={request.PaymentType}&validityDays={validityDays}",
+                    return_url = $"https://swd39220250217220816.azurewebsites.net/api/PayPal/execute-payment?idMbPackage={request.IdPackage}&paymentType={request.PaymentType}&validityDays={validityDays}",
                     cancel_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/cancel-payment"
                 }
             };
