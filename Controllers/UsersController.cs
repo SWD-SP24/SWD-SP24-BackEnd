@@ -849,7 +849,8 @@ namespace SWD392.Controllers
         public async Task<IActionResult> GetActiveUsersWithMemberships(
      int pageNumber = 1,
      int pageSize = 8,
-     int? membershipPackageId = null) // Thêm bộ lọc theo ID gói membership
+     int? membershipPackageId = null, // Thêm bộ lọc theo ID gói membership
+     string userName = null) // Thêm bộ lọc theo tên người dùng
         {
             // Bắt đầu xây dựng truy vấn
             var query = _context.Users
@@ -861,6 +862,13 @@ namespace SWD392.Controllers
             {
                 query = query
                     .Where(joined => joined.um.MembershipPackageId == membershipPackageId); // Lọc theo ID gói membership
+            }
+
+            // Áp dụng bộ lọc theo tên người dùng nếu có
+            if (!string.IsNullOrEmpty(userName))
+            {
+                query = query
+                    .Where(joined => joined.u.FullName.Contains(userName)); // Lọc theo tên người dùng
             }
 
             // Tính toán tổng số người dùng
