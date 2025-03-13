@@ -242,10 +242,41 @@ namespace SWD392.Controllers
         /// <response code="200">Users retrieved</response>
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetUsers(int pageNumber = 1, int pageSize = 999)
+        public async Task<ActionResult<IEnumerable<GetUserDTO>>> GetUsers(
+            int pageNumber = 1,
+            int pageSize = 999,
+            string? role = null,
+            int? membershipPackageId = null,
+            string? status = null,
+            string? search = null)
         {
-            var totalUsers = await _context.Users.CountAsync();
-            var users = await _context.Users
+            var query = _context.Users.AsQueryable();
+
+            if (!string.IsNullOrEmpty(role))
+            {
+                query = query.Where(u => u.Role == role);
+            }
+
+            if (membershipPackageId.HasValue)
+            {
+                query = query.Where(u => u.MembershipPackageId == membershipPackageId);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(u => u.Status == status);
+            }
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(u => u.FullName.Contains(search) || u.Email.Contains(search));
+            }
+
+            // Sort by CreatedAt with the most recent date on top
+            query = query.OrderByDescending(u => u.CreatedAt);
+
+            var totalUsers = await query.CountAsync();
+            var users = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -258,6 +289,7 @@ namespace SWD392.Controllers
 
             return Ok(ApiResponse<object>.Success(userDTOs, pagination));
         }
+
 
         // GET: api/Users/doctors
         /// <summary>
