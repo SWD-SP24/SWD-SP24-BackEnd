@@ -25,7 +25,7 @@ builder.Configuration
 Cloudinary cloudinary = new Cloudinary(builder.Configuration["Cloudinary:Url"]);
 cloudinary.Api.Secure = true;
 
-// Add this line to register Cloudinary as a singleton service 
+// Add this line to register Cloudinary as a singleton service
 builder.Services.AddSingleton(cloudinary);
 
 // Add services to the container.
