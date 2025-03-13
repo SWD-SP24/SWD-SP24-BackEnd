@@ -80,10 +80,7 @@ namespace SWD392.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            if (!transactions.Any())
-            {
-                return NotFound(new { message = "No transactions found." });
-            }
+         
 
             var pagination = new Pagination(maxPages, hasNext, totalRecords);
             return Ok(ApiResponse<object>.Success(transactions, pagination));
