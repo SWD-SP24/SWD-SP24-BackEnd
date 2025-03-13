@@ -876,37 +876,33 @@ namespace SWD392.Controllers
             var user = await _context.Users.FindAsync(id) ?? throw new UnauthorizedAccessException("Invalid JWT key");
             return user;
         }
-
         [HttpGet("list-user-active-memberships")]
         public async Task<IActionResult> GetActiveUsersWithMemberships(
-     int pageNumber = 1,
-     int pageSize = 8,
-     int? membershipPackageId = null, // Thêm bộ lọc theo ID gói membership
-     string userName = null) // Thêm bộ lọc theo tên người dùng
+            int pageNumber = 1,
+            int pageSize = 8,
+            int? membershipPackageId = null,
+            string userName = null)
         {
-            // Bắt đầu xây dựng truy vấn
+            // Start building the query
             var query = _context.Users
                 .Join(_context.UserMemberships, u => u.UserId, um => um.UserId, (u, um) => new { u, um })
-                .Where(joined => joined.um.Status == "active");
-
-            // Áp dụng bộ lọc theo ID gói nếu có
+               .Where(joined => joined.um.Status == "active" && joined.u.Role == "member");
+            // Apply filter by membership package ID if provided
             if (membershipPackageId.HasValue)
             {
-                query = query
-                    .Where(joined => joined.um.MembershipPackageId == membershipPackageId); // Lọc theo ID gói membership
+                query = query.Where(joined => joined.um.MembershipPackageId == membershipPackageId);
             }
 
-            // Áp dụng bộ lọc theo tên người dùng nếu có
+            // Apply filter by user name if provided
             if (!string.IsNullOrEmpty(userName))
             {
-                query = query
-                    .Where(joined => joined.u.FullName.Contains(userName)); // Lọc theo tên người dùng
+                query = query.Where(joined => joined.u.FullName.Contains(userName));
             }
 
-            // Tính toán tổng số người dùng
+            // Calculate total number of users
             var totalUsers = await query.CountAsync();
 
-            // Lấy danh sách người dùng có membership active
+            // Get the list of active users with membership
             var users = await query
                 .Join(_context.MembershipPackages, joined => joined.um.MembershipPackageId, mp => mp.MembershipPackageId, (joined, mp) => new { joined, mp })
                 .Select(u => new ListCurrentUserPackageDTO
@@ -914,7 +910,7 @@ namespace SWD392.Controllers
                     UserId = u.joined.u.UserId,
                     Email = u.joined.u.Email,
                     FullName = u.joined.u.FullName,
-                    MembershipPackageId = u.joined.um.MembershipPackageId, // Truy cập MembershipPackageId từ 'um'
+                    MembershipPackageId = u.joined.um.MembershipPackageId,
                     StartDate = u.joined.um.StartDate,
                     EndDate = u.joined.um.EndDate,
                     MembershipPackage = new GetCurrentPackageAllUserDTO
@@ -942,19 +938,19 @@ namespace SWD392.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
+            // If no users are found
             if (!users.Any())
             {
                 return NotFound(new { message = "Không tìm thấy người dùng nào có gói membership active." });
             }
 
-            // Logic phân trang
+            // Pagination logic
             var maxPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
             var hasNext = pageNumber < maxPages;
             var pagination = new Pagination(maxPages, hasNext, totalUsers);
 
             return Ok(ApiResponse<object>.Success(users, pagination));
         }
-
 
     }
 }
