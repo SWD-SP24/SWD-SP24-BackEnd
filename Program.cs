@@ -132,6 +132,9 @@ var app = builder.Build();
 app.UseDeveloperExceptionPage();
 app.UseCors(MyAllowSpecificOrigins);
 
+// Add the custom JWT middleware before authentication
+app.UseMiddleware<JwtMiddleware>();
+
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 
