@@ -1,0 +1,97 @@
+name: Deploy .NET Application
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+env:
+  APP_NAME: "growplus"
+  APP_DIR: "/var/www/growplus"
+  SERVICE_NAME: "growplus.service"
+  DLL_NAME: "SWD392.dll"
+  DOMAIN_NAME: "${{ secrets.DOMAIN_NAME }}"
+  ADMIN_EMAIL: "${{ secrets.ADMIN_EMAIL }}"
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'  # Adjust version as needed
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish --configuration Release --no-build --output ./publish
+
+      - name: Copy secret appsettings.json
+        run: |
+          echo "${{ secrets.APPSETTINGS_JSON_BASE64 }}" | base64 -d > ./publish/appsettings.json
+    
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          # Stop service if it exists
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl stop ${{ env.SERVICE_NAME }} || true"
+          
+          # Backup old version if it exists
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "if [ -d ${{ env.APP_DIR }} ]; then sudo rm -rf ${{ env.APP_DIR }}.bak || true; sudo mv ${{ env.APP_DIR }} ${{ env.APP_DIR }}.bak; fi"
+          
+          # Create app directory
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo mkdir -p ${{ env.APP_DIR }}"
+          
+          # Copy files to server
+          scp -r ./publish/* ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/app_deploy/
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo cp -r /tmp/app_deploy/* ${{ env.APP_DIR }}/ && sudo rm -rf /tmp/app_deploy"
+          
+          # Set permissions
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo chown -R www-data:www-data ${{ env.APP_DIR }}"
+          
+      - name: Create systemd service
+        run: |
+          cat > ${{ env.SERVICE_NAME }} << 'EOL'
+          [Unit]
+          Description=ASP.NET Core Application - ${{ env.APP_NAME }}
+          After=network.target
+
+          [Service]
+          WorkingDirectory=${{ env.APP_DIR }}
+          ExecStart=/usr/bin/dotnet ${{ env.APP_DIR }}/${{ env.DLL_NAME }}
+          Restart=always
+          User=www-data
+          Environment=ASPNETCORE_ENVIRONMENT=Production
+          Environment=ASPNETCORE_URLS=http://localhost:5000
+
+          [Install]
+          WantedBy=multi-user.target
+          EOL
+          
+          scp ${{ env.SERVICE_NAME }} ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo mv /tmp/${{ env.SERVICE_NAME }} /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable ${{ env.SERVICE_NAME }}"
+          
+      - name: Start service and check status
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl start ${{ env.SERVICE_NAME }} && sudo systemctl status ${{ env.SERVICE_NAME }}"
+          
+      - name: Setup HTTPS with Certbot
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo certbot --nginx -d ${{ env.DOMAIN_NAME }} --non-interactive --agree-tos -m ${{ env.ADMIN_EMAIL }} || true"
