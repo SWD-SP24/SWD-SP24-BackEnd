@@ -47,17 +47,17 @@ namespace SWD392.Controllers
             }
 
             // Tạo một PaymentTransaction mới với Amount = 0 và Status là "success" (vì không cần thanh toán)
-            var paymentTransaction = new PaymentTransaction
+            var paymentTransaction = new Paymenttransaction
             {
-                UserId = userId,
-                MembershipPackageId = idPackage,
+                Userid = userId,
+                Membershippackageid = idPackage,
                 Amount = requestedPackage.Price,
-                TransactionDate = DateTime.UtcNow,
+                Transactiondate = DateTime.UtcNow,
                 Status = "success",  // tự động thành công
-                PaymentId = "FREE"   // đánh dấu là giao dịch miễn phí
+                Paymentid = "FREE"   // đánh dấu là giao dịch miễn phí
             };
 
-            _context.PaymentTransactions.Add(paymentTransaction);
+            _context.Paymenttransactions.Add(paymentTransaction);
             await _context.SaveChangesAsync();
 
             // Xử lý việc gia hạn hoặc tạo mới UserMembership dựa trên tình trạng hiện tại
@@ -84,7 +84,7 @@ namespace SWD392.Controllers
                         StartDate = DateTime.UtcNow,
                         EndDate = DateTime.UtcNow.AddDays(requestedPackage.ValidityPeriod),
                         Status = "active",
-                        PaymentTransactionId = paymentTransaction.PaymentTransactionId
+                        Paymenttransactionid = paymentTransaction.Paymenttransactionid
                     };
                     _context.UserMemberships.Add(newMembership);
                 }
@@ -99,7 +99,7 @@ namespace SWD392.Controllers
                     StartDate = DateTime.UtcNow,
                     EndDate = DateTime.UtcNow.AddDays(requestedPackage.ValidityPeriod),
                     Status = "active",
-                    PaymentTransactionId = paymentTransaction.PaymentTransactionId
+                    Paymenttransactionid = paymentTransaction.Paymenttransactionid
                 };
                 _context.UserMemberships.Add(newMembership);
             }
@@ -114,7 +114,7 @@ namespace SWD392.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Mua gói miễn phí thành công", transactionId = paymentTransaction.PaymentTransactionId });
+            return Ok(new { message = "Mua gói miễn phí thành công", transactionId = paymentTransaction.Paymenttransactionid });
         }
     }
 }

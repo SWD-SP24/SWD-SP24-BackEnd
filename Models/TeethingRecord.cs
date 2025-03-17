@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace SWD392.Models;
 
-public partial class TeethingRecord
+public partial class Teethingrecord
 {
     public int Id { get; set; }
 

@@ -73,7 +73,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to view this child's teething records"));
             }
 
-            var query = _context.TeethingRecords.AsQueryable();
+            var query = _context.Teethingrecords.AsQueryable();
 
             if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsedStartTime))
             {
@@ -131,7 +131,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
-            var teethingRecord = await _context.TeethingRecords
+            var teethingRecord = await _context.Teethingrecords
                 .Include(tr => tr.Child)
                 .Include(tr => tr.Tooth)
                 .FirstOrDefaultAsync(tr => tr.Id == id);
@@ -179,7 +179,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
-            var teethingRecord = await _context.TeethingRecords
+            var teethingRecord = await _context.Teethingrecords
                 .Include(tr => tr.Child)
                 .FirstOrDefaultAsync(tr => tr.Id == id);
 
@@ -301,7 +301,7 @@ namespace SWD392.Controllers
                 parsedRecordTime = recordTime;
             }
 
-            var teethingRecord = new TeethingRecord
+            var teethingRecord = new Teethingrecord
             {
                 ChildId = teethingRecordDto.ChildId,
                 ToothId = tooth.Id,
@@ -310,7 +310,7 @@ namespace SWD392.Controllers
                 Note = teethingRecordDto.Note
             };
 
-            _context.TeethingRecords.Add(teethingRecord);
+            _context.Teethingrecords.Add(teethingRecord);
             await _context.SaveChangesAsync();
 
             var teethingRecordDTO = teethingRecord.ToTeethingRecordDto();
@@ -344,7 +344,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
-            var teethingRecord = await _context.TeethingRecords
+            var teethingRecord = await _context.Teethingrecords
                 .Include(tr => tr.Child)
                 .FirstOrDefaultAsync(tr => tr.Id == id);
 
@@ -358,7 +358,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error("Unauthorized to delete this teething record"));
             }
 
-            _context.TeethingRecords.Remove(teethingRecord);
+            _context.Teethingrecords.Remove(teethingRecord);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -366,7 +366,7 @@ namespace SWD392.Controllers
 
         private bool TeethingRecordExists(int id)
         {
-            return _context.TeethingRecords.Any(e => e.Id == id);
+            return _context.Teethingrecords.Any(e => e.Id == id);
         }
 
         private async Task<User> ValidateJwtToken(string authHeader)

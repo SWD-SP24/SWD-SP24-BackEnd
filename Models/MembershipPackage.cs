@@ -29,7 +29,7 @@ public partial class MembershipPackage
 
     public int? PercentDiscount { get; set; }
 
-    public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
+    public virtual ICollection<Paymenttransaction> Paymenttransactions { get; set; } = new List<Paymenttransaction>();
 
     public virtual ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
 

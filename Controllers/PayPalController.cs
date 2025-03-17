@@ -110,8 +110,8 @@ namespace SWD392.Controllers
                     try
                     {
                         // Lấy PaymentTransaction dựa trên PaymentId
-                        var paymentTransaction = _Context.PaymentTransactions
-                            .FirstOrDefault(pt => pt.PaymentId == paymentId);
+                        var paymentTransaction = _Context.Paymenttransactions
+                            .FirstOrDefault(pt => pt.Paymentid == paymentId);
 
                         if (paymentTransaction == null)
                         {
@@ -124,7 +124,7 @@ namespace SWD392.Controllers
                             return BadRequest(new { message = "Giao dịch này đã được xử lý trước đó." });
                         }
 
-                        var userId = paymentTransaction.UserId;
+                        var userId = paymentTransaction.Userid;
 
                         // Kiểm tra người dùng tồn tại
                         var user = _Context.Users.FirstOrDefault(x => x.UserId == userId);
@@ -135,7 +135,7 @@ namespace SWD392.Controllers
 
                         // Cập nhật trạng thái PaymentTransaction thành "success"
                         paymentTransaction.Status = "success";
-                        _Context.PaymentTransactions.Update(paymentTransaction);
+                        _Context.Paymenttransactions.Update(paymentTransaction);
 
                         // Lấy thông tin chi tiết của gói thành viên mới
                         var membershipPackage = _Context.MembershipPackages
@@ -173,7 +173,7 @@ namespace SWD392.Controllers
                                     StartDate = DateTime.UtcNow,
                                     EndDate = DateTime.UtcNow.AddDays(validityDays),
                                     Status = "active",
-                                    PaymentTransactionId = paymentTransaction.PaymentTransactionId
+                                    Paymenttransactionid = paymentTransaction.Paymenttransactionid
                                 };
                                 _Context.UserMemberships.Add(newMembership);
                             }
@@ -188,7 +188,7 @@ namespace SWD392.Controllers
                                 StartDate = DateTime.UtcNow,
                                 EndDate = DateTime.UtcNow.AddDays(membershipPackage.ValidityPeriod),
                                 Status = "active",
-                                PaymentTransactionId = paymentTransaction.PaymentTransactionId
+                                Paymenttransactionid = paymentTransaction.Paymenttransactionid
                             };
                             _Context.UserMemberships.Add(newMembership);
                         }

@@ -15,91 +15,91 @@
    "T4TemplatePath": null,
    "Tables": [
       {
-         "Name": "[dbo].[blog_categories]",
+         "Name": "public.blog_categories",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[blog_contents]",
+         "Name": "public.blog_contents",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[categories]",
+         "Name": "public.categories",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[children]",
+         "Name": "public.children",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[consultation_notes]",
+         "Name": "public.consultation_notes",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[Deviation_Analysis]",
+         "Name": "public.deviation_analysis",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[FAQ]",
+         "Name": "public.faq",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[feedbacks]",
+         "Name": "public.feedbacks",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[growth_indicators]",
+         "Name": "public.growth_indicators",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[membership_packages]",
+         "Name": "public.membership_packages",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[package_permissions]",
+         "Name": "public.package_permissions",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[PaymentTransactions]",
+         "Name": "public.paymenttransactions",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[permissions]",
+         "Name": "public.permissions",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[replies]",
+         "Name": "public.replies",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TeethingRecord]",
+         "Name": "public.teethingrecord",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[Tooth]",
+         "Name": "public.tooth",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[user_memberships]",
+         "Name": "public.user_memberships",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[users]",
+         "Name": "public.users",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[Vaccination_Schedule]",
+         "Name": "public.vaccination_schedule",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[Vaccine]",
+         "Name": "public.vaccine",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[VaccineRecord]",
+         "Name": "public.vaccinerecord",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[WHO_Growth_Standards]",
+         "Name": "public.who_growth_standards",
          "ObjectType": 0
       }
    ],
@@ -116,6 +116,7 @@
    "UseHandleBars": false,
    "UseHierarchyId": false,
    "UseInflector": true,
+   "UseInternalAccessModifiersForSprocsAndFunctions": false,
    "UseLegacyPluralizer": false,
    "UseManyToManyEntity": false,
    "UseNoDefaultConstructor": false,

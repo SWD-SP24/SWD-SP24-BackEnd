@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace SWD392.Models;
 
-public partial class VaccineRecord
+public partial class Vaccinerecord
 {
     public int Id { get; set; }
 

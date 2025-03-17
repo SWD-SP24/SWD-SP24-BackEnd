@@ -5,19 +5,19 @@ using System.Collections.Generic;
 
 namespace SWD392.Models;
 
-public partial class PaymentTransaction
+public partial class Paymenttransaction
 {
-    public int PaymentTransactionId { get; set; }
+    public int Paymenttransactionid { get; set; }
 
-    public string PaymentId { get; set; }
+    public string Paymentid { get; set; }
 
-    public int UserId { get; set; }
+    public int Userid { get; set; }
 
-    public int MembershipPackageId { get; set; }
+    public int Membershippackageid { get; set; }
 
     public decimal Amount { get; set; }
 
-    public DateTime TransactionDate { get; set; }
+    public DateTime Transactiondate { get; set; }
 
     public string Status { get; set; }
 
@@ -25,7 +25,7 @@ public partial class PaymentTransaction
 
     public int? UserMembershipId { get; set; }
 
-    public virtual MembershipPackage MembershipPackage { get; set; }
+    public virtual MembershipPackage Membershippackage { get; set; }
 
     public virtual User User { get; set; }
 

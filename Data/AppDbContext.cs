@@ -9,6 +9,8 @@ namespace SWD392.Data;
 
 public partial class AppDbContext : DbContext
 {
+    internal readonly object PaymentTransactions;
+
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
@@ -32,13 +34,13 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<MembershipPackage> MembershipPackages { get; set; }
 
-    public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+    public virtual DbSet<Paymenttransaction> Paymenttransactions { get; set; }
 
     public virtual DbSet<Permission> Permissions { get; set; }
 
     public virtual DbSet<Reply> Replies { get; set; }
 
-    public virtual DbSet<TeethingRecord> TeethingRecords { get; set; }
+    public virtual DbSet<Teethingrecord> Teethingrecords { get; set; }
 
     public virtual DbSet<Tooth> Teeth { get; set; }
 
@@ -50,7 +52,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Vaccine> Vaccines { get; set; }
 
-    public virtual DbSet<VaccineRecord> VaccineRecords { get; set; }
+    public virtual DbSet<Vaccinerecord> Vaccinerecords { get; set; }
 
     public virtual DbSet<WhoGrowthStandard> WhoGrowthStandards { get; set; }
 
@@ -58,7 +60,7 @@ public partial class AppDbContext : DbContext
     {
         modelBuilder.Entity<BlogContent>(entity =>
         {
-            entity.HasKey(e => e.BlogContentId).HasName("PK__blog_con__48384C349235FDB1");
+            entity.HasKey(e => e.BlogContentId).HasName("blog_contents_pkey");
 
             entity.ToTable("blog_contents");
 
@@ -68,10 +70,12 @@ public partial class AppDbContext : DbContext
                 .IsRequired()
                 .HasColumnName("content");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
-            entity.Property(e => e.Likes).HasColumnName("likes");
+            entity.Property(e => e.Likes)
+                .HasDefaultValue(0)
+                .HasColumnName("likes");
             entity.Property(e => e.Status)
                 .IsRequired()
                 .HasMaxLength(50)
@@ -79,18 +83,19 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.ThumbnailUrl)
                 .IsRequired()
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("thumbnail_url");
             entity.Property(e => e.Title)
                 .IsRequired()
                 .HasMaxLength(255)
                 .HasColumnName("title");
-            entity.Property(e => e.Views).HasColumnName("views");
+            entity.Property(e => e.Views)
+                .HasDefaultValue(0)
+                .HasColumnName("views");
 
             entity.HasOne(d => d.Admin).WithMany(p => p.BlogContents)
                 .HasForeignKey(d => d.AdminId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_blog_contents_admin");
+                .HasConstraintName("fk_blog_contents_admin");
 
             entity.HasMany(d => d.Categories).WithMany(p => p.BlogContents)
                 .UsingEntity<Dictionary<string, object>>(
@@ -98,14 +103,14 @@ public partial class AppDbContext : DbContext
                     r => r.HasOne<Category>().WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_blog_categories_categories"),
+                        .HasConstraintName("fk_blog_categories_categories"),
                     l => l.HasOne<BlogContent>().WithMany()
                         .HasForeignKey("BlogContentId")
                         .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_blog_categories_blog_contents"),
+                        .HasConstraintName("fk_blog_categories_blog_contents"),
                     j =>
                     {
-                        j.HasKey("BlogContentId", "CategoryId").HasName("PK__blog_cat__156CA2AFC8068C7F");
+                        j.HasKey("BlogContentId", "CategoryId").HasName("blog_categories_pkey");
                         j.ToTable("blog_categories");
                         j.IndexerProperty<int>("BlogContentId").HasColumnName("blog_content_id");
                         j.IndexerProperty<int>("CategoryId").HasColumnName("category_id");
@@ -114,7 +119,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__categori__D54EE9B41867ED4E");
+            entity.HasKey(e => e.CategoryId).HasName("categories_pkey");
 
             entity.ToTable("categories");
 
@@ -127,7 +132,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Child>(entity =>
         {
-            entity.HasKey(e => e.ChildrenId).HasName("PK__children__1DAECF1881729E05");
+            entity.HasKey(e => e.ChildrenId).HasName("children_pkey");
 
             entity.ToTable("children");
 
@@ -137,7 +142,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("allergies");
             entity.Property(e => e.Avatar)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("avatar");
             entity.Property(e => e.BloodType)
                 .HasMaxLength(10)
@@ -146,8 +150,8 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("chronic_conditions");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.Dob).HasColumnName("dob");
             entity.Property(e => e.FullName)
@@ -165,12 +169,12 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.Children)
                 .HasForeignKey(d => d.MemberId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_children_users");
+                .HasConstraintName("fk_children_users");
         });
 
         modelBuilder.Entity<ConsultationNote>(entity =>
         {
-            entity.HasKey(e => e.ConsultationNoteId).HasName("PK__consulta__C46F4A401CFDC3C5");
+            entity.HasKey(e => e.ConsultationNoteId).HasName("consultation_notes_pkey");
 
             entity.ToTable("consultation_notes");
 
@@ -182,51 +186,51 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.DoctorId).HasColumnName("doctor_id");
             entity.Property(e => e.MemberId).HasColumnName("member_id");
             entity.Property(e => e.RecordTime)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("record_time");
 
             entity.HasOne(d => d.Children).WithMany(p => p.ConsultationNotes)
                 .HasForeignKey(d => d.ChildrenId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_consultation_notes_children");
+                .HasConstraintName("fk_consultation_notes_children");
 
             entity.HasOne(d => d.Doctor).WithMany(p => p.ConsultationNoteDoctors)
                 .HasForeignKey(d => d.DoctorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_consultation_notes_doctor");
+                .HasConstraintName("fk_consultation_notes_doctor");
 
             entity.HasOne(d => d.Member).WithMany(p => p.ConsultationNoteMembers)
                 .HasForeignKey(d => d.MemberId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_consultation_notes_member");
+                .HasConstraintName("fk_consultation_notes_member");
         });
 
         modelBuilder.Entity<DeviationAnalysis>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Deviatio__3213E83FACDFE037");
+            entity.HasKey(e => e.Id).HasName("deviation_analysis_pkey");
 
-            entity.ToTable("Deviation_Analysis");
+            entity.ToTable("deviation_analysis");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ComputedValue)
-                .HasColumnType("decimal(5, 2)")
+                .HasPrecision(5, 2)
                 .HasColumnName("computed_value");
             entity.Property(e => e.DeviationPercentage)
-                .HasColumnType("decimal(5, 2)")
+                .HasPrecision(5, 2)
                 .HasColumnName("deviation_percentage");
             entity.Property(e => e.GrowthRecordId).HasColumnName("growth_record_id");
 
             entity.HasOne(d => d.GrowthRecord).WithMany(p => p.DeviationAnalyses)
                 .HasForeignKey(d => d.GrowthRecordId)
-                .HasConstraintName("FK__Deviation__growt__28B808A7");
+                .HasConstraintName("fk_deviation_analysis_growth_indicators");
         });
 
         modelBuilder.Entity<Faq>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__FAQ__3213E83FFE70170F");
+            entity.HasKey(e => e.Id).HasName("faq_pkey");
 
-            entity.ToTable("FAQ");
+            entity.ToTable("faq");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Answer)
@@ -239,7 +243,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.FeedbackId).HasName("PK__feedback__7A6B2B8C7C5EB085");
+            entity.HasKey(e => e.FeedbackId).HasName("feedbacks_pkey");
 
             entity.ToTable("feedbacks");
 
@@ -251,50 +255,50 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.MemberId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_feedbacks_users");
+                .HasConstraintName("fk_feedbacks_users");
         });
 
         modelBuilder.Entity<GrowthIndicator>(entity =>
         {
-            entity.HasKey(e => e.GrowthIndicatorsId).HasName("PK__growth_i__C307B74304FF8E07");
+            entity.HasKey(e => e.GrowthIndicatorsId).HasName("growth_indicators_pkey");
 
             entity.ToTable("growth_indicators");
 
             entity.Property(e => e.GrowthIndicatorsId).HasColumnName("growth_indicators_id");
             entity.Property(e => e.Bmi)
-                .HasColumnType("decimal(10, 4)")
+                .HasPrecision(10, 4)
                 .HasColumnName("bmi");
             entity.Property(e => e.ChildrenId).HasColumnName("children_id");
             entity.Property(e => e.Height)
-                .HasColumnType("decimal(10, 4)")
+                .HasPrecision(10, 4)
                 .HasColumnName("height");
             entity.Property(e => e.RecordTime)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("record_time");
             entity.Property(e => e.Weight)
-                .HasColumnType("decimal(10, 4)")
+                .HasPrecision(10, 4)
                 .HasColumnName("weight");
 
             entity.HasOne(d => d.Children).WithMany(p => p.GrowthIndicators)
                 .HasForeignKey(d => d.ChildrenId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_growth_indicators_children");
+                .HasConstraintName("fk_growth_indicators_children");
         });
 
         modelBuilder.Entity<MembershipPackage>(entity =>
         {
-            entity.HasKey(e => e.MembershipPackageId).HasName("PK__membersh__3BA5AAD990D65CFE");
+            entity.HasKey(e => e.MembershipPackageId).HasName("membership_packages_pkey");
 
             entity.ToTable("membership_packages");
 
-            entity.HasIndex(e => e.MembershipPackageName, "UQ__membersh__53772C87AE70D60A").IsUnique();
+            entity.HasIndex(e => e.MembershipPackageName, "membership_packages_membership_package_name_key").IsUnique();
 
             entity.Property(e => e.MembershipPackageId).HasColumnName("membership_package_id");
             entity.Property(e => e.AdminId).HasColumnName("admin_id");
             entity.Property(e => e.CreatedTime)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_time");
             entity.Property(e => e.Image).HasColumnName("image");
             entity.Property(e => e.MembershipPackageName)
@@ -303,7 +307,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("membership_package_name");
             entity.Property(e => e.PercentDiscount).HasColumnName("percent_discount");
             entity.Property(e => e.Price)
-                .HasColumnType("decimal(18, 2)")
+                .HasPrecision(18, 2)
                 .HasColumnName("price");
             entity.Property(e => e.Status)
                 .IsRequired()
@@ -312,7 +316,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Summary).HasColumnName("summary");
             entity.Property(e => e.ValidityPeriod).HasColumnName("validity_period");
             entity.Property(e => e.YearlyPrice)
-                .HasColumnType("decimal(18, 2)")
+                .HasPrecision(18, 2)
                 .HasColumnName("yearly_price");
 
             entity.HasMany(d => d.Permissions).WithMany(p => p.MembershipPackages)
@@ -321,59 +325,70 @@ public partial class AppDbContext : DbContext
                     r => r.HasOne<Permission>().WithMany()
                         .HasForeignKey("PermissionId")
                         .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_package_permissions_permissions"),
+                        .HasConstraintName("fk_package_permissions_permissions"),
                     l => l.HasOne<MembershipPackage>().WithMany()
                         .HasForeignKey("MembershipPackageId")
                         .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_package_permissions_membership_packages"),
+                        .HasConstraintName("fk_package_permissions_membership_packages"),
                     j =>
                     {
-                        j.HasKey("MembershipPackageId", "PermissionId").HasName("PK__package___85F69B7614F7E11E");
+                        j.HasKey("MembershipPackageId", "PermissionId").HasName("package_permissions_pkey");
                         j.ToTable("package_permissions");
                         j.IndexerProperty<int>("MembershipPackageId").HasColumnName("membership_package_id");
                         j.IndexerProperty<int>("PermissionId").HasColumnName("permission_id");
                     });
         });
 
-        modelBuilder.Entity<PaymentTransaction>(entity =>
+        modelBuilder.Entity<Paymenttransaction>(entity =>
         {
-            entity.HasKey(e => e.PaymentTransactionId).HasName("PK__PaymentT__C22AEFE0749B7A1E");
+            entity.HasKey(e => e.Paymenttransactionid).HasName("paymenttransactions_pkey");
 
-            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
-            entity.Property(e => e.PaymentId).HasMaxLength(100);
+            entity.ToTable("paymenttransactions");
+
+            entity.Property(e => e.Paymenttransactionid).HasColumnName("paymenttransactionid");
+            entity.Property(e => e.Amount)
+                .HasPrecision(18, 2)
+                .HasColumnName("amount");
+            entity.Property(e => e.Membershippackageid).HasColumnName("membershippackageid");
+            entity.Property(e => e.Paymentid)
+                .HasMaxLength(100)
+                .HasColumnName("paymentid");
             entity.Property(e => e.PreviousMembershipPackageName)
                 .HasMaxLength(255)
                 .HasColumnName("previous_membership_package_name");
             entity.Property(e => e.Status)
                 .IsRequired()
-                .HasMaxLength(50);
-            entity.Property(e => e.TransactionDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasMaxLength(50)
+                .HasColumnName("status");
+            entity.Property(e => e.Transactiondate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("transactiondate");
             entity.Property(e => e.UserMembershipId).HasColumnName("user_membership_id");
+            entity.Property(e => e.Userid).HasColumnName("userid");
 
-            entity.HasOne(d => d.MembershipPackage).WithMany(p => p.PaymentTransactions)
-                .HasForeignKey(d => d.MembershipPackageId)
+            entity.HasOne(d => d.Membershippackage).WithMany(p => p.Paymenttransactions)
+                .HasForeignKey(d => d.Membershippackageid)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PaymentTransactions_MembershipPackages");
+                .HasConstraintName("fk_paymenttransactions_membershippackages");
 
-            entity.HasOne(d => d.User).WithMany(p => p.PaymentTransactions)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PaymentTransactions_Users");
-
-            entity.HasOne(d => d.UserMembership).WithMany(p => p.PaymentTransactions)
+            entity.HasOne(d => d.UserMembership).WithMany(p => p.Paymenttransactions)
                 .HasForeignKey(d => d.UserMembershipId)
-                .HasConstraintName("FK_PaymentTransactions_UserMembership");
+                .HasConstraintName("fk_paymenttransactions_usermembership");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Paymenttransactions)
+                .HasForeignKey(d => d.Userid)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_paymenttransactions_users");
         });
 
         modelBuilder.Entity<Permission>(entity =>
         {
-            entity.HasKey(e => e.PermissionId).HasName("PK__permissi__E5331AFAE330F666");
+            entity.HasKey(e => e.PermissionId).HasName("permissions_pkey");
 
             entity.ToTable("permissions");
 
-            entity.HasIndex(e => e.PermissionName, "UQ__permissi__81C0F5A21BDA3AE4").IsUnique();
+            entity.HasIndex(e => e.PermissionName, "permissions_permission_name_key").IsUnique();
 
             entity.Property(e => e.PermissionId).HasColumnName("permission_id");
             entity.Property(e => e.Description).HasColumnName("description");
@@ -385,7 +400,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Reply>(entity =>
         {
-            entity.HasKey(e => e.ReplyId).HasName("PK__replies__EE405698FAFEA406");
+            entity.HasKey(e => e.ReplyId).HasName("replies_pkey");
 
             entity.ToTable("replies");
 
@@ -399,50 +414,50 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Admin).WithMany(p => p.Replies)
                 .HasForeignKey(d => d.AdminId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_replies_admin");
+                .HasConstraintName("fk_replies_admin");
 
             entity.HasOne(d => d.Feedback).WithMany(p => p.Replies)
                 .HasForeignKey(d => d.FeedbackId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_replies_feedbacks");
+                .HasConstraintName("fk_replies_feedbacks");
         });
 
-        modelBuilder.Entity<TeethingRecord>(entity =>
+        modelBuilder.Entity<Teethingrecord>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Teething__3213E83FC9E32CFF");
+            entity.HasKey(e => e.Id).HasName("teethingrecord_pkey");
 
-            entity.ToTable("TeethingRecord");
+            entity.ToTable("teethingrecord");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ChildId).HasColumnName("child_id");
             entity.Property(e => e.EruptionDate)
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("eruption_date");
             entity.Property(e => e.Note)
                 .HasMaxLength(255)
                 .HasColumnName("note");
             entity.Property(e => e.RecordTime)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("record_time");
             entity.Property(e => e.ToothId).HasColumnName("tooth_id");
 
-            entity.HasOne(d => d.Child).WithMany(p => p.TeethingRecords)
+            entity.HasOne(d => d.Child).WithMany(p => p.Teethingrecords)
                 .HasForeignKey(d => d.ChildId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TeethingR__child__1B5E0D89");
+                .HasConstraintName("fk_teethingrecord_children");
 
-            entity.HasOne(d => d.Tooth).WithMany(p => p.TeethingRecords)
+            entity.HasOne(d => d.Tooth).WithMany(p => p.Teethingrecords)
                 .HasForeignKey(d => d.ToothId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TeethingR__tooth__1C5231C2");
+                .HasConstraintName("fk_teethingrecord_tooth");
         });
 
         modelBuilder.Entity<Tooth>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tooth__3213E83F80926536");
+            entity.HasKey(e => e.Id).HasName("tooth_pkey");
 
-            entity.ToTable("Tooth");
+            entity.ToTable("tooth");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Name)
@@ -454,11 +469,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370F263DB4ED");
+            entity.HasKey(e => e.UserId).HasName("users_pkey");
 
             entity.ToTable("users");
 
-            entity.HasIndex(e => e.Email, "UQ__users__AB6E61648F5CECDA").IsUnique();
+            entity.HasIndex(e => e.Email, "users_email_key").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Address)
@@ -466,24 +481,22 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("address");
             entity.Property(e => e.Avatar)
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("avatar");
             entity.Property(e => e.Country)
                 .HasMaxLength(50)
                 .HasColumnName("country");
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("email");
             entity.Property(e => e.EmailActivation)
                 .IsRequired()
                 .HasMaxLength(50)
-                .HasDefaultValue("unactivated")
+                .HasDefaultValueSql("'unactivated'::character varying")
                 .HasColumnName("email_activation");
             entity.Property(e => e.FullName)
                 .IsRequired()
@@ -499,11 +512,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.PasswordHash)
                 .IsRequired()
                 .HasMaxLength(255)
-                .IsUnicode(false)
                 .HasColumnName("password_hash");
             entity.Property(e => e.PhoneNumber)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("phone_number");
             entity.Property(e => e.Role)
                 .IsRequired()
@@ -524,28 +535,28 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("uid");
             entity.Property(e => e.Zipcode)
                 .HasMaxLength(50)
-                .IsUnicode(false)
                 .HasColumnName("zipcode");
 
             entity.HasOne(d => d.MembershipPackage).WithMany(p => p.Users)
                 .HasForeignKey(d => d.MembershipPackageId)
-                .HasConstraintName("FK_users_membership_packages");
+                .HasConstraintName("fk_users_membership_packages");
         });
 
         modelBuilder.Entity<UserMembership>(entity =>
         {
-            entity.HasKey(e => e.UserMembershipId).HasName("PK__user_mem__E37A2534766BB024");
+            entity.HasKey(e => e.UserMembershipId).HasName("user_memberships_pkey");
 
             entity.ToTable("user_memberships");
 
             entity.Property(e => e.UserMembershipId).HasColumnName("user_membership_id");
             entity.Property(e => e.EndDate)
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("end_date");
             entity.Property(e => e.MembershipPackageId).HasColumnName("membership_package_id");
+            entity.Property(e => e.Paymenttransactionid).HasColumnName("paymenttransactionid");
             entity.Property(e => e.StartDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("start_date");
             entity.Property(e => e.Status)
                 .IsRequired()
@@ -556,23 +567,23 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.MembershipPackage).WithMany(p => p.UserMemberships)
                 .HasForeignKey(d => d.MembershipPackageId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_user_memberships_membership_packages");
+                .HasConstraintName("fk_user_memberships_membership_packages");
 
-            entity.HasOne(d => d.PaymentTransaction).WithMany(p => p.UserMemberships)
-                .HasForeignKey(d => d.PaymentTransactionId)
-                .HasConstraintName("FK_UserMemberships_PaymentTransactions");
+            entity.HasOne(d => d.Paymenttransaction).WithMany(p => p.UserMemberships)
+                .HasForeignKey(d => d.Paymenttransactionid)
+                .HasConstraintName("fk_usermemberships_paymenttransactions");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserMemberships)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_user_memberships_users");
+                .HasConstraintName("fk_user_memberships_users");
         });
 
         modelBuilder.Entity<VaccinationSchedule>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Vaccinat__3213E83F587A275C");
+            entity.HasKey(e => e.Id).HasName("vaccination_schedule_pkey");
 
-            entity.ToTable("Vaccination_Schedule");
+            entity.ToTable("vaccination_schedule");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.RecommendedAgeMonths).HasColumnName("recommended_age_months");
@@ -580,14 +591,14 @@ public partial class AppDbContext : DbContext
 
             entity.HasOne(d => d.Vaccine).WithMany(p => p.VaccinationSchedules)
                 .HasForeignKey(d => d.VaccineId)
-                .HasConstraintName("FK__Vaccinati__vacci__25DB9BFC");
+                .HasConstraintName("fk_vaccination_schedule_vaccine");
         });
 
         modelBuilder.Entity<Vaccine>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Vaccine__3213E83FA3A6D328");
+            entity.HasKey(e => e.Id).HasName("vaccine_pkey");
 
-            entity.ToTable("Vaccine");
+            entity.ToTable("vaccine");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Description)
@@ -599,54 +610,53 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("name");
         });
 
-        modelBuilder.Entity<VaccineRecord>(entity =>
+        modelBuilder.Entity<Vaccinerecord>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__VaccineR__3213E83F34A6CE76");
+            entity.HasKey(e => e.Id).HasName("vaccinerecord_pkey");
 
-            entity.ToTable("VaccineRecord");
+            entity.ToTable("vaccinerecord");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AdministeredDate)
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("administered_date");
             entity.Property(e => e.ChildId).HasColumnName("child_id");
             entity.Property(e => e.Dose).HasColumnName("dose");
             entity.Property(e => e.NextDoseDate)
-                .HasColumnType("datetime")
+                .HasColumnType("timestamp without time zone")
                 .HasColumnName("next_dose_date");
             entity.Property(e => e.VaccineId).HasColumnName("vaccine_id");
 
-            entity.HasOne(d => d.Child).WithMany(p => p.VaccineRecords)
+            entity.HasOne(d => d.Child).WithMany(p => p.Vaccinerecords)
                 .HasForeignKey(d => d.ChildId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__VaccineRe__child__14B10FFA");
+                .HasConstraintName("fk_vaccinerecord_children");
 
-            entity.HasOne(d => d.Vaccine).WithMany(p => p.VaccineRecords)
+            entity.HasOne(d => d.Vaccine).WithMany(p => p.Vaccinerecords)
                 .HasForeignKey(d => d.VaccineId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_VaccineRecord_Vaccine");
+                .HasConstraintName("fk_vaccinerecord_vaccine");
         });
 
         modelBuilder.Entity<WhoGrowthStandard>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__WHO_Grow__3213E83F75671391");
+            entity.HasKey(e => e.Id).HasName("who_growth_standards_pkey");
 
-            entity.ToTable("WHO_Growth_Standards");
+            entity.ToTable("who_growth_standards");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.AgeMonths).HasColumnName("age_months");
             entity.Property(e => e.BmiAvg)
-                .HasColumnType("decimal(10, 4)")
+                .HasPrecision(10, 4)
                 .HasColumnName("bmi_avg");
             entity.Property(e => e.Gender)
                 .HasMaxLength(10)
-                .IsUnicode(false)
                 .HasColumnName("gender");
             entity.Property(e => e.HeightAvg)
-                .HasColumnType("decimal(10, 4)")
+                .HasPrecision(10, 4)
                 .HasColumnName("height_avg");
             entity.Property(e => e.WeightAvg)
-                .HasColumnType("decimal(10, 4)")
+                .HasPrecision(10, 4)
                 .HasColumnName("weight_avg");
         });
 

@@ -100,12 +100,12 @@ namespace SWD392.Controllers
 
                 if (currentPackage != null)
                 {
-                    var paymentTransactionId = currentMembership?.PaymentTransactionId;
+                    var paymentTransactionId = currentMembership?.Paymenttransactionid;
 
                     if (paymentTransactionId != null)
                     {
-                        var transaction = await _context.PaymentTransactions
-                            .FirstOrDefaultAsync(t => t.PaymentTransactionId == paymentTransactionId);
+                        var transaction = await _context.Paymenttransactions
+                            .FirstOrDefaultAsync(t => t.Paymenttransactionid == paymentTransactionId);
 
                         if (transaction != null)
                         {
@@ -289,17 +289,17 @@ namespace SWD392.Controllers
 
             
             // Tạo transaction thanh toán
-            var paymentTransaction = new PaymentTransaction
+            var paymentTransaction = new Paymenttransaction
             {
-                UserId = userId,
-                MembershipPackageId = request.IdPackage,
+                Userid = userId,
+                Membershippackageid = request.IdPackage,
                 Amount = packagePrice,
-                TransactionDate = DateTime.UtcNow,
+                Transactiondate = DateTime.UtcNow,
                 Status = "pending",
                 PreviousMembershipPackageName = previousPackageName,
             };
 
-            _context.PaymentTransactions.Add(paymentTransaction);
+            _context.Paymenttransactions.Add(paymentTransaction);
             await _context.SaveChangesAsync();
 
             // Tạo UserMembership với status là "pending"
@@ -335,8 +335,8 @@ namespace SWD392.Controllers
                 var createdPayment = payment.Create(apiContext);
                 var paymentId = createdPayment.id;
 
-                paymentTransaction.PaymentId = paymentId;
-                _context.PaymentTransactions.Update(paymentTransaction);
+                paymentTransaction.Paymentid = paymentId;
+                _context.Paymenttransactions.Update(paymentTransaction);
                 await _context.SaveChangesAsync();
 
                 var approvalUrl = createdPayment.links
@@ -347,7 +347,7 @@ namespace SWD392.Controllers
                     return BadRequest(new { message = "Không tìm thấy URL phê duyệt từ PayPal." });
                 }
 
-                return Ok(new { link = approvalUrl, transactionId = paymentTransaction.PaymentTransactionId });
+                return Ok(new { link = approvalUrl, transactionId = paymentTransaction.Paymenttransactionid });
             }
             catch (PayPalException ex)
             {
