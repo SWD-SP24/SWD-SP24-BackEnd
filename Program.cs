@@ -52,9 +52,12 @@ builder.Services.AddCors(options =>
 });
 
 // Database context
-// Database context
+var connectionString = builder.Environment.IsDevelopment()
+    ? builder.Configuration.GetConnectionString("DevelopmentConnection")
+    : builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+    options.UseNpgsql(connectionString,
         (options) =>
         {
             options.EnableRetryOnFailure(10, TimeSpan.FromSeconds(30), new string[] { "57P01" });
