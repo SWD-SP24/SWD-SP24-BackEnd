@@ -2,44 +2,30 @@
 {
     using System;
     using System.Collections.Generic;
-    using Azure.Communication.Email;
-    using Azure;
-    using System.Net.Mail;
+    using Microsoft.Extensions.Configuration;
+    using SendGrid;
+    using SendGrid.Helpers.Mail;
 
     public class EmailService
     {
-        private readonly EmailClient _emailClient;
         private readonly IConfiguration _configuration;
+        private readonly string _sendGridApiKey;
 
-        public EmailService(string connectionString, IConfiguration configuration)
+        public EmailService(IConfiguration configuration)
         {
-            _emailClient = new EmailClient(connectionString);
             _configuration = configuration;
+            _sendGridApiKey = _configuration["SendGrid:ApiKey"];
         }
 
         public void SendEmail(string recipientEmail, string subject, string plainTextContent, string htmlContent)
         {
-            var emailMessage = new EmailMessage(
-                senderAddress: "DoNotReply@hungngblog.com",
-                content: new EmailContent(subject)
-                {
-                    PlainText = plainTextContent,
-                    Html = htmlContent
-                },
-                recipients: new EmailRecipients(new List<EmailAddress>
-                {
-                new(recipientEmail)
-                }));
+            var client = new SendGridClient(_sendGridApiKey);
+            var from = new EmailAddress("accountservice@hungngblog.com", "growplus");
+            var to = new EmailAddress(recipientEmail);
+            var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+            var response = client.SendEmailAsync(msg).Result;
 
-            EmailSendOperation emailSendOperation = _emailClient.Send(
-                WaitUntil.Completed,
-                emailMessage);
-
-            if (emailSendOperation.HasCompleted)
-            {
-                Console.WriteLine("Email sent successfully.");
-            }
-            else
+            if (response.StatusCode != System.Net.HttpStatusCode.OK && response.StatusCode != System.Net.HttpStatusCode.Accepted)
             {
                 throw new Exception("Failed to send email.");
             }

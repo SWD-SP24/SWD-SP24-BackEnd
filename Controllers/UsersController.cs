@@ -46,7 +46,7 @@ namespace SWD392.Controllers
             //_authentication = new FirebaseService();
             _tokenService = new TokenService(configuration);
             var connectionString = configuration["AzureCommunicationServices:ConnectionString"];
-            _emailService = new EmailService(connectionString ?? "", configuration);
+            _emailService = new EmailService(configuration);
             _configuration = configuration;
             _cloudinary = cloudinary;
 
