@@ -17,7 +17,7 @@ namespace SWD392.Mapper
                 Avatar = "",
                 Role = "member",
                 Status = "active",
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 MembershipPackageId = null, 
                 Uid = uid
             };
@@ -34,7 +34,7 @@ namespace SWD392.Mapper
                 Avatar = "",
                 Role = "admin",
                 Status = "active",
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 MembershipPackageId = null,
                 Uid = uid
             };
@@ -51,7 +51,7 @@ namespace SWD392.Mapper
                 Avatar = "",
                 Role = "doctor",
                 Status = "active",
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 MembershipPackageId = null,
                 Uid = uid
             };

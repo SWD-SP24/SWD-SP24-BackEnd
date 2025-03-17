@@ -92,7 +92,7 @@ namespace SWD392.Controllers
                 _context.Users.Add(newUser);
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex)
             {
                 //await _authentication.DeleteAsync(uid);
                 return BadRequest(ApiResponse<object>.Error("Fail to create account (DB)"));

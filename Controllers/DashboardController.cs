@@ -94,7 +94,7 @@ namespace SWD392.Controllers
         [HttpGet("average-weight-height-by-age-group")]
         public async Task<IActionResult> GetAverageWeightHeightByAgeGroup()
         {
-            var currentYear = DateTime.Now.Year;
+            var currentYear = DateTime.UtcNow.Year;
             var averageWeightHeight = await _context.GrowthIndicators
                 .GroupBy(gi => gi.Children.Dob.HasValue ? gi.Children.Dob.Value.Year : 0)
                 .Select(g => new
@@ -301,7 +301,7 @@ namespace SWD392.Controllers
         {
             var query = _context.UserMemberships
                 .Include(um => um.MembershipPackage)
-                .Where(um => um.EndDate == null || um.EndDate > DateTime.Now)
+                .Where(um => um.EndDate == null || um.EndDate > DateTime.UtcNow)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
@@ -485,7 +485,7 @@ namespace SWD392.Controllers
         public async Task<IActionResult> GetMissedVaccinations()
         {
             var missedVaccinations = await _context.Vaccinerecords
-                .Where(vr => vr.NextDoseDate < DateTime.Now)
+                .Where(vr => vr.NextDoseDate < DateTime.UtcNow)
                 .ToListAsync();
 
             return Ok(ApiResponse<object>.Success(missedVaccinations));
@@ -499,7 +499,7 @@ namespace SWD392.Controllers
         public async Task<IActionResult> GetExpiredMemberships()
         {
             var expiredMemberships = await _context.UserMemberships
-                .Where(um => um.EndDate < DateTime.Now)
+                .Where(um => um.EndDate < DateTime.UtcNow)
                 .ToListAsync();
 
             return Ok(ApiResponse<object>.Success(expiredMemberships));
