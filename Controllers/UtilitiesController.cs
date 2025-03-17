@@ -27,7 +27,7 @@ namespace SWD392.Controllers
 
         // POST: WeatherForecast/UploadImage
         /// <summary>
-        /// Upload an image to Cloudinary
+        /// Upload an image to Cloudinary (check action)
         /// </summary>
         /// <remarks>
         /// Errors:
