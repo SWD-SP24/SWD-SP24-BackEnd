@@ -57,10 +57,11 @@ jobs:
             ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "if [ -d ${{ env.APP_DIR }} ]; then sudo rm -rf ${{ env.APP_DIR }}.bak || true; sudo mv ${{ env.APP_DIR }} ${{ env.APP_DIR }}.bak; fi"
             ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo mkdir -p ${{ env.APP_DIR }}"
 
-      - name: Copy new files to server
+      - name: Package and copy new files to server
         run: |
-            scp -r ./publish/* ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/app_deploy/
-            ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo cp -r /tmp/app_deploy/* ${{ env.APP_DIR }}/ && sudo rm -rf /tmp/app_deploy"
+            tar czf app.tar.gz -C ./publish .
+            scp app.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/
+            ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo tar xzf /tmp/app.tar.gz -C ${{ env.APP_DIR }} && rm /tmp/app.tar.gz"
 
       - name: Set permissions
         run: |
