@@ -48,23 +48,23 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to server
+      - name: Stop existing service
         run: |
-          # Stop service if it exists
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl stop ${{ env.SERVICE_NAME }} || true"
-          
-          # Backup old version if it exists
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "if [ -d ${{ env.APP_DIR }} ]; then sudo rm -rf ${{ env.APP_DIR }}.bak || true; sudo mv ${{ env.APP_DIR }} ${{ env.APP_DIR }}.bak; fi"
-          
-          # Create app directory
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo mkdir -p ${{ env.APP_DIR }}"
-          
-          # Copy files to server
-          scp -r ./publish/* ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/app_deploy/
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo cp -r /tmp/app_deploy/* ${{ env.APP_DIR }}/ && sudo rm -rf /tmp/app_deploy"
-          
-          # Set permissions
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo chown -R www-data:www-data ${{ env.APP_DIR }}"
+            ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo systemctl stop ${{ env.SERVICE_NAME }} || true"
+
+      - name: Backup old version and create app directory
+        run: |
+            ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "if [ -d ${{ env.APP_DIR }} ]; then sudo rm -rf ${{ env.APP_DIR }}.bak || true; sudo mv ${{ env.APP_DIR }} ${{ env.APP_DIR }}.bak; fi"
+            ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo mkdir -p ${{ env.APP_DIR }}"
+
+      - name: Copy new files to server
+        run: |
+            scp -r ./publish/* ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/tmp/app_deploy/
+            ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo cp -r /tmp/app_deploy/* ${{ env.APP_DIR }}/ && sudo rm -rf /tmp/app_deploy"
+
+      - name: Set permissions
+        run: |
+            ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "sudo chown -R www-data:www-data ${{ env.APP_DIR }}"
           
       - name: Create systemd service
         run: |
