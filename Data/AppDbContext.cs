@@ -9,8 +9,6 @@ namespace SWD392.Data;
 
 public partial class AppDbContext : DbContext
 {
-    internal readonly object PaymentTransactions;
-
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
@@ -71,7 +69,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("content");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.Likes)
                 .HasDefaultValue(0)
@@ -151,7 +148,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("chronic_conditions");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.Dob).HasColumnName("dob");
             entity.Property(e => e.FullName)
@@ -187,7 +183,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.MemberId).HasColumnName("member_id");
             entity.Property(e => e.RecordTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("record_time");
 
             entity.HasOne(d => d.Children).WithMany(p => p.ConsultationNotes)
@@ -274,7 +269,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("height");
             entity.Property(e => e.RecordTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("record_time");
             entity.Property(e => e.Weight)
                 .HasPrecision(10, 4)
@@ -298,7 +292,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.AdminId).HasColumnName("admin_id");
             entity.Property(e => e.CreatedTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_time");
             entity.Property(e => e.Image).HasColumnName("image");
             entity.Property(e => e.MembershipPackageName)
@@ -362,7 +355,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("status");
             entity.Property(e => e.Transactiondate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("transactiondate");
             entity.Property(e => e.UserMembershipId).HasColumnName("user_membership_id");
             entity.Property(e => e.Userid).HasColumnName("userid");
@@ -430,15 +422,12 @@ public partial class AppDbContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ChildId).HasColumnName("child_id");
-            entity.Property(e => e.EruptionDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("eruption_date");
+            entity.Property(e => e.EruptionDate).HasColumnName("eruption_date");
             entity.Property(e => e.Note)
                 .HasMaxLength(255)
                 .HasColumnName("note");
             entity.Property(e => e.RecordTime)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("record_time");
             entity.Property(e => e.ToothId).HasColumnName("tooth_id");
 
@@ -487,7 +476,6 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("country");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.Email)
                 .IsRequired()
@@ -549,14 +537,11 @@ public partial class AppDbContext : DbContext
             entity.ToTable("user_memberships");
 
             entity.Property(e => e.UserMembershipId).HasColumnName("user_membership_id");
-            entity.Property(e => e.EndDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("end_date");
+            entity.Property(e => e.EndDate).HasColumnName("end_date");
             entity.Property(e => e.MembershipPackageId).HasColumnName("membership_package_id");
             entity.Property(e => e.Paymenttransactionid).HasColumnName("paymenttransactionid");
             entity.Property(e => e.StartDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
                 .HasColumnName("start_date");
             entity.Property(e => e.Status)
                 .IsRequired()
@@ -617,14 +602,10 @@ public partial class AppDbContext : DbContext
             entity.ToTable("vaccinerecord");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.AdministeredDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("administered_date");
+            entity.Property(e => e.AdministeredDate).HasColumnName("administered_date");
             entity.Property(e => e.ChildId).HasColumnName("child_id");
             entity.Property(e => e.Dose).HasColumnName("dose");
-            entity.Property(e => e.NextDoseDate)
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("next_dose_date");
+            entity.Property(e => e.NextDoseDate).HasColumnName("next_dose_date");
             entity.Property(e => e.VaccineId).HasColumnName("vaccine_id");
 
             entity.HasOne(d => d.Child).WithMany(p => p.Vaccinerecords)
