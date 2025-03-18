@@ -5,7 +5,7 @@ namespace SWD392.Mapper
 {
     public static class TeethingRecordMapper
     {
-        public static TeethingRecordDTO ToTeethingRecordDto(this Teethingrecord teethingRecord)
+        public static TeethingRecordDTO ToTeethingRecordDto(this TeethingRecord teethingRecord)
         {
             return new TeethingRecordDTO
             {

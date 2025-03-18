@@ -35,7 +35,7 @@ public partial class Child
 
     public virtual User Member { get; set; }
 
-    public virtual ICollection<Teethingrecord> Teethingrecords { get; set; } = new List<Teethingrecord>();
+    public virtual ICollection<TeethingRecord> TeethingRecords { get; set; } = new List<TeethingRecord>();
 
-    public virtual ICollection<Vaccinerecord> Vaccinerecords { get; set; } = new List<Vaccinerecord>();
+    public virtual ICollection<VaccineRecord> VaccineRecords { get; set; } = new List<VaccineRecord>();
 }

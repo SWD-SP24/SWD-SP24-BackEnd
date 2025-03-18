@@ -36,7 +36,7 @@ namespace SWD392.Controllers
         [HttpGet("revenue")]
         public async Task<IActionResult> GetRevenue()
         {
-            var totalRevenue = await _context.Paymenttransactions.SumAsync(pt => pt.Amount);
+            var totalRevenue = await _context.PaymentTransactions.SumAsync(pt => pt.Amount);
             return Ok(ApiResponse<decimal>.Success(totalRevenue));
         }
 
@@ -47,7 +47,7 @@ namespace SWD392.Controllers
         [HttpGet("vaccination-completion")]
         public async Task<IActionResult> GetVaccinationCompletion()
         {
-            var vaccinationCompletion = await _context.Vaccinerecords
+            var vaccinationCompletion = await _context.VaccineRecords
                 .GroupBy(vr => vr.Vaccine.Name)
                 .Select(g => new
                 {
@@ -70,7 +70,7 @@ namespace SWD392.Controllers
             [FromQuery] string? startTime = null,
             [FromQuery] string? endTime = null)
         {
-            var query = _context.Vaccinerecords.AsQueryable();
+            var query = _context.VaccineRecords.AsQueryable();
 
             if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
             {
@@ -186,16 +186,16 @@ namespace SWD392.Controllers
             [FromQuery] string startTime,
             [FromQuery] string endTime)
         {
-            var query = _context.Paymenttransactions.AsQueryable();
+            var query = _context.PaymentTransactions.AsQueryable();
 
             if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
             {
-                query = query.Where(pt => pt.Transactiondate >= startDate);
+                query = query.Where(pt => pt.TransactionDate >= startDate);
             }
 
             if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
             {
-                query = query.Where(pt => pt.Transactiondate <= endDate);
+                query = query.Where(pt => pt.TransactionDate <= endDate);
             }
 
             var totalRevenue = await query.SumAsync(pt => pt.Amount);
@@ -213,20 +213,20 @@ namespace SWD392.Controllers
             [FromQuery] string? startTime,
             [FromQuery] string? endTime)
         {
-            var query = _context.Paymenttransactions.AsQueryable();
+            var query = _context.PaymentTransactions.AsQueryable();
 
             if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
             {
-                query = query.Where(pt => pt.Transactiondate >= startDate);
+                query = query.Where(pt => pt.TransactionDate >= startDate);
             }
 
             if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
             {
-                query = query.Where(pt => pt.Transactiondate <= endDate);
+                query = query.Where(pt => pt.TransactionDate <= endDate);
             }
 
             var monthlyRevenue = await query
-                .GroupBy(pt => new { pt.Transactiondate.Year, pt.Transactiondate.Month })
+                .GroupBy(pt => new { pt.TransactionDate.Year, pt.TransactionDate.Month })
                 .Select(g => new
                 {
                     Year = g.Key.Year,
@@ -251,20 +251,20 @@ namespace SWD392.Controllers
             [FromQuery] string? startTime,
             [FromQuery] string? endTime)
         {
-            var query = _context.Paymenttransactions.AsQueryable();
+            var query = _context.PaymentTransactions.AsQueryable();
 
             if (!string.IsNullOrEmpty(startTime) && DateTime.TryParseExact(startTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime startDate))
             {
-                query = query.Where(pt => pt.Transactiondate >= startDate);
+                query = query.Where(pt => pt.TransactionDate >= startDate);
             }
 
             if (!string.IsNullOrEmpty(endTime) && DateTime.TryParseExact(endTime, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime endDate))
             {
-                query = query.Where(pt => pt.Transactiondate <= endDate);
+                query = query.Where(pt => pt.TransactionDate <= endDate);
             }
 
             var dailyRevenue = await query
-                .GroupBy(pt => new { pt.Transactiondate.Year, pt.Transactiondate.Month, pt.Transactiondate.Day })
+                .GroupBy(pt => new { pt.TransactionDate.Year, pt.TransactionDate.Month, pt.TransactionDate.Day })
                 .Select(g => new
                 {
                     Year = g.Key.Year,
@@ -469,7 +469,7 @@ namespace SWD392.Controllers
         public async Task<IActionResult> GetVaccinationScheduleCompliance()
         {
             var totalChildren = await _context.Children.CountAsync();
-            var compliantChildren = await _context.Vaccinerecords
+            var compliantChildren = await _context.VaccineRecords
                 .GroupBy(vr => vr.ChildId)
                 .CountAsync();
 
@@ -484,7 +484,7 @@ namespace SWD392.Controllers
         [HttpGet("missed-vaccinations")]
         public async Task<IActionResult> GetMissedVaccinations()
         {
-            var missedVaccinations = await _context.Vaccinerecords
+            var missedVaccinations = await _context.VaccineRecords
                 .Where(vr => vr.NextDoseDate < DateTime.UtcNow)
                 .ToListAsync();
 

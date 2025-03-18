@@ -4,6 +4,7 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SWD392.Controllers;
@@ -52,17 +53,8 @@ builder.Services.AddCors(options =>
 });
 
 // Database context
-var connectionString = builder.Environment.IsDevelopment()
-    ? builder.Configuration.GetConnectionString("DevelopmentConnection")
-    : builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString,
-        (options) =>
-        {
-            options.EnableRetryOnFailure(10, TimeSpan.FromSeconds(30), new string[] { "57P01" });
-        })
-    );
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Authentication and Authorization setup
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

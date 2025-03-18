@@ -57,7 +57,7 @@ public partial class User
 
     public virtual MembershipPackage MembershipPackage { get; set; }
 
-    public virtual ICollection<Paymenttransaction> Paymenttransactions { get; set; } = new List<Paymenttransaction>();
+    public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
 
     public virtual ICollection<Reply> Replies { get; set; } = new List<Reply>();
 

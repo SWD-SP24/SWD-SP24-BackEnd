@@ -15,91 +15,91 @@
    "T4TemplatePath": null,
    "Tables": [
       {
-         "Name": "public.blog_categories",
+         "Name": "[dbo].[blog_categories]",
          "ObjectType": 0
       },
       {
-         "Name": "public.blog_contents",
+         "Name": "[dbo].[blog_contents]",
          "ObjectType": 0
       },
       {
-         "Name": "public.categories",
+         "Name": "[dbo].[categories]",
          "ObjectType": 0
       },
       {
-         "Name": "public.children",
+         "Name": "[dbo].[children]",
          "ObjectType": 0
       },
       {
-         "Name": "public.consultation_notes",
+         "Name": "[dbo].[consultation_notes]",
          "ObjectType": 0
       },
       {
-         "Name": "public.deviation_analysis",
+         "Name": "[dbo].[Deviation_Analysis]",
          "ObjectType": 0
       },
       {
-         "Name": "public.faq",
+         "Name": "[dbo].[FAQ]",
          "ObjectType": 0
       },
       {
-         "Name": "public.feedbacks",
+         "Name": "[dbo].[feedbacks]",
          "ObjectType": 0
       },
       {
-         "Name": "public.growth_indicators",
+         "Name": "[dbo].[growth_indicators]",
          "ObjectType": 0
       },
       {
-         "Name": "public.membership_packages",
+         "Name": "[dbo].[membership_packages]",
          "ObjectType": 0
       },
       {
-         "Name": "public.package_permissions",
+         "Name": "[dbo].[package_permissions]",
          "ObjectType": 0
       },
       {
-         "Name": "public.paymenttransactions",
+         "Name": "[dbo].[PaymentTransactions]",
          "ObjectType": 0
       },
       {
-         "Name": "public.permissions",
+         "Name": "[dbo].[permissions]",
          "ObjectType": 0
       },
       {
-         "Name": "public.replies",
+         "Name": "[dbo].[replies]",
          "ObjectType": 0
       },
       {
-         "Name": "public.teethingrecord",
+         "Name": "[dbo].[TeethingRecord]",
          "ObjectType": 0
       },
       {
-         "Name": "public.tooth",
+         "Name": "[dbo].[Tooth]",
          "ObjectType": 0
       },
       {
-         "Name": "public.user_memberships",
+         "Name": "[dbo].[user_memberships]",
          "ObjectType": 0
       },
       {
-         "Name": "public.users",
+         "Name": "[dbo].[users]",
          "ObjectType": 0
       },
       {
-         "Name": "public.vaccination_schedule",
+         "Name": "[dbo].[Vaccination_Schedule]",
          "ObjectType": 0
       },
       {
-         "Name": "public.vaccine",
+         "Name": "[dbo].[Vaccine]",
          "ObjectType": 0
       },
       {
-         "Name": "public.vaccinerecord",
+         "Name": "[dbo].[VaccineRecord]",
          "ObjectType": 0
       },
       {
-         "Name": "public.who_growth_standards",
+         "Name": "[dbo].[WHO_Growth_Standards]",
          "ObjectType": 0
       }
    ],

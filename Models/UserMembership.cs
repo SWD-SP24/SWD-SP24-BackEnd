@@ -19,13 +19,13 @@ public partial class UserMembership
 
     public string Status { get; set; }
 
-    public int? Paymenttransactionid { get; set; }
+    public int? PaymentTransactionId { get; set; }
 
     public virtual MembershipPackage MembershipPackage { get; set; }
 
-    public virtual Paymenttransaction Paymenttransaction { get; set; }
+    public virtual PaymentTransaction PaymentTransaction { get; set; }
 
-    public virtual ICollection<Paymenttransaction> Paymenttransactions { get; set; } = new List<Paymenttransaction>();
+    public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
 
     public virtual User User { get; set; }
 }

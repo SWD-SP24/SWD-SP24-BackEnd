@@ -15,5 +15,5 @@ public partial class Tooth
 
     public string Name { get; set; }
 
-    public virtual ICollection<Teethingrecord> Teethingrecords { get; set; } = new List<Teethingrecord>();
+    public virtual ICollection<TeethingRecord> TeethingRecords { get; set; } = new List<TeethingRecord>();
 }

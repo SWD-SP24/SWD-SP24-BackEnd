@@ -43,15 +43,15 @@ namespace SWD392.Controllers
 
             int userId = int.Parse(userIdHeader);
 
-            var query = from t in _context.Paymenttransactions
-                        join p in _context.MembershipPackages on t.Membershippackageid equals p.MembershipPackageId
-                        where t.Userid == userId && t.Paymentid != "FREE"
+            var query = from t in _context.PaymentTransactions
+                        join p in _context.MembershipPackages on t.MembershipPackageId equals p.MembershipPackageId
+                        where t.UserId == userId && t.PaymentId != "FREE"
                         select new PaymentHistoryDTO
                         {
-                            PaymentId = t.Paymentid,
-                            UserId = t.Userid,
+                            PaymentId = t.PaymentId,
+                            UserId = t.UserId,
                             Amount = t.Amount,
-                            TransactionDate = t.Transactiondate,
+                            TransactionDate = t.TransactionDate,
                             Status = t.Status,
                             PreviousMembershipPackageName = t.PreviousMembershipPackageName,
                             MembershipPackage = new GetPackageUserHistoryDTO

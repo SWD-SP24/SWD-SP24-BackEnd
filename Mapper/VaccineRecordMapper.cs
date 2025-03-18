@@ -5,7 +5,7 @@ namespace SWD392.Mapper
 {
     public static class VaccineRecordMapper
     {
-        public static VaccineRecordDto ToDto(Vaccinerecord vaccineRecord)
+        public static VaccineRecordDto ToDto(VaccineRecord vaccineRecord)
         {
             return new VaccineRecordDto
             {

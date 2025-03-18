@@ -60,7 +60,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
-            var query = _context.Vaccinerecords
+            var query = _context.VaccineRecords
                 .Include(vr => vr.Child)
                 .Include(vr => vr.Vaccine)
                 .AsQueryable();
@@ -134,7 +134,7 @@ namespace SWD392.Controllers
                 return NotFound(ApiResponse<object>.Error("Vaccine not found"));
             }
 
-            var lastVaccineRecord = await _context.Vaccinerecords
+            var lastVaccineRecord = await _context.VaccineRecords
                 .Where(vr => vr.ChildId == childId && vr.VaccineId == vaccineId)
                 .OrderByDescending(vr => vr.AdministeredDate)
                 .FirstOrDefaultAsync();
@@ -212,7 +212,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
-            var vaccineRecord = await _context.Vaccinerecords
+            var vaccineRecord = await _context.VaccineRecords
                 .Include(vr => vr.Child)
                 .Include(vr => vr.Vaccine)
                 .FirstOrDefaultAsync(vr => vr.Id == id);
@@ -269,7 +269,7 @@ namespace SWD392.Controllers
                 return Unauthorized(ApiResponse<object>.Error(e.Message));
             }
 
-            var vaccineRecord = await _context.Vaccinerecords
+            var vaccineRecord = await _context.VaccineRecords
                 .Include(vr => vr.Child)
                 .FirstOrDefaultAsync(vr => vr.Id == id);
 
@@ -391,7 +391,7 @@ namespace SWD392.Controllers
             }
 
             // Check for uniqueness
-            var existingRecord = await _context.Vaccinerecords
+            var existingRecord = await _context.VaccineRecords
                 .FirstOrDefaultAsync(vr => vr.ChildId == createDto.ChildId && vr.VaccineId == createDto.VaccineId && vr.Dose == createDto.Dose);
             if (existingRecord != null)
             {
@@ -420,7 +420,7 @@ namespace SWD392.Controllers
                 nextDoseDate = null;
             }
 
-            var vaccineRecord = new Vaccinerecord
+            var vaccineRecord = new VaccineRecord
             {
                 ChildId = createDto.ChildId,
                 VaccineId = createDto.VaccineId,
@@ -429,7 +429,7 @@ namespace SWD392.Controllers
                 NextDoseDate = nextDoseDate
             };
 
-            _context.Vaccinerecords.Add(vaccineRecord);
+            _context.VaccineRecords.Add(vaccineRecord);
             await _context.SaveChangesAsync();
 
             var vaccineRecordDto = VaccineRecordMapper.ToDto(vaccineRecord);
@@ -442,13 +442,13 @@ namespace SWD392.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVaccineRecord(int id)
         {
-            var vaccineRecord = await _context.Vaccinerecords.FindAsync(id);
+            var vaccineRecord = await _context.VaccineRecords.FindAsync(id);
             if (vaccineRecord == null)
             {
                 return NotFound();
             }
 
-            _context.Vaccinerecords.Remove(vaccineRecord);
+            _context.VaccineRecords.Remove(vaccineRecord);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -456,7 +456,7 @@ namespace SWD392.Controllers
 
         private bool VaccineRecordExists(int id)
         {
-            return _context.Vaccinerecords.Any(e => e.Id == id);
+            return _context.VaccineRecords.Any(e => e.Id == id);
         }
 
         private async Task<User> ValidateJwtToken(string authHeader)
