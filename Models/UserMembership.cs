@@ -28,4 +28,6 @@ public partial class UserMembership
     public virtual ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
 
     public virtual User User { get; set; }
+
+    public virtual ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
 }

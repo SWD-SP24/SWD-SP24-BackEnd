@@ -13,5 +13,7 @@ public partial class Permission
 
     public string Description { get; set; }
 
+    public virtual ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
+
     public virtual ICollection<MembershipPackage> MembershipPackages { get; set; } = new List<MembershipPackage>();
 }

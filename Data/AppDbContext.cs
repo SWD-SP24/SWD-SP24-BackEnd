@@ -31,6 +31,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<GrowthIndicator> GrowthIndicators { get; set; }
 
     public virtual DbSet<MembershipPackage> MembershipPackages { get; set; }
+    
 
     public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; }
 
@@ -46,6 +47,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<UserMembership> UserMemberships { get; set; }
 
+    public virtual DbSet<UserPermission> UserPermissions { get; set; }
+
     public virtual DbSet<VaccinationSchedule> VaccinationSchedules { get; set; }
 
     public virtual DbSet<Vaccine> Vaccines { get; set; }
@@ -58,7 +61,7 @@ public partial class AppDbContext : DbContext
     {
         modelBuilder.Entity<BlogContent>(entity =>
         {
-            entity.HasKey(e => e.BlogContentId).HasName("PK__blog_con__48384C34A3327340");
+            entity.HasKey(e => e.BlogContentId).HasName("PK__blog_con__48384C344FCBFEDD");
 
             entity.ToTable("blog_contents");
 
@@ -105,7 +108,7 @@ public partial class AppDbContext : DbContext
                         .HasConstraintName("FK_blog_categories_blog_contents"),
                     j =>
                     {
-                        j.HasKey("BlogContentId", "CategoryId").HasName("PK__blog_cat__156CA2AF782AAD32");
+                        j.HasKey("BlogContentId", "CategoryId").HasName("PK__blog_cat__156CA2AFD5135A45");
                         j.ToTable("blog_categories");
                         j.IndexerProperty<int>("BlogContentId").HasColumnName("blog_content_id");
                         j.IndexerProperty<int>("CategoryId").HasColumnName("category_id");
@@ -114,7 +117,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__categori__D54EE9B4817B7B8E");
+            entity.HasKey(e => e.CategoryId).HasName("PK__categori__D54EE9B412E5A3B9");
 
             entity.ToTable("categories");
 
@@ -127,7 +130,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Child>(entity =>
         {
-            entity.HasKey(e => e.ChildrenId).HasName("PK__children__1DAECF184C05A406");
+            entity.HasKey(e => e.ChildrenId).HasName("PK__children__1DAECF1880D3B6FC");
 
             entity.ToTable("children");
 
@@ -170,7 +173,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<ConsultationNote>(entity =>
         {
-            entity.HasKey(e => e.ConsultationNoteId).HasName("PK__consulta__C46F4A40970C4D0A");
+            entity.HasKey(e => e.ConsultationNoteId).HasName("PK__consulta__C46F4A40016E09BD");
 
             entity.ToTable("consultation_notes");
 
@@ -204,7 +207,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<DeviationAnalysis>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Deviatio__3213E83FC16EC804");
+            entity.HasKey(e => e.Id).HasName("PK__Deviatio__3213E83F5C2DDF93");
 
             entity.ToTable("Deviation_Analysis");
 
@@ -224,7 +227,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Faq>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__FAQ__3213E83FE06A7ED9");
+            entity.HasKey(e => e.Id).HasName("PK__FAQ__3213E83F0857EC5D");
 
             entity.ToTable("FAQ");
 
@@ -239,7 +242,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.FeedbackId).HasName("PK__feedback__7A6B2B8C74EADDA7");
+            entity.HasKey(e => e.FeedbackId).HasName("PK__feedback__7A6B2B8CFF4C8A75");
 
             entity.ToTable("feedbacks");
 
@@ -256,7 +259,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<GrowthIndicator>(entity =>
         {
-            entity.HasKey(e => e.GrowthIndicatorsId).HasName("PK__growth_i__C307B7437A4AA91E");
+            entity.HasKey(e => e.GrowthIndicatorsId).HasName("PK__growth_i__C307B7437FF9C78C");
 
             entity.ToTable("growth_indicators");
 
@@ -284,11 +287,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<MembershipPackage>(entity =>
         {
-            entity.HasKey(e => e.MembershipPackageId).HasName("PK__membersh__3BA5AAD97C0D6FD7");
+            entity.HasKey(e => e.MembershipPackageId).HasName("PK__membersh__3BA5AAD98403307C");
 
             entity.ToTable("membership_packages");
 
-            entity.HasIndex(e => e.MembershipPackageName, "UQ__membersh__53772C874013342B").IsUnique();
+            entity.HasIndex(e => e.MembershipPackageName, "UQ__membersh__53772C8775EA8977").IsUnique();
 
             entity.Property(e => e.MembershipPackageId).HasColumnName("membership_package_id");
             entity.Property(e => e.AdminId).HasColumnName("admin_id");
@@ -328,7 +331,7 @@ public partial class AppDbContext : DbContext
                         .HasConstraintName("FK_package_permissions_membership_packages"),
                     j =>
                     {
-                        j.HasKey("MembershipPackageId", "PermissionId").HasName("PK__package___85F69B763CC20AF4");
+                        j.HasKey("MembershipPackageId", "PermissionId").HasName("PK__package___85F69B76D7320F3B");
                         j.ToTable("package_permissions");
                         j.IndexerProperty<int>("MembershipPackageId").HasColumnName("membership_package_id");
                         j.IndexerProperty<int>("PermissionId").HasColumnName("permission_id");
@@ -337,10 +340,13 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<PaymentTransaction>(entity =>
         {
-            entity.HasKey(e => e.PaymentTransactionId).HasName("PK__PaymentT__C22AEFE0E18374EF");
+            entity.HasKey(e => e.PaymentTransactionId).HasName("PK__PaymentT__C22AEFE076188076");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)");
             entity.Property(e => e.PaymentId).HasMaxLength(100);
+            entity.Property(e => e.PaymentLink)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.PreviousMembershipPackageName)
                 .HasMaxLength(255)
                 .HasColumnName("previous_membership_package_name");
@@ -369,11 +375,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Permission>(entity =>
         {
-            entity.HasKey(e => e.PermissionId).HasName("PK__permissi__E5331AFAD595B20C");
+            entity.HasKey(e => e.PermissionId).HasName("PK__permissi__E5331AFAFCE3C191");
 
             entity.ToTable("permissions");
 
-            entity.HasIndex(e => e.PermissionName, "UQ__permissi__81C0F5A21417339D").IsUnique();
+            entity.HasIndex(e => e.PermissionName, "UQ__permissi__81C0F5A2DE2D5A0E").IsUnique();
 
             entity.Property(e => e.PermissionId).HasColumnName("permission_id");
             entity.Property(e => e.Description).HasColumnName("description");
@@ -385,7 +391,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Reply>(entity =>
         {
-            entity.HasKey(e => e.ReplyId).HasName("PK__replies__EE4056986D8641F7");
+            entity.HasKey(e => e.ReplyId).HasName("PK__replies__EE405698E74BA4D5");
 
             entity.ToTable("replies");
 
@@ -409,7 +415,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<TeethingRecord>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Teething__3213E83F89BA25B3");
+            entity.HasKey(e => e.Id).HasName("PK__Teething__3213E83F674041BE");
 
             entity.ToTable("TeethingRecord");
 
@@ -440,7 +446,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Tooth>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tooth__3213E83F4A8E5A78");
+            entity.HasKey(e => e.Id).HasName("PK__Tooth__3213E83FD354FD81");
 
             entity.ToTable("Tooth");
 
@@ -454,11 +460,11 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370F2B6B6F2D");
+            entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370F3A7685AD");
 
             entity.ToTable("users");
 
-            entity.HasIndex(e => e.Email, "UQ__users__AB6E61646FAACD67").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__users__AB6E6164277C3DEB").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.Address)
@@ -534,7 +540,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<UserMembership>(entity =>
         {
-            entity.HasKey(e => e.UserMembershipId).HasName("PK__user_mem__E37A2534F17C5475");
+            entity.HasKey(e => e.UserMembershipId).HasName("PK__user_mem__E37A2534D5777319");
 
             entity.ToTable("user_memberships");
 
@@ -568,9 +574,36 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK_user_memberships_users");
         });
 
+        modelBuilder.Entity<UserPermission>(entity =>
+        {
+            entity.HasKey(e => e.UserPermissionId).HasName("PK__user_per__D98F4819FC01C0C2");
+
+            entity.ToTable("user_permissions");
+
+            entity.Property(e => e.UserPermissionId).HasColumnName("user_permission_id");
+            entity.Property(e => e.PermissionDescription)
+                .IsRequired()
+                .HasMaxLength(500)
+                .HasColumnName("permission_description");
+            entity.Property(e => e.PermissionId).HasColumnName("permission_id");
+            entity.Property(e => e.PermissionName)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasColumnName("permission_name");
+            entity.Property(e => e.UserMembershipId).HasColumnName("user_membership_id");
+
+            entity.HasOne(d => d.Permission).WithMany(p => p.UserPermissions)
+                .HasForeignKey(d => d.PermissionId)
+                .HasConstraintName("FK__user_perm__permi__114A936A");
+
+            entity.HasOne(d => d.UserMembership).WithMany(p => p.UserPermissions)
+                .HasForeignKey(d => d.UserMembershipId)
+                .HasConstraintName("FK__user_perm__user___10566F31");
+        });
+
         modelBuilder.Entity<VaccinationSchedule>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Vaccinat__3213E83F0FE4AC80");
+            entity.HasKey(e => e.Id).HasName("PK__Vaccinat__3213E83F841BF46D");
 
             entity.ToTable("Vaccination_Schedule");
 
@@ -585,7 +618,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<Vaccine>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Vaccine__3213E83FC3F49185");
+            entity.HasKey(e => e.Id).HasName("PK__Vaccine__3213E83FC0E2AC26");
 
             entity.ToTable("Vaccine");
 
@@ -601,7 +634,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<VaccineRecord>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__VaccineR__3213E83F57FA7FF1");
+            entity.HasKey(e => e.Id).HasName("PK__VaccineR__3213E83FB8A9F4FB");
 
             entity.ToTable("VaccineRecord");
 
@@ -629,7 +662,7 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<WhoGrowthStandard>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__WHO_Grow__3213E83FA5AB4478");
+            entity.HasKey(e => e.Id).HasName("PK__WHO_Grow__3213E83F8CABBD37");
 
             entity.ToTable("WHO_Growth_Standards");
 

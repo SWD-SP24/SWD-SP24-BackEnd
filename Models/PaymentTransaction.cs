@@ -25,6 +25,8 @@ public partial class PaymentTransaction
 
     public int? UserMembershipId { get; set; }
 
+    public string PaymentLink { get; set; }
+
     public virtual MembershipPackage MembershipPackage { get; set; }
 
     public virtual User User { get; set; }

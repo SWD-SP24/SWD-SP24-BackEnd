@@ -83,6 +83,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[user_permissions]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[users]",
          "ObjectType": 0
       },
@@ -116,7 +120,6 @@
    "UseHandleBars": false,
    "UseHierarchyId": false,
    "UseInflector": true,
-   "UseInternalAccessModifiersForSprocsAndFunctions": false,
    "UseLegacyPluralizer": false,
    "UseManyToManyEntity": false,
    "UseNoDefaultConstructor": false,

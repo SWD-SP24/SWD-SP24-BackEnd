@@ -226,6 +226,22 @@ namespace SWD392.Controllers
                 return Unauthorized(new { message = "Invalid token" });
             }
 
+            // 🔍 Kiểm tra giao dịch "pending" gần nhất của user
+            var lastPendingTransaction = await _context.PaymentTransactions
+                .Where(pt => pt.UserId == userId && pt.Status == "pending")
+                .OrderByDescending(pt => pt.TransactionDate) // Lấy giao dịch gần nhất
+                .FirstOrDefaultAsync();
+
+            if (lastPendingTransaction != null && !string.IsNullOrEmpty(lastPendingTransaction.PaymentLink))
+            {
+                // Nếu có giao dịch "pending", trả về ngay link đó mà không tạo giao dịch mới
+                return Ok(new
+                {
+                    message = "Bạn đã có một giao dịch đang chờ thanh toán.",
+                    pendingUrl = lastPendingTransaction.PaymentLink,
+                    transactionId = lastPendingTransaction.PaymentTransactionId
+                });
+            }
             // Lấy gói đăng ký cần mua
             var requestedPackage = await _context.MembershipPackages
                 .AsNoTracking()
@@ -325,8 +341,8 @@ namespace SWD392.Controllers
         },
                 redirect_urls = new RedirectUrls
                 {
-                    return_url = $"https://swd39220250217220816.azurewebsites.net/api/PayPal/execute-payment?idMbPackage={request.IdPackage}&paymentType={request.PaymentType}&validityDays={validityDays}",
-                    cancel_url = "https://swd39220250217220816.azurewebsites.net/api/PayPal/cancel-payment"
+                    return_url = $"https://localhost:7067/api/PayPal/execute-payment?idMbPackage={request.IdPackage}&paymentType={request.PaymentType}&validityDays={validityDays}",
+                    cancel_url = "https://localhost:7067/api/PayPal/cancel-payment"
                 }
             };
 
@@ -340,14 +356,20 @@ namespace SWD392.Controllers
                 await _context.SaveChangesAsync();
 
                 var approvalUrl = createdPayment.links
-                    .FirstOrDefault(link => link.rel.Equals("approval_url", StringComparison.OrdinalIgnoreCase))?.href;
+     .FirstOrDefault(link => link.rel.Equals("approval_url", StringComparison.OrdinalIgnoreCase))?.href;
 
                 if (approvalUrl == null)
                 {
                     return BadRequest(new { message = "Không tìm thấy URL phê duyệt từ PayPal." });
                 }
 
+                // ✅ Lưu PaymentLink vào database
+                paymentTransaction.PaymentLink = approvalUrl;
+                _context.PaymentTransactions.Update(paymentTransaction);
+                await _context.SaveChangesAsync();
+
                 return Ok(new { link = approvalUrl, transactionId = paymentTransaction.PaymentTransactionId });
+
             }
             catch (PayPalException ex)
             {
