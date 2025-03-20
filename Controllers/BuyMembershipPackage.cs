@@ -236,10 +236,15 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Package not found" });
             }
             // 🔍 Kiểm tra giao dịch "pending" gần nhất của user
+            var twentyFourHoursAgo = DateTime.UtcNow.AddHours(-24);
+
             var lastPendingTransaction = await _context.PaymentTransactions
-     .Where(pt => pt.UserId == userId && pt.Status == "pending")
-     .OrderByDescending(pt => pt.TransactionDate) // Lấy giao dịch gần nhất
-     .FirstOrDefaultAsync();
+                .Where(pt => pt.UserId == userId
+                    && pt.Status == "pending"
+                    && pt.TransactionDate >= twentyFourHoursAgo) // Lọc trong vòng 24h
+                .OrderByDescending(pt => pt.TransactionDate) // Lấy giao dịch gần nhất
+                .FirstOrDefaultAsync();
+
             if (lastPendingTransaction != null)
             {
                 // Xác định giá của gói vừa chọn (theo loại thanh toán)
