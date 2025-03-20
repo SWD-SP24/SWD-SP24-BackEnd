@@ -227,17 +227,27 @@ namespace SWD392.Controllers
             }
 
             // 🔍 Kiểm tra giao dịch "pending" gần nhất của user
+            
+            var requestedPackage = await _context.MembershipPackages
+               .AsNoTracking()
+               .FirstOrDefaultAsync(x => x.MembershipPackageId == request.IdPackage);
+            if (requestedPackage == null)
+            {
+                return BadRequest(new { message = "Package not found" });
+            }
             // 🔍 Kiểm tra giao dịch "pending" gần nhất của user
             var lastPendingTransaction = await _context.PaymentTransactions
-                .Where(pt => pt.UserId == userId && pt.Status == "pending")
-                .OrderByDescending(pt => pt.TransactionDate) // Lấy giao dịch gần nhất
-                .FirstOrDefaultAsync();
-
+     .Where(pt => pt.UserId == userId && pt.Status == "pending")
+     .OrderByDescending(pt => pt.TransactionDate) // Lấy giao dịch gần nhất
+     .FirstOrDefaultAsync();
             if (lastPendingTransaction != null)
             {
-                if (lastPendingTransaction.MembershipPackageId == request.IdPackage)
+                // Xác định giá của gói vừa chọn (theo loại thanh toán)
+                decimal selectedPackagePrice = request.PaymentType == "yearly" ? requestedPackage.YearlyPrice : requestedPackage.Price;
+
+                if (lastPendingTransaction.MembershipPackageId == request.IdPackage && lastPendingTransaction.Amount == selectedPackagePrice)
                 {
-                    // Nếu gói trùng với giao dịch pending, trả về link cũ
+                    // Nếu cùng gói và cùng giá, trả về link cũ
                     return Ok(new
                     {
                         message = "Bạn đã có một giao dịch đang chờ thanh toán.",
@@ -247,7 +257,7 @@ namespace SWD392.Controllers
                 }
                 else
                 {
-                    // Nếu chọn gói khác, chỉ báo có giao dịch pending
+                    // Nếu chọn gói khác hoặc giá khác, chỉ báo có giao dịch pending
                     return BadRequest(new
                     {
                         message = "Bạn đã có một giao dịch đang chờ thanh toán.",
@@ -256,15 +266,11 @@ namespace SWD392.Controllers
                 }
             }
 
-            // Lấy gói đăng ký cần mua
-            var requestedPackage = await _context.MembershipPackages
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.MembershipPackageId == request.IdPackage);
 
-            if (requestedPackage == null)
-            {
-                return BadRequest(new { message = "Package not found" });
-            }
+            // Lấy gói đăng ký cần mua
+           
+
+            
 
             // Xác định giá gói theo loại thanh toán
             int validityDays = request.PaymentType == "yearly" ? 365 : requestedPackage.ValidityPeriod;
