@@ -138,19 +138,25 @@ namespace SWD392.Controllers
             var pendingTransactions = await _context.PaymentTransactions
                 .Where(pt => pt.UserId == userId && pt.Status == "pending" && pt.TransactionDate >= twentyFourHoursAgo)
                 .OrderByDescending(pt => pt.TransactionDate)
-                .Select(pt => new PendingPaymentDTO
-                {
-                    PaymentTransactionId = pt.PaymentTransactionId,
-                    PaymentId = pt.PaymentId,
-                    UserId = pt.UserId,
-                    MembershipPackageId = pt.MembershipPackageId,
-                    Amount = pt.Amount,
-                    TransactionDate = pt.TransactionDate,
-                    Status = pt.Status,
-                    PreviousMembershipPackageName = pt.PreviousMembershipPackageName,
-                    UserMembershipId = pt.UserMembershipId,
-                    PaymentLink = pt.PaymentLink
-                })
+                .Join(_context.MembershipPackages, // 🔍 Join để lấy thông tin gói MembershipPackage
+                    pt => pt.MembershipPackageId,
+                    mp => mp.MembershipPackageId,
+                    (pt, mp) => new PendingPaymentDTO
+                    {
+                        PaymentTransactionId = pt.PaymentTransactionId,
+                        PaymentId = pt.PaymentId,
+                        UserId = pt.UserId,
+                        MembershipPackageId = pt.MembershipPackageId,
+                        Amount = pt.Amount,
+                        TransactionDate = pt.TransactionDate,
+                        Status = pt.Status,
+                        PreviousMembershipPackageName = pt.PreviousMembershipPackageName,
+                        UserMembershipId = pt.UserMembershipId,
+                        PaymentLink = pt.PaymentLink,
+
+                        // 🔹 Xác định gói tháng hay gói năm
+                        PaymentType = pt.Amount == mp.YearlyPrice ? "yearly" : "monthly"
+                    })
                 .ToListAsync();
 
             if (!pendingTransactions.Any())
@@ -160,6 +166,7 @@ namespace SWD392.Controllers
 
             return Ok(pendingTransactions);
         }
+
     }
     /*// GET: api/PaymentTransactions/5
     [HttpGet("{id}")]
