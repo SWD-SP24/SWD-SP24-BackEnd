@@ -87,83 +87,106 @@ namespace SWD392.Controllers
         }
 
 
-
-
-        /*// GET: api/PaymentTransactions/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<PaymentTransaction>> GetPaymentTransaction(int id)
+        [Authorize(Roles = "member")]
+        [HttpPatch("Cancel")]
+        public async Task<IActionResult> CancelPaymentTransaction([FromBody] CancelPaymentDTO request)
         {
-            var paymentTransaction = await _context.PaymentTransactions.FindAsync(id);
-
-            if (paymentTransaction == null)
+            if (request == null || request.PaymentTransactionId <= 0)
             {
-                return NotFound();
+                return BadRequest(new { message = "Invalid PaymentTransactionId" });
             }
 
-            return paymentTransaction;
-        }
+            // Tìm giao dịch theo ID
+            var transaction = await _context.PaymentTransactions
+                .FirstOrDefaultAsync(pt => pt.PaymentTransactionId == request.PaymentTransactionId);
 
-        // PUT: api/PaymentTransactions/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutPaymentTransaction(int id, PaymentTransaction paymentTransaction)
-        {
-            if (id != paymentTransaction.PaymentTransactionId)
+            if (transaction == null)
             {
-                return BadRequest();
+                return NotFound(new { message = "Payment transaction not found" });
             }
 
-            _context.Entry(paymentTransaction).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PaymentTransactionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/PaymentTransactions
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<PaymentTransaction>> PostPaymentTransaction(PaymentTransaction paymentTransaction)
-        {
-            _context.PaymentTransactions.Add(paymentTransaction);
+            // Cập nhật trạng thái thành 'cancel'
+            transaction.Status = "cancel";
+            _context.PaymentTransactions.Update(transaction);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetPaymentTransaction", new { id = paymentTransaction.PaymentTransactionId }, paymentTransaction);
+            return Ok(new { message = "Transaction canceled successfully" });
         }
-
-        // DELETE: api/PaymentTransactions/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePaymentTransaction(int id)
-        {
-            var paymentTransaction = await _context.PaymentTransactions.FindAsync(id);
-            if (paymentTransaction == null)
-            {
-                return NotFound();
-            }
-
-            _context.PaymentTransactions.Remove(paymentTransaction);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool PaymentTransactionExists(int id)
-        {
-            return _context.PaymentTransactions.Any(e => e.PaymentTransactionId == id);
-        }*/
     }
+    /*// GET: api/PaymentTransactions/5
+    [HttpGet("{id}")]
+    public async Task<ActionResult<PaymentTransaction>> GetPaymentTransaction(int id)
+    {
+        var paymentTransaction = await _context.PaymentTransactions.FindAsync(id);
+
+        if (paymentTransaction == null)
+        {
+            return NotFound();
+        }
+
+        return paymentTransaction;
+    }
+
+    // PUT: api/PaymentTransactions/5
+    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPut("{id}")]
+    public async Task<IActionResult> PutPaymentTransaction(int id, PaymentTransaction paymentTransaction)
+    {
+        if (id != paymentTransaction.PaymentTransactionId)
+        {
+            return BadRequest();
+        }
+
+        _context.Entry(paymentTransaction).State = EntityState.Modified;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!PaymentTransactionExists(id))
+            {
+                return NotFound();
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        return NoContent();
+    }
+
+    // POST: api/PaymentTransactions
+    // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPost]
+    public async Task<ActionResult<PaymentTransaction>> PostPaymentTransaction(PaymentTransaction paymentTransaction)
+    {
+        _context.PaymentTransactions.Add(paymentTransaction);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction("GetPaymentTransaction", new { id = paymentTransaction.PaymentTransactionId }, paymentTransaction);
+    }
+
+    // DELETE: api/PaymentTransactions/5
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeletePaymentTransaction(int id)
+    {
+        var paymentTransaction = await _context.PaymentTransactions.FindAsync(id);
+        if (paymentTransaction == null)
+        {
+            return NotFound();
+        }
+
+        _context.PaymentTransactions.Remove(paymentTransaction);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    private bool PaymentTransactionExists(int id)
+    {
+        return _context.PaymentTransactions.Any(e => e.PaymentTransactionId == id);
+    }*/
 }

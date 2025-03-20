@@ -227,21 +227,35 @@ namespace SWD392.Controllers
             }
 
             // 🔍 Kiểm tra giao dịch "pending" gần nhất của user
+            // 🔍 Kiểm tra giao dịch "pending" gần nhất của user
             var lastPendingTransaction = await _context.PaymentTransactions
                 .Where(pt => pt.UserId == userId && pt.Status == "pending")
                 .OrderByDescending(pt => pt.TransactionDate) // Lấy giao dịch gần nhất
                 .FirstOrDefaultAsync();
 
-            if (lastPendingTransaction != null && !string.IsNullOrEmpty(lastPendingTransaction.PaymentLink))
+            if (lastPendingTransaction != null)
             {
-                // Nếu có giao dịch "pending", trả về ngay link đó mà không tạo giao dịch mới
-                return Ok(new
+                if (lastPendingTransaction.MembershipPackageId == request.IdPackage)
                 {
-                    message = "Bạn đã có một giao dịch đang chờ thanh toán.",
-                    pendingUrl = lastPendingTransaction.PaymentLink,
-                    transactionId = lastPendingTransaction.PaymentTransactionId
-                });
+                    // Nếu gói trùng với giao dịch pending, trả về link cũ
+                    return Ok(new
+                    {
+                        message = "Bạn đã có một giao dịch đang chờ thanh toán.",
+                        pendingUrl = lastPendingTransaction.PaymentLink,
+                        transactionId = lastPendingTransaction.PaymentTransactionId
+                    });
+                }
+                else
+                {
+                    // Nếu chọn gói khác, chỉ báo có giao dịch pending
+                    return BadRequest(new
+                    {
+                        message = "Bạn đã có một giao dịch đang chờ thanh toán."
+                        transactionId = lastPendingTransaction.PaymentTransactionId
+                    });
+                }
             }
+
             // Lấy gói đăng ký cần mua
             var requestedPackage = await _context.MembershipPackages
                 .AsNoTracking()
