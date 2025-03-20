@@ -398,7 +398,9 @@ namespace SWD392.Controllers
 
             await _context.SaveChangesAsync();
 
-           
+            await _context.PaymentTransactions
+        .Where(pt => pt.Status == "pending")
+        .ExecuteUpdateAsync(setters => setters.SetProperty(pt => pt.Status, "cancel"));
             var resultDto = new GetMembershipPackageDTO
             {
                 MembershipPackageId = package.MembershipPackageId,
