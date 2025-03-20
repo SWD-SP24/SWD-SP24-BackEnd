@@ -250,7 +250,7 @@ namespace SWD392.Controllers
                     // Nếu chọn gói khác, chỉ báo có giao dịch pending
                     return BadRequest(new
                     {
-                        message = "Bạn đã có một giao dịch đang chờ thanh toán."
+                        message = "Bạn đã có một giao dịch đang chờ thanh toán.",
                         transactionId = lastPendingTransaction.PaymentTransactionId
                     });
                 }

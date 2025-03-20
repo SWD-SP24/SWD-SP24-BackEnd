@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -111,6 +112,53 @@ namespace SWD392.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Transaction canceled successfully" });
+        }
+        [Authorize(Roles = "member")]
+        [HttpGet("PendingTransactions")]
+        public async Task<IActionResult> GetUserRecentPendingTransactions()
+        {
+            var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader))
+            {
+                return Unauthorized(new { message = "Authorization header missing" });
+            }
+
+            var handler = new JwtSecurityTokenHandler();
+            var header = System.Net.Http.Headers.AuthenticationHeaderValue.Parse(authHeader);
+            var token = handler.ReadJwtToken(header.Parameter);
+            var rawId = token.Claims.FirstOrDefault(claim => claim.Type == "id")?.Value;
+
+            if (string.IsNullOrEmpty(rawId) || !int.TryParse(rawId, out int userId))
+            {
+                return Unauthorized(new { message = "Invalid token" });
+            }
+
+            DateTime twentyFourHoursAgo = DateTime.UtcNow.AddHours(-24);
+
+            var pendingTransactions = await _context.PaymentTransactions
+                .Where(pt => pt.UserId == userId && pt.Status == "pending" && pt.TransactionDate >= twentyFourHoursAgo)
+                .OrderByDescending(pt => pt.TransactionDate)
+                .Select(pt => new PendingPaymentDTO
+                {
+                    PaymentTransactionId = pt.PaymentTransactionId,
+                    PaymentId = pt.PaymentId,
+                    UserId = pt.UserId,
+                    MembershipPackageId = pt.MembershipPackageId,
+                    Amount = pt.Amount,
+                    TransactionDate = pt.TransactionDate,
+                    Status = pt.Status,
+                    PreviousMembershipPackageName = pt.PreviousMembershipPackageName,
+                    UserMembershipId = pt.UserMembershipId,
+                    PaymentLink = pt.PaymentLink
+                })
+                .ToListAsync();
+
+            if (!pendingTransactions.Any())
+            {
+                return NotFound(new { message = "No pending transactions in the last 24 hours." });
+            }
+
+            return Ok(pendingTransactions);
         }
     }
     /*// GET: api/PaymentTransactions/5
