@@ -21,6 +21,10 @@ public partial class UserMembership
 
     public int? PaymentTransactionId { get; set; }
 
+    public decimal PriceAtPurchase { get; set; }
+
+    public decimal YearlyPriceAtPurchase { get; set; }
+
     public virtual MembershipPackage MembershipPackage { get; set; }
 
     public virtual PaymentTransaction PaymentTransaction { get; set; }

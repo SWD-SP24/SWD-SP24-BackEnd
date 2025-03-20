@@ -37,10 +37,10 @@ namespace SWD392.Controllers
                 return Unauthorized("User not authenticated");
             }
 
+            // 🔍 Lấy gói hiện tại của user
             var userMembership = await _context.UserMemberships
                 .Where(um => um.UserId == userId && um.Status == "Active")
                 .Include(um => um.MembershipPackage)
-                .ThenInclude(mp => mp.Permissions)
                 .OrderByDescending(um => um.StartDate) // Lấy gói mới nhất
                 .FirstOrDefaultAsync();
 
@@ -48,6 +48,17 @@ namespace SWD392.Controllers
             {
                 return NotFound("No active membership found.");
             }
+
+            // 🔍 Lấy quyền của user từ bảng `UserPermission`
+            var userPermissions = await _context.UserPermissions
+                .Where(up => up.UserMembershipId == userMembership.UserMembershipId)
+                .Select(up => new PermissionDTO
+                {
+                    PermissionId = up.PermissionId,
+                    PermissionName = up.PermissionName,
+                    Description = up.PermissionDescription
+                })
+                .ToListAsync();
 
             return Ok(new GetCurrentPackageDTO
             {
@@ -58,16 +69,11 @@ namespace SWD392.Controllers
                 {
                     MembershipPackageId = userMembership.MembershipPackage.MembershipPackageId,
                     MembershipPackageName = userMembership.MembershipPackage.MembershipPackageName,
-                    Price = userMembership.MembershipPackage.Price,
+                    Price = userMembership.PriceAtPurchase,
                     ValidityPeriod = userMembership.MembershipPackage.ValidityPeriod,
-                    YearlyPrice = userMembership.MembershipPackage.YearlyPrice,
+                    YearlyPrice = userMembership.YearlyPriceAtPurchase,
                     Image = userMembership.MembershipPackage.Image,
-                    Permissions = userMembership.MembershipPackage.Permissions.Select(p => new PermissionDTO
-                    {
-                        PermissionId = p.PermissionId,
-                        PermissionName = p.PermissionName,
-                        Description = p.Description
-                    }).ToList()
+                    Permissions = userPermissions // ✅ Hiển thị quyền từ `UserPermission`
                 }
             });
         }

@@ -117,10 +117,7 @@ namespace SWD392.Controllers
                         decimal requestedPrice = paymentType.ToLower() == "yearly" ? requestedPackage.YearlyPrice : requestedPackage.Price;
                         decimal currentMonthlyPrice = currentPackage.Price;
                         decimal requestedMonthlyPrice = requestedPackage.Price;
-                        if (requestedMonthlyPrice < currentMonthlyPrice)
-                        {
-                            return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
-                        }
+                       
 
                         var remainingTime = currentMembership.EndDate - DateTime.UtcNow;
                         remainingDays = remainingTime.HasValue ? (int)remainingTime.Value.TotalDays : 0;

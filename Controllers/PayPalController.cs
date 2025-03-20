@@ -166,7 +166,9 @@ namespace SWD392.Controllers
                                     StartDate = DateTime.UtcNow,
                                     EndDate = DateTime.UtcNow.AddDays(validityDays),
                                     Status = "active",
-                                    PaymentTransactionId = paymentTransaction.PaymentTransactionId
+                                    PaymentTransactionId = paymentTransaction.PaymentTransactionId,
+                                     PriceAtPurchase = membershipPackage.Price,
+                                    YearlyPriceAtPurchase = membershipPackage.YearlyPrice
                                 };
                                 _Context.UserMemberships.Add(newMembership);
                             }

@@ -31,7 +31,6 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<GrowthIndicator> GrowthIndicators { get; set; }
 
     public virtual DbSet<MembershipPackage> MembershipPackages { get; set; }
-    
 
     public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; }
 
@@ -549,6 +548,7 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("end_date");
             entity.Property(e => e.MembershipPackageId).HasColumnName("membership_package_id");
+            entity.Property(e => e.PriceAtPurchase).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.StartDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
@@ -558,6 +558,7 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("status");
             entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.YearlyPriceAtPurchase).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.MembershipPackage).WithMany(p => p.UserMemberships)
                 .HasForeignKey(d => d.MembershipPackageId)
