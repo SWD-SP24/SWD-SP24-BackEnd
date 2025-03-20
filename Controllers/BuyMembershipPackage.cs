@@ -73,7 +73,6 @@ namespace SWD392.Controllers
                 return BadRequest(new { message = "Package not found" });
             }
 
-            // Nếu gói 0 đồng, bỏ qua luôn
             if (requestedPackage.Price == 0 && requestedPackage.YearlyPrice == 0)
             {
                 return BadRequest(new { message = "Gói miễn phí không thể đặt hàng." });
@@ -88,45 +87,50 @@ namespace SWD392.Controllers
             int remainingDays = 0;
             int additionalDays = 0;
             string PreviousMembershipPackageName = string.Empty;
-            decimal currentPrice = 0;
+            decimal currentPriceAtPurchase = 0;
 
             MembershipPackage currentPackage = null;
+            List<PermissionDTO> userPermissions = new();
 
             if (currentMembership != null)
             {
                 currentPackage = await _context.MembershipPackages
-                    .Include(p => p.Permissions)
                     .FirstOrDefaultAsync(x => x.MembershipPackageId == currentMembership.MembershipPackageId);
 
                 if (currentPackage != null)
                 {
-                    var paymentTransactionId = currentMembership?.PaymentTransactionId;
+                    PreviousMembershipPackageName = currentPackage.MembershipPackageName;
 
-                    if (paymentTransactionId != null)
-                    {
-                        var transaction = await _context.PaymentTransactions
-                            .FirstOrDefaultAsync(t => t.PaymentTransactionId == paymentTransactionId);
+                    // ✅ Lấy giá đã mua từ UserMembership
+                    currentPriceAtPurchase = paymentType.ToLower() == "yearly"
+                        ? currentMembership.YearlyPriceAtPurchase
+                        : currentMembership.PriceAtPurchase;
 
-                        if (transaction != null)
+                    // ✅ Lấy danh sách quyền từ UserPermission
+                    userPermissions = await _context.UserPermissions
+                        .Where(up => up.UserMembershipId == currentMembership.UserMembershipId)
+                        .Select(up => new PermissionDTO
                         {
-                            currentPrice = transaction.Amount;
-                        }
-                    }
-                    if (currentPrice > 0)
+                            PermissionId = up.PermissionId,
+                            PermissionName = up.PermissionName,
+                            Description = up.PermissionDescription
+                        })
+                        .ToListAsync();
+
+                    if (currentPriceAtPurchase > 0)
                     {
                         decimal requestedPrice = paymentType.ToLower() == "yearly" ? requestedPackage.YearlyPrice : requestedPackage.Price;
-                        decimal currentMonthlyPrice = currentPackage.Price;
+                        decimal currentMonthlyPrice = currentPriceAtPurchase;
                         decimal requestedMonthlyPrice = requestedPackage.Price;
-                       
 
                         var remainingTime = currentMembership.EndDate - DateTime.UtcNow;
                         remainingDays = remainingTime.HasValue ? (int)remainingTime.Value.TotalDays : 0;
 
                         additionalDays = requestedPrice > 0 ? (int)((remainingDays * currentMonthlyPrice) / requestedMonthlyPrice) : 0;
 
-                        if (remainingDays > 0 && currentPrice > 0)
+                        if (remainingDays > 0 && currentPriceAtPurchase > 0)
                         {
-                            decimal pricePerDay = currentPrice > 100 ? currentPrice / 365 : currentPrice / 30;
+                            decimal pricePerDay = currentPriceAtPurchase > 100 ? currentPriceAtPurchase / 365 : currentPriceAtPurchase / 30;
                             remainingPrice = Math.Round(pricePerDay * remainingDays, 2);
                         }
 
@@ -170,33 +174,33 @@ namespace SWD392.Controllers
                         Description = p.Description
                     }).ToList()
                 },
+
+                // ✅ Cập nhật phần hiển thị CurrentMembershipPackage
                 CurrentMembershipPackage = currentPackage != null ? new OrderDetail2DTO
                 {
                     MembershipPackageId = currentPackage.MembershipPackageId,
                     MembershipPackageName = currentPackage.MembershipPackageName,
-                    Price = currentPackage.Price,
-                    YearlyPrice = currentPackage.YearlyPrice,
-                    PercentDiscount = currentPackage.Price > 0
-                        ? (int)Math.Round(100 - ((currentPackage.YearlyPrice / (currentPackage.Price * 12)) * 100), 2)
+                    Price = currentMembership.PriceAtPurchase,
+                    YearlyPrice = currentMembership.YearlyPriceAtPurchase,
+                    PercentDiscount = currentMembership.PriceAtPurchase > 0
+                        ? (int)Math.Round(100 - ((currentMembership.YearlyPriceAtPurchase / (currentMembership.PriceAtPurchase * 12)) * 100), 2)
                         : 0,
                     Status = currentPackage.Status,
                     ValidityPeriod = currentPackage.ValidityPeriod,
-                    SavingPerMonth = Math.Round(currentPackage.Price > 0
-                        ? currentPackage.Price - (currentPackage.YearlyPrice / 12)
+                    SavingPerMonth = Math.Round(currentMembership.PriceAtPurchase > 0
+                        ? currentMembership.PriceAtPurchase - (currentMembership.YearlyPriceAtPurchase / 12)
                         : 0, 2),
                     Image = currentPackage.Image,
                     Summary = currentPackage.Summary,
-                    Permissions = currentPackage.Permissions.Select(p => new PermissionDTO
-                    {
-                        PermissionId = p.PermissionId,
-                        PermissionName = p.PermissionName,
-                        Description = p.Description
-                    }).ToList()
+
+                    // ✅ Lấy quyền từ bảng UserPermission
+                    Permissions = userPermissions
                 } : null
             };
 
             return Ok(orderDetail);
         }
+
 
 
 
@@ -290,42 +294,46 @@ namespace SWD392.Controllers
                     .Where(x => x.MembershipPackageId == currentMembership.MembershipPackageId)
                     .FirstOrDefaultAsync();
 
-                if (packagePrice > (request.PaymentType == "yearly" ? currentPackage.YearlyPrice : currentPackage.Price))
+                // 🔹 Lấy giá lúc user mua gói từ bảng UserMemberships
+                decimal currentPackagePrice = request.PaymentType == "yearly"
+                    ? (currentMembership.YearlyPriceAtPurchase )
+                    : (currentMembership.PriceAtPurchase );
+
+                if (packagePrice > currentPackagePrice) // 🔹 Chỉ cộng ngày nếu gói mới có giá cao hơn
                 {
                     previousPackageName = currentPackage.MembershipPackageName;
 
                     // Tính số ngày còn dư của gói cũ
                     DateTime now = DateTime.UtcNow;
-                    TimeSpan remainingTime = (currentMembership.EndDate ?? now) - now; // Chuyển từ nullable thành TimeSpan
+                    TimeSpan remainingTime = (currentMembership.EndDate ?? now) - now;
                     int remainingDays = Math.Max(0, remainingTime.Days); // Đảm bảo số ngày không âm
 
                     if (remainingDays > 0)
                     {
-                        // Giá của gói cũ
-                        decimal currentPackagePrice = request.PaymentType == "yearly" ? currentPackage.YearlyPrice : currentPackage.Price;
                         int currentPackageDays = request.PaymentType == "yearly" ? 365 : currentPackage.ValidityPeriod;
 
-                        // Giá trị mỗi ngày của gói cũ
+                        // 🔹 Giá trị mỗi ngày của gói cũ (lấy từ user_memberships)
                         decimal dailyRateOld = currentPackagePrice / currentPackageDays;
 
-                        // Tổng giá trị còn lại
+                        // 🔹 Tổng giá trị còn lại
                         decimal remainingValue = remainingDays * dailyRateOld;
 
-                        // Giá trị mỗi ngày của gói mới
+                        // 🔹 Giá trị mỗi ngày của gói mới
                         decimal dailyRateNew = packagePrice / validityDays;
 
-                        // Số ngày cộng vào gói mới
+                        // 🔹 Số ngày cộng vào gói mới
                         int extraDays = (int)(remainingValue / dailyRateNew);
 
-                        // Cộng thêm số ngày vào thời hạn gói mới
+                        // 🔹 Cộng thêm số ngày vào thời hạn gói mới
                         validityDays += extraDays;
                     }
                 }
             }
 
-            
 
-            
+
+
+
             // Tạo transaction thanh toán
             var paymentTransaction = new PaymentTransaction
             {
