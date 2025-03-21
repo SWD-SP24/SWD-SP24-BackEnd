@@ -73,7 +73,7 @@ namespace SWD392.Controllers
                     ValidityPeriod = userMembership.MembershipPackage.ValidityPeriod,
                     YearlyPrice = userMembership.YearlyPriceAtPurchase,
                     Image = userMembership.MembershipPackage.Image,
-                    Permissions = userPermissions // ✅ Hiển thị quyền từ `UserPermission`
+                    Permissions = userPermissions 
                 }
             });
         }
