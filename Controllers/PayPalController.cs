@@ -214,7 +214,7 @@ namespace SWD392.Controllers
 
                         _Context.SaveChanges(); // Lưu toàn bộ dữ liệu
 
-                        return Redirect($"https://growplus.hungngblog.com/upgrade-plan/confirm?paymentId={paymentId}");
+                        return Redirect($"https://localhost:3000/upgrade-plan/confirm?paymentId={paymentId}");
                     }
                     catch (Exception ex)
                     {
