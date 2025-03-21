@@ -12,6 +12,6 @@
         public decimal YearlyPrice { get; set; }
         public int? PercentDiscount { get; set; }
         public int ValidityPeriod { get; set; }
-        public virtual ICollection<PermissionDTO> Permissions { get; set; } = new List<PermissionDTO>();
+        public List<PermissionDTO> Permissions { get; set; }
     }
 }

@@ -22,97 +22,131 @@ namespace SWD392.Controllers
                 return Unauthorized(new { message = "Invalid token" });
             }
 
-            // Xác định gói miễn phí (điều kiện: gói có id = 1)
+            // Xác định gói miễn phí (ID = 1)
             int idPackage = 1;
             var requestedPackage = await _context.MembershipPackages
+                .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.MembershipPackageId == idPackage);
+
             if (requestedPackage == null)
             {
                 return BadRequest(new { message = "Package not found" });
             }
-            // Kiểm tra nếu gói này không miễn phí thì không xử lý qua API này
+
             if (requestedPackage.Price != 0)
             {
                 return BadRequest(new { message = "Gói này không miễn phí." });
             }
 
-            // Kiểm tra xem người dùng đã có membership active hay chưa
+            // Kiểm tra membership hiện tại của user
             var currentMembership = await _context.UserMemberships
                 .FirstOrDefaultAsync(um => um.UserId == userId && um.EndDate > DateTime.UtcNow);
 
-            // Nếu đã có gói hiện tại và gói mới (id=1) có thứ tự thấp hơn gói hiện tại thì không cho mua
             if (currentMembership != null && idPackage < currentMembership.MembershipPackageId)
             {
                 return BadRequest(new { message = "Bạn không thể mua gói thấp hơn gói hiện tại." });
             }
 
-            // Tạo một PaymentTransaction mới với Amount = 0 và Status là "success" (vì không cần thanh toán)
+            // Tạo giao dịch thanh toán với giá trị 0
             var paymentTransaction = new PaymentTransaction
             {
                 UserId = userId,
                 MembershipPackageId = idPackage,
                 Amount = requestedPackage.Price,
                 TransactionDate = DateTime.UtcNow,
-                Status = "success",  // tự động thành công
-                PaymentId = "FREE"   // đánh dấu là giao dịch miễn phí
+                Status = "success",
+                PaymentId = "FREE"
             };
 
             _context.PaymentTransactions.Add(paymentTransaction);
             await _context.SaveChangesAsync();
 
-            // Xử lý việc gia hạn hoặc tạo mới UserMembership dựa trên tình trạng hiện tại
+            // Lưu thông tin giá gói
+            decimal priceAtPurchase = requestedPackage.Price;
+            decimal yearlyPriceAtPurchase = requestedPackage.YearlyPrice;
+            DateTime startDate = DateTime.UtcNow;
+            DateTime endDate = startDate.AddDays(requestedPackage.ValidityPeriod);
+
+            UserMembership newMembership;
+
             if (currentMembership != null)
             {
                 if (currentMembership.MembershipPackageId == idPackage)
                 {
-                    // Gia hạn gói hiện tại: cộng thêm số ngày theo ValidityPeriod
+                    // Gia hạn gói miễn phí
                     currentMembership.EndDate = currentMembership.EndDate.Value.AddDays(requestedPackage.ValidityPeriod);
                     _context.UserMemberships.Update(currentMembership);
+                    newMembership = currentMembership;
                 }
                 else
                 {
-                    // Trường hợp nâng cấp hoặc chuyển gói:
-                    // Đánh dấu gói hiện tại hết hạn và tạo mới gói đăng ký
+                    // Hủy gói cũ, tạo mới gói miễn phí
                     currentMembership.EndDate = DateTime.UtcNow;
                     currentMembership.Status = "expired";
                     _context.UserMemberships.Update(currentMembership);
 
-                    var newMembership = new UserMembership
+                    newMembership = new UserMembership
                     {
                         UserId = userId,
                         MembershipPackageId = idPackage,
-                        StartDate = DateTime.UtcNow,
-                        EndDate = DateTime.UtcNow.AddDays(requestedPackage.ValidityPeriod),
+                        StartDate = startDate,
+                        EndDate = endDate,
                         Status = "active",
-                        PaymentTransactionId = paymentTransaction.PaymentTransactionId
+                        PaymentTransactionId = paymentTransaction.PaymentTransactionId,
+                        PriceAtPurchase = priceAtPurchase,
+                        YearlyPriceAtPurchase = yearlyPriceAtPurchase
                     };
                     _context.UserMemberships.Add(newMembership);
                 }
             }
             else
             {
-                // Nếu người dùng chưa có membership active thì tạo mới
-                var newMembership = new UserMembership
+                // Nếu user chưa có membership → tạo mới
+                newMembership = new UserMembership
                 {
                     UserId = userId,
                     MembershipPackageId = idPackage,
-                    StartDate = DateTime.UtcNow,
-                    EndDate = DateTime.UtcNow.AddDays(requestedPackage.ValidityPeriod),
+                    StartDate = startDate,
+                    EndDate = endDate,
                     Status = "active",
-                    PaymentTransactionId = paymentTransaction.PaymentTransactionId
+                    PaymentTransactionId = paymentTransaction.PaymentTransactionId,
+                    PriceAtPurchase = priceAtPurchase,
+                    YearlyPriceAtPurchase = yearlyPriceAtPurchase
                 };
                 _context.UserMemberships.Add(newMembership);
             }
 
-            // Cập nhật MembershipPackageId cho người dùng
+            await _context.SaveChangesAsync();
+
+            // **🚀 Lưu quyền vào UserPermissions**
+            var permissions = await _context.Permissions
+                .FromSqlRaw(@"SELECT p.* FROM Permissions p 
+                              JOIN package_permissions pp ON p.permission_id = pp.permission_id
+                              WHERE pp.membership_package_id = {0}", idPackage)
+                .ToListAsync();
+
+            if (permissions.Any())
+            {
+                var userPermissions = permissions.Select(p => new UserPermission
+                {
+                    UserMembershipId = newMembership.UserMembershipId,
+                    PermissionId = p.PermissionId,
+                    PermissionName = p.PermissionName,
+                    PermissionDescription = p.Description
+                }).ToList();
+
+                _context.UserPermissions.AddRange(userPermissions);
+                await _context.SaveChangesAsync();
+            }
+
+            // Cập nhật MembershipPackageId cho user
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
             if (user != null)
             {
                 user.MembershipPackageId = idPackage;
                 _context.Users.Update(user);
+                await _context.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
 
             return Ok(new { message = "Mua gói miễn phí thành công", transactionId = paymentTransaction.PaymentTransactionId });
         }
