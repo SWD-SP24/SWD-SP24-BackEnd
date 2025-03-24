@@ -49,6 +49,7 @@ namespace SWD392.Controllers
                         where t.UserId == userId && t.PaymentId != "FREE"
                         select new PaymentHistoryDTO
                         {
+                            PaymentTransactionId = t.PaymentTransactionId,
                             PaymentId = t.PaymentId,
                             UserId = t.UserId,
                             Amount = t.Amount,

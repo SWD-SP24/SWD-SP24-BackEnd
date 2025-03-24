@@ -5,6 +5,9 @@ namespace SWD392.DTOs.PaymentTransactionDTO
 {
     public class PaymentHistoryDTO
     {
+
+        public int PaymentTransactionId { get; set; }
+
         public string PaymentId { get; set; }
         public int UserId { get; set; }
         public string PreviousMembershipPackageName { get; set; }
