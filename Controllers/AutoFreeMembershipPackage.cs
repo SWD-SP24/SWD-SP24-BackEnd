@@ -119,25 +119,41 @@ namespace SWD392.Controllers
             await _context.SaveChangesAsync();
 
             // **🚀 Lưu quyền vào UserPermissions**
+            // Lấy danh sách quyền của gói membership mới
             var permissions = await _context.Permissions
                 .FromSqlRaw(@"SELECT p.* FROM Permissions p 
-                              JOIN package_permissions pp ON p.permission_id = pp.permission_id
-                              WHERE pp.membership_package_id = {0}", idPackage)
+                  JOIN package_permissions pp ON p.permission_id = pp.permission_id
+                  WHERE pp.membership_package_id = {0}", idPackage)
                 .ToListAsync();
 
             if (permissions.Any())
             {
-                var userPermissions = permissions.Select(p => new UserPermission
-                {
-                    UserMembershipId = newMembership.UserMembershipId,
-                    PermissionId = p.PermissionId,
-                    PermissionName = p.PermissionName,
-                    PermissionDescription = p.Description
-                }).ToList();
+                // Lấy danh sách quyền hiện có của người dùng
+                var existingUserPermissions = await _context.UserPermissions
+                    .Where(up => up.UserMembershipId == newMembership.UserMembershipId)
+                    .Select(up => up.PermissionId)
+                    .ToListAsync();
 
-                _context.UserPermissions.AddRange(userPermissions);
-                await _context.SaveChangesAsync();
+                // Lọc ra các quyền chưa có trong UserPermissions
+                var newPermissions = permissions
+                    .Where(p => !existingUserPermissions.Contains(p.PermissionId))
+                    .Select(p => new UserPermission
+                    {
+                        UserMembershipId = newMembership.UserMembershipId,
+                        PermissionId = p.PermissionId,
+                        PermissionName = p.PermissionName,
+                        PermissionDescription = p.Description
+                    })
+                    .ToList();
+
+                // Chỉ thêm quyền nếu có quyền mới
+                if (newPermissions.Any())
+                {
+                    _context.UserPermissions.AddRange(newPermissions);
+                    await _context.SaveChangesAsync();
+                }
             }
+
 
             // Cập nhật MembershipPackageId cho user
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId == userId);
