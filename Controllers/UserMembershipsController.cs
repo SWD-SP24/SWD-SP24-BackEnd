@@ -73,6 +73,7 @@ namespace SWD392.Controllers
                     ValidityPeriod = userMembership.MembershipPackage.ValidityPeriod,
                     YearlyPrice = userMembership.YearlyPriceAtPurchase,
                     Image = userMembership.MembershipPackage.Image,
+                    Summary = userMembership.MembershipPackage.Summary,
                     Permissions = userPermissions 
                 }
             });
